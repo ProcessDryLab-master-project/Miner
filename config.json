@@ -1,0 +1,13 @@
+{
+    "functionName": "Miner",
+    "Params": [
+        {
+            "name": "some_name1",
+            "type": "some_type1" 
+        },
+        {
+            "name": "some_name2",
+            "type": "some_type2" 
+        }
+    ]
+}
