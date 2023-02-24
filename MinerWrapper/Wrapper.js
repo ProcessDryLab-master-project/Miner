@@ -4,7 +4,7 @@ export default function runMiner(args = {}){
 
 function miner(){
     const spawn = require("child_process").spawn;
-    const logPath = "C:/Users/sebas/source/repos/PDL/MinerNode/Resources/Logs/running-example.xes";
+    const logPath = "../PythonMiner/example-log.xes";
     const pnmlPath = "C:/Users/sebas/source/repos/PDL/MinerNode/Resources/PNML/running-example.pnml";
     const imgPath = "C:/Users/sebas/source/repos/PDL/MinerNode/Resources/Images/running-example.png";
     // const pythonProcess = spawn('python',["C:/Users/sebas/source/repos/PDL/PythonMiner/main.py", imgPath, pnmlPath, logPath]);
