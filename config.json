@@ -1,6 +1,6 @@
 {
-    "functionName": "Miner",
-    "params": [
+    "type": "Miner",
+    "parameters": [
         {
             "name": "some_name1",
             "type": "some_type1" 

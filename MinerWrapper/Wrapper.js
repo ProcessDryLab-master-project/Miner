@@ -1,5 +1,3 @@
-
-
 export default function runMiner(args = {}){
     return `runMiner says hello ${args}`;
 }

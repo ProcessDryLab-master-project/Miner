@@ -16,6 +16,7 @@ export default function initEndpoints(app){
     });
 
     app.get('/configurations', function(req, res){
+        console.log("Getting a request on /configurations");
         const file = fs.readFileSync(configPath);
         const json = JSON.parse(file);
         res.send(json);
