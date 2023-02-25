@@ -1,0 +1,6 @@
+{
+  "Request": "https://localhost:4000/resources/running-example.xes",
+  "RepositoryPath": "https://localhost:4000/resources/",
+  "FileToRun": "running-example.xes",
+  "params": {}
+}

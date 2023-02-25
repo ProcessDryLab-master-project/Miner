@@ -1,5 +1,9 @@
 import fetch from 'node-fetch';
-// import fs from 'fs';
+import https from 'https';
+import fs from 'fs';
+const agent = new https.Agent({
+    rejectUnauthorized: false
+  });
 
 export function getResource(destination, resourceType, resourceName){
     const data = {
@@ -22,3 +26,14 @@ export function getResource(destination, resourceType, resourceName){
         console.error('Error:', error);
     });
 }
+
+export const downloadFile = (async (url, filePath) => {
+    // let filePath = './Uploads';
+    const res = await fetch(url, {agent});
+    const fileStream = fs.createWriteStream(filePath);
+    await new Promise((resolve, reject) => {
+        res.body.pipe(fileStream);
+        res.body.on("error", reject);
+        fileStream.on("finish", resolve);
+      });
+  });

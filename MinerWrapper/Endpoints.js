@@ -1,12 +1,11 @@
-
 import Wrapper from './Wrapper.js';
-// import fetch from 'node-fetch';
 const port = 5000;
 const configPath = '../config.json';
 import fs from 'fs';
-import {getResource} from './Requests.js';
+import {getResource, downloadFile} from './Requests.js';
 
 export default function initEndpoints(app){
+
     app.get('/', function(req, res){
         res.send('Default page');
     });
@@ -22,15 +21,15 @@ export default function initEndpoints(app){
         res.send(json);
     });
 
-    app.post('/Miner', function(req, res){ // needs testing to confirm if it works.
-        const file = fs.readFileSync(configPath);
-        const json = JSON.parse(file);
-        const params = json.params;
-        const result = Wrapper(params);
-
-        //Remove linecomment when connecting with repository
-        //const resource = getResource(req.path, req.type, req.name); 
-
+    app.post('/miner', function(req, res){ // needs testing to confirm if it works.
+        let body = req.body;
+        console.log("Body: " + body);
+        let resourceURL = body.resource;
+        console.log("URL: " + resourceURL);
+        
+        let filePath = './Downloads/running-example.xes';
+        downloadFile(resourceURL, filePath);
+        let result = Wrapper(filePath);
         res.send(result);
     });
 
