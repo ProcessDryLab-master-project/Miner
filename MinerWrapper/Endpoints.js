@@ -10,7 +10,7 @@ export default function initEndpoints(app){
         res.send('Default page');
     });
 
-    app.get('/Ping', function(req, res){
+    app.get('/api/v1/system/ping', function(req, res){
         res.send('Pong');
     });
 
