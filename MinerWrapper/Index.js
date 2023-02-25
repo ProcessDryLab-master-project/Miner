@@ -1,8 +1,11 @@
 import express from 'express';
+import cors from 'cors';
 const app = express()
 import Endpoints from './Endpoints.js';
 import bodyParser from 'body-parser';
 
+// Allow cors
+app.use(cors())
 // create application/json parser
 app.use(bodyParser.json());
 // parse various different custom JSON types as JSON
