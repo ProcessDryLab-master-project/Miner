@@ -1,10 +1,11 @@
-import express from "express";
-const app = express();
-import Endpoints from "./Endpoints.js";
-import bodyParser from "body-parser";
-// import xmlParser from "express-xml-bodyparser";
+import express from 'express';
+import cors from 'cors';
+const app = express()
+import Endpoints from './Endpoints.js';
+import bodyParser from 'body-parser';
 
-// app.use(xmlParser());
+// Allow cors
+app.use(cors())
 // create application/json parser
 app.use(bodyParser.json());
 // parse various different custom JSON types as JSON

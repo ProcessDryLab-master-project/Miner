@@ -18,7 +18,9 @@ export default function initEndpoints(app) {
   app.get("/Ping", function (req, res) {
     res.send("Pong");
   });
-
+  app.get('/api/v1/system/ping', function(req, res){
+      res.send('pong');
+  });
   app.get("/configurations", function (req, res) {
     console.log("Getting a request on /configurations");
     const file = fs.readFileSync(configPath);
