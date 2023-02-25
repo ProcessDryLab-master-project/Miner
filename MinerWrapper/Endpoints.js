@@ -11,7 +11,7 @@ export default function initEndpoints(app){
     });
 
     app.get('/api/v1/system/ping', function(req, res){
-        res.send('Pong');
+        res.send('pong');
     });
 
     app.get('/configurations', function(req, res){
