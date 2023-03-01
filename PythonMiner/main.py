@@ -7,7 +7,7 @@ from pm4py.visualization.petri_net import visualizer as pn_visualizer
 from pm4py.objects.log.importer.xes import importer as xes_importer
 from pm4py.objects.petri_net.importer import importer as pnml_importer
 # from pm4py.visualization.common.save import save as saver
-import graphviz # https://pypi.org/project/graphviz/
+import graphviz  # https://pypi.org/project/graphviz/
 
 
 # Run this script with this command:
@@ -15,13 +15,12 @@ import graphviz # https://pypi.org/project/graphviz/
 dir_path = os.path.dirname(os.path.realpath(__file__))
 print("Directory path: " + dir_path)
 if __name__ == "__main__":
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         arg1 = sys.argv[1]
         print("File: ", arg1)
-        
+
         log = xes_importer.apply(arg1)
         net, initialMarking, finalMarking = alphaMiner.apply(log)
-
 
         imagePath = os.path.join(dir_path, "running-example.png")
         pnmlPath = os.path.join(dir_path, "running-example.pnml")
@@ -29,17 +28,8 @@ if __name__ == "__main__":
         # output = pm4py.write.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print("pnml output:\n", output)
 
-        gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
-        pn_visualizer.save(gviz, imagePath)
-
-
-
-
-
-
-
-
-
+        # gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
+        # pn_visualizer.save(gviz, imagePath)
 
 
 # if __name__ == "__main__":
@@ -50,14 +40,14 @@ if __name__ == "__main__":
 #         print("pnmlPath from C#: ", pnmlPath)
 #         logPath = os.path.join(dir_path, sys.argv[3])
 #         print("logPath from C#: ", logPath)
-        
+
 #         # imagePath = sys.argv[1]
 #         # print("imagePath from C#: ", imagePath)
 #         # pnmlPath = sys.argv[2]
 #         # print("pnmlPath from C#: ", pnmlPath)
 #         # logPath = sys.argv[3]
 #         # print("logPath from C#: ", logPath)
-        
+
 #         log = xes_importer.apply(logPath)
 #         net, initialMarking, finalMarking = alphaMiner.apply(log)
 #         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
@@ -66,7 +56,6 @@ if __name__ == "__main__":
 
 #         gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
 #         pn_visualizer.save(gviz, imagePath)
-
 
     # def saveImage(petriNet, initialMarking, finalMarking, imgName):
     #         gviz = pn_visualizer.apply(petriNet, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
@@ -84,7 +73,7 @@ if __name__ == "__main__":
 
     # def readFile():
     #     with open(logPath) as file:
-    #         data = file.read()    
+    #         data = file.read()
     #     print("file contents:\n", data)
 
 # Commands:

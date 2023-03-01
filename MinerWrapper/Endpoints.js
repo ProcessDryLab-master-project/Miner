@@ -1,25 +1,44 @@
-import Wrapper from './Wrapper.js';
+import Wrapper from "./Wrapper.js";
 const port = 5000;
-const configPath = '../config.json';
-import fs from 'fs';
-import {getResource, downloadFile} from './Requests.js';
+const configPath = "../config.json";
+import fs from "fs";
+import {
+  getResource,
+  downloadFile,
+  sendResource,
+  sendFile,
+} from "./Requests.js";
+import path from "path";
 
-export default function initEndpoints(app){
+export default function initEndpoints(app) {
+  app.get("/", function (req, res) {
+    res.send("Default page");
+  });
 
-    app.get('/', function(req, res){
-        res.send('Default page');
-    });
+  app.get("/Ping", function (req, res) {
+    res.send("Pong");
+  });
+  app.get('/api/v1/system/ping', function(req, res){
+      res.send('pong');
+  });
+  app.get("/configurations", function (req, res) {
+    console.log("Getting a request on /configurations");
+    const file = fs.readFileSync(configPath);
+    const json = JSON.parse(file);
+    res.send(json);
+  });
 
-    app.get('/api/v1/system/ping', function(req, res){
-        res.send('pong');
-    });
+//   app.post("/miner", function (req, res) {
+//     let body = req.body;
+//     console.log("Body: " + body);
+//     const fileURL = new URL(
+//       path.join(body.endpoint, body.file),
+//       body.location
+//     ).toString();
+//     console.log("URL: " + fileURL);
 
-    app.get('/configurations', function(req, res){
-        console.log("Getting a request on /configurations");
-        const file = fs.readFileSync(configPath);
-        const json = JSON.parse(file);
-        res.send(json);
-    });
+//     let filePath = "./Downloads/running-example.xes";
+//     downloadFile(fileURL, filePath);
 
     app.get('/api/v1/miners', function(req, res){
         console.log("Getting a request on /api/v1/miners");
@@ -66,19 +85,27 @@ export default function initEndpoints(app){
         res.send(test_res_andreas_structure);
     });
 
-    app.post('/miner', function(req, res){ // needs testing to confirm if it works.
-        let body = req.body;
-        console.log("Body: " + body);
-        let resourceURL = body.resource;
-        console.log("URL: " + resourceURL);
+    // app.post('/miner', function(req, res){ // needs testing to confirm if it works.
+    //     let body = req.body;
+    //     console.log("Body: " + body);
+    //     let resourceURL = body.resource;
+    //     console.log("URL: " + resourceURL);
         
-        let filePath = './Downloads/running-example.xes';
-        downloadFile(resourceURL, filePath);
-        let result = Wrapper(filePath);
-        res.send(result);
-    });
+    //     let filePath = './Downloads/running-example.xes';
+    //     downloadFile(resourceURL, filePath);
+    //     let result = Wrapper(filePath);
+    //     res.send(result);
+    // });
+	
+//     let result = Wrapper(filePath);
 
-    app.listen(port, () => {
-        console.log(`Example app listening on port ${port}`)
-    })
+//     const resourceURL = new URL(body.endpoint, body.location).toString();
+//     console.log("URL: " + resourceURL);
+//     sendFile(resourceURL, result);
+//     res.send(result);
+//   });
+
+  app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+  });
 }
