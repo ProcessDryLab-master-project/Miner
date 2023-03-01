@@ -21,6 +21,51 @@ export default function initEndpoints(app){
         res.send(json);
     });
 
+    app.get('/api/v1/miners', function(req, res){
+        console.log("Getting a request on /api/v1/miners");
+
+        const test_res_andreas_structure = 
+            [
+                {
+                    "id":"8a30afb5-f94b-40ab-a20f-f33d20e7cc0e",
+                    "name":"Palia Miner",
+                    "input":{ 
+                        "Source file": {
+                            "name":"XES",
+                            "description":"An XES file",
+                            "visualizations":[
+                                {
+                                    "id":"description",
+                                    "name":"Log description",
+                                    "type":"html"
+                                },
+                                {
+                                    "id":"dfg",
+                                    "name":"Directly Follows Graph",
+                                    "type":"graphviz"
+                                }
+                            ]
+                        }
+                    },
+                    "parameters":[],
+                    "output":[
+                        {
+                            "name":"BPMN",
+                            "description":"A BPMN model",
+                            "visualizations":[
+                                {
+                                    "id":"model",
+                                    "name":"BPMN Diagram",
+                                    "type":"graphviz"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ];
+        res.send(test_res_andreas_structure);
+    });
+
     app.post('/miner', function(req, res){ // needs testing to confirm if it works.
         let body = req.body;
         console.log("Body: " + body);
