@@ -25,6 +25,8 @@ export default async function runMiner(fileSavePath, fileName, fileType) {
 
   await once.once(pythonProcess, 'close')
 
+  // When reading path, we need to remove whitespace. Probably won't need when output should be the file directly.
+  output = output.trim();
   return output;
 
 

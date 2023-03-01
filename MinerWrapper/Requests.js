@@ -19,7 +19,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 };
 
 export const sendResourceToRepo = async (repositoryPath, minerResult, fileName) => {
-  const filePath = `./PythonMiner/running-example.pnml`;
+  const filePath = minerResult;
   const formdata = new FormData();
   const stats = fs.statSync(filePath);
   const fileSizeInBytes = stats.size;
@@ -33,7 +33,7 @@ export const sendResourceToRepo = async (repositoryPath, minerResult, fileName) 
     redirect: 'follow'
   };
 
-  fetch("https://localhost:4000/api/v1/resources/", requestOptions)
+  fetch(repositoryPath, requestOptions)
     .then(response => response.text())
     .then(result => console.log(result))
     .catch(error => console.log('error', error));

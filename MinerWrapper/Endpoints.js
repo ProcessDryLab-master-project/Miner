@@ -4,26 +4,22 @@ const configPath = "../config.json";
 import fs from "fs";
 import {getResourceFromRepo, sendResourceToRepo} from "./Requests.js";
 
-var endpointStart = "/api/v1/system";
+var endpointStart = "/api/v1";
 export default function initEndpoints(app) {
   app.get("/", function (req, res) {
     res.send("Default page");
   });
-
-  app.get("/ping", function (req, res) {
-    res.send("pong");
-  });
-  app.get(`${endpointStart}/ping`, function(req, res){
+  app.get(`${endpointStart}/system/ping`, function(req, res){
       res.send('pong');
   });
-  app.get("/configurations", function (req, res) {
+  app.get(`${endpointStart}/configurations`, function (req, res) {
     console.log("Getting a request on /configurations");
     const file = fs.readFileSync(configPath);
     const json = JSON.parse(file);
     res.send(json);
   });
 
-  app.post("/miner", async function (req, res) {
+  app.post(`${endpointStart}/miner`, async function (req, res) {
     let body = req.body;
     let repositoryPath = body.repositoryPath;
     let fileName = body.fileName;
@@ -47,7 +43,7 @@ export default function initEndpoints(app) {
     res.sendStatus(200);
   });
   
-  app.get('/api/v1/miners', function(req, res){
+  app.get(`${endpointStart}/miners`, function(req, res){
     console.log("Getting a request on /api/v1/miners");
 
     const test_res_andreas_structure = 
