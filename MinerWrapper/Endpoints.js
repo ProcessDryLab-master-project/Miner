@@ -66,7 +66,18 @@ export default function initEndpoints(app) {
                             ]
                         }
                     },
-                    "parameters":[],
+                    "parameters":[
+                        {
+                            name: "param1",
+                            type: "DOUBLE",
+                            default: 0.1,
+                        },
+                        {
+                            name: "param2",
+                            type: "STRING",
+                            default: "Hello world",
+                        }
+                    ],
                     "output":[
                         {
                             "name":"BPMN",
