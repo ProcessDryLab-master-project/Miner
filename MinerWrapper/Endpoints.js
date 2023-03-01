@@ -2,23 +2,18 @@ import Wrapper from "./Wrapper.js";
 const port = 5000;
 const configPath = "../config.json";
 import fs from "fs";
-import {
-  getResource,
-  downloadFile,
-  sendResource,
-  sendFile,
-} from "./Requests.js";
-import path from "path";
+import {getResourceFromRepo, sendResourceToRepo} from "./Requests.js";
 
+var endpointStart = "/api/v1/system";
 export default function initEndpoints(app) {
   app.get("/", function (req, res) {
     res.send("Default page");
   });
 
-  app.get("/Ping", function (req, res) {
-    res.send("Pong");
+  app.get("/ping", function (req, res) {
+    res.send("pong");
   });
-  app.get('/api/v1/system/ping', function(req, res){
+  app.get(`${endpointStart}/ping`, function(req, res){
       res.send('pong');
   });
   app.get("/configurations", function (req, res) {
@@ -28,24 +23,28 @@ export default function initEndpoints(app) {
     res.send(json);
   });
 
-  app.post("/miner", function (req, res) {
+  app.post("/miner", async function (req, res) {
     let body = req.body;
-    console.log("Body: " + body);
-    const fileURL = new URL(
-      path.join(body.endpoint, body.file),
-      body.location
-    ).toString();
-    console.log("URL: " + fileURL);
+    let repositoryPath = body.repositoryPath;
+    let fileName = body.fileName;
+    let fileType = body.fileType;
+    let logName = `${fileName}.${fileType}`
 
-    let filePath = "./Downloads/running-example.xes";
-    downloadFile(fileURL, filePath);
+    const fileURL = new URL(logName, repositoryPath).toString();
+    console.log("\n\n\nURL to get file: " + fileURL);
 
-    let result = Wrapper(filePath);
+    let fileSavePath = `./Downloads/${logName}`;
+    let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
+    console.log(`Repository response: ${repoGetResp}, Log saved to ${fileSavePath}`);
 
-    const resourceURL = new URL(body.endpoint, body.location).toString();
-    console.log("URL: " + resourceURL);
-    sendFile(resourceURL, result);
-    res.send(result);
+    let minerResult = await Wrapper(fileSavePath, fileName, fileType);
+    console.log("Wrapper miner result: " + minerResult);
+
+    console.log("URL to send result: " + repositoryPath);
+    let pnmlFileName = fileName+".pnml";
+    console.log("PNML file name: " + pnmlFileName);
+    let repoPostResp = await sendResourceToRepo(repositoryPath, minerResult, pnmlFileName);
+    res.sendStatus(200);
   });
 
   app.listen(port, () => {

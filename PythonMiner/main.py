@@ -13,20 +13,26 @@ import graphviz  # https://pypi.org/project/graphviz/
 # Run this script with this command:
 # python ./PythonMiner/main.py ./PythonMiner/test.png ./PythonMiner/test.pnml ./PythonMiner/example-log.xes
 dir_path = os.path.dirname(os.path.realpath(__file__))
-print("Directory path: " + dir_path)
+# print("\n\nDirectory path from python: " + dir_path)
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        arg1 = sys.argv[1]
-        print("File: ", arg1)
+        fileSavePath = sys.argv[1]
+        fileName = sys.argv[2]
+        fileType = sys.argv[3]
+        # arg1 = sys.argv[1]
+        # print("fileSavePath: ", fileSavePath)
+        # print("fileName: ", fileName)
+        # print("fileType: ", fileType)
 
-        log = xes_importer.apply(arg1)
+        log = xes_importer.apply(fileSavePath)
         net, initialMarking, finalMarking = alphaMiner.apply(log)
 
-        imagePath = os.path.join(dir_path, "running-example.png")
-        pnmlPath = os.path.join(dir_path, "running-example.pnml")
+        imagePath = os.path.join(dir_path, fileName + ".png")
+        pnmlPath = os.path.join(dir_path, fileName + ".pnml")
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         # output = pm4py.write.write_pnml(net, initialMarking, finalMarking, pnmlPath)
-        print("pnml output:\n", output)
+        print(pnmlPath)
+        # print("pnml output:\n", output)
 
         # gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
         # pn_visualizer.save(gviz, imagePath)

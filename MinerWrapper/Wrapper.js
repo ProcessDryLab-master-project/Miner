@@ -1,30 +1,54 @@
 import spawn from "child_process";
+import once from "events";
 
-export default function runMiner(body) {
+export default async function runMiner(fileSavePath, fileName, fileType) {
   const logPath = "example-log.xes";
   const pnmlPath = "running-example.pnml";
   const imgPath = "running-example.png";
-  const pythonProcess = spawn.spawn("python", ["./PythonMiner/main.py", body]);
+  const pythonProcess = spawn.spawn("python", ["./PythonMiner/main.py", fileSavePath, fileName, fileType]);
+  let output = '';
+  pythonProcess.stdin.setEncoding = 'utf-8';
+
+  pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log('output was generated: ' + output);
+  });
+  // Handle error output
+  pythonProcess.stderr.on('data', (data) => {
+  // As said before, convert the Uint8Array to a readable string.
+      console.log('error:' + data);
+  });
+  pythonProcess.stdout.on('end', async function(code){
+      console.log('output: ' + output);
+      console.log(`Exit code is: ${code}`);
+  });
+
+  await once.once(pythonProcess, 'close')
+
+  return output;
+
 
   // var commandtoRun = "C:/Users/sebas/source/repos/PDL/PythonMiner/dist/main.exe";
   // const pythonProcess = spawn('cmd.exe', ["/c", commandtoRun, imgPath, pnmlPath, logPath])
 
-  return new Promise((resolveFunc) => {
-    pythonProcess.stdout.on("data", (data) => {
-      console.log(data.toString());
-      return "ok: " + data.toString();
-    });
 
-    pythonProcess.stderr.on("data", (data) => {
-      console.log(data.toString());
-      return "ok: " + data.toString();
-    });
 
-    pythonProcess.on("exit", (code) => {
-      resolveFunc(code);
-    });
-  });
-  // return `runMiner says hello ${body.resource}`;
+// OLD WAY WITH PROMISE! 
+  // return new Promise((resolveFunc) => {
+  //   pythonProcess.stdout.on("data", (data) => {
+  //     console.log(data.toString());
+  //     return "ok: " + data.toString();
+  //   });
+
+  //   pythonProcess.stderr.on("data", (data) => {
+  //     console.log(data.toString());
+  //     return "ok: " + data.toString();
+  //   });
+
+  //   pythonProcess.on("exit", (code) => {
+  //     resolveFunc(pythonProcess);
+  //   });
+  // });
 }
 
 function miner() {

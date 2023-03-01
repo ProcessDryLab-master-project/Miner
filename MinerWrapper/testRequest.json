@@ -1,6 +1,7 @@
 {
-  "Request": "https://localhost:4000/resources/running-example.xes",
-  "RepositoryPath": "https://localhost:4000/resources/",
-  "FileToRun": "running-example.xes",
+  "resource": "https://localhost:4000/resources/running-example.xes",
+  "repositoryPath": "https://localhost:4000/api/v1/resources/",
+  "fileName": "running-example",
+  "fileType": "xes",
   "params": {}
 }
