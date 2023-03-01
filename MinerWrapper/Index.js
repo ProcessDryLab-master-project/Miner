@@ -1,8 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-const app = express()
-import Endpoints from './Endpoints.js';
 import bodyParser from 'body-parser';
+const app = express()
 
 // Allow cors
 app.use(cors())
@@ -19,6 +18,7 @@ app.use(bodyParser.text({ type: "text/plain" }));
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true })); // other example said false
 
+import Endpoints from './Endpoints.js';
 function startEndPoints() {
   Endpoints(app);
 }
