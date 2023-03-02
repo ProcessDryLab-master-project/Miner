@@ -80,12 +80,13 @@ export default function initEndpoints(app) {
   app.post(`${endpointStart}/miner`, async function (req, res) {
     let body = await req.body;
     console.log("body: ", body);
-    let repositoryPath = body.repositoryPath;
+    let repositoryInputPath = body.repositoryInputPath;
+    let repositoryOutputPath = body.repositoryOutputPath;
     let fileName = body.fileName;
     let fileType = body.fileType;
     let logName = `${fileName}.${fileType}`
 
-    const fileURL = new URL(logName, repositoryPath).toString();
+    const fileURL = new URL(logName, repositoryInputPath).toString();
     console.log("\n\n\nURL to get file: " + fileURL);
 
     let fileSavePath = `./Downloads/${logName}`;
@@ -95,10 +96,10 @@ export default function initEndpoints(app) {
     let minerResult = await Wrapper(fileSavePath, fileName, fileType);
     console.log("Wrapper miner result: " + minerResult);
 
-    console.log("URL to send result: " + repositoryPath);
+    console.log("URL to send result: " + repositoryOutputPath);
     let pnmlFileName = fileName+".pnml";
     console.log("PNML file name: " + pnmlFileName);
-    let repoPostResp = await sendResourceToRepo(repositoryPath, minerResult, pnmlFileName);
+    let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, pnmlFileName);
     res.sendStatus(200);
   });
 
