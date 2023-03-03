@@ -5,7 +5,8 @@ import fs from "fs";
 import path from "path";
 import {getResourceFromRepo, sendResourceToRepo} from "./Requests.js";
 
-var endpointStart = "/api/v1";
+// var endpointStart = "/api/v1";
+var endpointStart = "";
 export default function initEndpoints(app) {
   app.get("/", function (req, res) {
     res.send("Default page");
@@ -82,25 +83,31 @@ export default function initEndpoints(app) {
     console.log("body: ", body);
     let repositoryInputPath = body.repositoryInputPath;
     let repositoryOutputPath = body.repositoryOutputPath;
-    let fileName = body.fileName;
-    let fileType = body.fileType;
-    let logName = `${fileName}.${fileType}`
+    let incomingFileId = body.fileId; // The id for the file we request from repo
 
-    const fileURL = new URL(logName, repositoryInputPath).toString();
+    // fileId may contain ".", which may save the log in a weird format. 
+    // Therefore we need fileName and fileExtension in the request
+    let fileName = body.fileName;
+    let fileExtension = body.fileExtension;
+    let logName = `${fileName}.${fileExtension}`
+
+    const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
     console.log("\n\n\nURL to get file: " + fileURL);
 
     let fileSavePath = `./Downloads/${logName}`;
     let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
     console.log(`Repository response: ${repoGetResp}, Log saved to ${fileSavePath}`);
 
-    let minerResult = await Wrapper(fileSavePath, fileName, fileType);
+    let minerResult = await Wrapper(fileSavePath, fileName, fileExtension);
     console.log("Wrapper miner result: " + minerResult);
 
     console.log("URL to send result: " + repositoryOutputPath);
     let pnmlFileName = fileName+".pnml";
     console.log("PNML file name: " + pnmlFileName);
-    let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, pnmlFileName);
-    res.sendStatus(200);
+    let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, incomingFileId);
+    console.log("repoPostResp: " + repoPostResp);
+    res.send(repoPostResp);
+    // res.sendStatus(200);
   });
 
 // with how front end works now
@@ -128,7 +135,9 @@ export default function initEndpoints(app) {
     let pnmlFileName = fileName+".pnml";
     console.log("PNML file name: " + pnmlFileName);
     let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, pnmlFileName);
-    res.sendStatus(200);
+    console.log("repoPostResp: " + repoPostResp);
+    res.send(repoGetResp);
+    // res.sendStatus(200);
   });
 
   app.listen(port, () => {

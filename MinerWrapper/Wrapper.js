@@ -1,11 +1,11 @@
 import spawn from "child_process";
 import once from "events";
 
-export default async function runMiner(fileSavePath, fileName, fileType) {
+export default async function runMiner(fileSavePath, fileName, fileExtension) {
   const logPath = "example-log.xes";
   const pnmlPath = "running-example.pnml";
   const imgPath = "running-example.png";
-  const pythonProcess = spawn.spawn("python", ["./PythonMiner/main.py", fileSavePath, fileName, fileType]);
+  const pythonProcess = spawn.spawn("python", ["./PythonMiner/main.py", fileSavePath, fileName, fileExtension]);
   let output = '';
   pythonProcess.stdin.setEncoding = 'utf-8';
 

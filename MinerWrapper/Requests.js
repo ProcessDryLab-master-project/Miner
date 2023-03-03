@@ -18,13 +18,19 @@ export const getResourceFromRepo = async (url, filePath) => {
   });
 };
 
-export const sendResourceToRepo = async (repositoryPath, minerResult, fileName) => {
+export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFileId) => {
   const filePath = minerResult;
+  const nameWithoutExtension = filePath.split('\\').pop().split('/').pop().split('.').pop(); // Removes path and extension from filePath to get file name.
+  const fileExtension = filePath.split('.').pop();
   const formdata = new FormData();
   const stats = fs.statSync(filePath);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(filePath);
   formdata.append('field-name', fileStream, { knownLength: fileSizeInBytes });
+  formdata.append('fileName', nameWithoutExtension);
+  formdata.append('fileType', "Visualization");
+  formdata.append('fileExtension', fileExtension);
+  formdata.append('basedOnId', incomingFileId);
 
   var requestOptions = {
     agent: agent,
