@@ -87,9 +87,8 @@ export default function initEndpoints(app) {
 
     // fileId may contain ".", which may save the log in a weird format. 
     // Therefore we need fileName and fileExtension in the request
-    let fileName = body.fileName;
     let fileExtension = body.fileExtension;
-    let logName = `${fileName}.${fileExtension}`
+    let logName = `${incomingFileId}.${fileExtension}`
 
     const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
     console.log("\n\n\nURL to get file: " + fileURL);
@@ -98,12 +97,10 @@ export default function initEndpoints(app) {
     let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
     console.log(`Repository response: ${repoGetResp}, Log saved to ${fileSavePath}`);
 
-    let minerResult = await Wrapper(fileSavePath, fileName, fileExtension);
+    let minerResult = await Wrapper(fileSavePath, incomingFileId, fileExtension);
     console.log("Wrapper miner result: " + minerResult);
 
     console.log("URL to send result: " + repositoryOutputPath);
-    let pnmlFileName = fileName+".pnml";
-    console.log("PNML file name: " + pnmlFileName);
     let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, incomingFileId);
     console.log("repoPostResp: " + repoPostResp);
     res.send(repoPostResp);

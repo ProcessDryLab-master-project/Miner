@@ -27,7 +27,7 @@ export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFi
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(filePath);
   formdata.append('field-name', fileStream, { knownLength: fileSizeInBytes });
-  formdata.append('fileName', nameWithoutExtension);
+  formdata.append('fileLabel', nameWithoutExtension);
   formdata.append('fileType', "Visualization");
   formdata.append('fileExtension', fileExtension);
   formdata.append('basedOnId', incomingFileId);
