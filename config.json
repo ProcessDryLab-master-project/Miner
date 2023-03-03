@@ -1,13 +1,5 @@
 {
-    "type": "Miner",
-    "parameters": [
-        {
-            "name": "some_name1",
-            "type": "some_type1" 
-        },
-        {
-            "name": "some_name2",
-            "type": "some_type2" 
-        }
-    ]
+  "Label": "PaliaMiner",
+  "Type": "Miner",
+  "Access": "Public"
 }

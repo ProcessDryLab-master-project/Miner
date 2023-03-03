@@ -77,7 +77,6 @@ export default function initEndpoints(app) {
     res.send(test_res_andreas_structure);
   });
 
-  // should just be /miner
   app.post(`${endpointStart}/miner`, async function (req, res) {
     let body = await req.body;
     console.log("body: ", body);
