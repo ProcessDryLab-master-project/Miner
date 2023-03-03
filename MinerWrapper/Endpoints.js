@@ -84,9 +84,6 @@ export default function initEndpoints(app) {
     let repositoryInputPath = body.repositoryInputPath;
     let repositoryOutputPath = body.repositoryOutputPath;
     let incomingFileId = body.fileId; // The id for the file we request from repo
-
-    // fileId may contain ".", which may save the log in a weird format. 
-    // Therefore we need fileName and fileExtension in the request
     let fileExtension = body.fileExtension;
     let logName = `${incomingFileId}.${fileExtension}`
 
