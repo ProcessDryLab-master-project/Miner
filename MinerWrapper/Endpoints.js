@@ -1,6 +1,6 @@
 import Wrapper from "./Wrapper.js";
 const port = 5000;
-const configPath = "../config.json";
+const configPath = "./config.json";
 import fs from "fs";
 import path from "path";
 import {getResourceFromRepo, sendResourceToRepo} from "./Requests.js";
