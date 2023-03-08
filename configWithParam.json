@@ -1,0 +1,11 @@
+{
+  "Label": "PaliaMiner",
+  "Type": "Miner",
+  "Access": "Public",
+  "Parameters": [
+    {
+      "Name": "p1",
+      "Type": "bool"
+    }
+  ]
+}
