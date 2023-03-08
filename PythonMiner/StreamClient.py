@@ -33,7 +33,7 @@ class StreamClient():
 
 		# dotGraph.styleAppend("BLUE", "color", "blue")
 		dotPath = os.path.join(self.dir_path, "testDot.dot")
-		output = dotGraph.dot()
+		# output = dotGraph.dot()
 		# print(output)
 		with open(dotPath, 'wb') as file:
 			pickle.dump(dotGraph.dot(), file)
