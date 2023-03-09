@@ -1,4 +1,7 @@
-# From here: https://adyraj.medium.com/video-streaming-using-python-ed73dc5bcb30
+# stream code from here: https://adyraj.medium.com/video-streaming-using-python-ed73dc5bcb30
+# pygraphviz installation: https://pygraphviz.github.io/documentation/stable/install.html
+# pygraphviz tutorial: https://pygraphviz.github.io/documentation/pygraphviz-1.3rc1/tutorial.html
+# pygraphviz reference: https://pygraphviz.github.io/documentation/pygraphviz-1.3rc1/reference/agraph.html
 import socket
 import cv2
 import pickle
@@ -18,14 +21,12 @@ class StreamClient():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dotPath = os.path.join(dir_path, "testDot.dot")
     pngPath = os.path.join(dir_path, "testDot.png")
-    dotGraph = GvGen()
-    dotGraph.styleAppend("BLUE", "color", "blue")
-    nodeDict = {
-        "START": dotGraph.newItem('START'),
-        "END": dotGraph.newItem('END')
-    }
-    # start = dotGraph.newItem('START')
-    # end = dotGraph.newItem('END')
+
+    dotGraph = pgv.AGraph(name="StreamGraph", strict=True, directed=True)
+    dotGraph.add_node('START')
+    dotGraph.add_node('END')
+    version = 0
+    versionCopy = version
 
     def startConnection(self):
         # create socket
@@ -34,36 +35,15 @@ class StreamClient():
         host_ip = '172.18.16.1'  # paste your server ip address here
         port = 9999
         client_socket.connect((host_ip, port))  # a tuple
-        boolTrue = False
+        boolTrue = True
         numUpper = 1
         numLower = 1
         numA = 1
-        # dotGraph = GvGen()
-        # dotGraph.styleAppend("BLUE", "color", "blue")
-        # start = dotGraph.newItem('START')
-        # end = dotGraph.newItem('END')
-        # a = dotGraph.newItem("A")
-        # upper = dotGraph.newItem("UPPER")
-        # lower = dotGraph.newItem("LOWER")
-        # dotGraph.newLink(start, a)
-        # dotGraph.newLink(start, upper)
-        # dotGraph.newLink(start, lower)
-        # dotGraph.newLink(a, end)
-        # dotGraph.newLink(upper, end)
-        # dotGraph.newLink(lower, end)
-        # self.dotGraph.dot()
-        # dotGraph.styleAppend("BLUE", "color", "blue")
-        dotGraphTemp = pickle.loads(pickle.dumps(self.dotGraph))
-        # dotGraphTemp = copy.deepcopy(self.dotGraph)
-        dotGraphTemp.dot()
-        self.dotGraph.dot(open(self.dotPath, "w"))
-        render(engine='dot', format='png',
-               filepath=self.dotPath, outfile=self.pngPath)
-        # file_Object = open(dotPath, "w")
-        # fd = file_Object.fileno()
-        # print("file descriptor:", fd)
-        # os.close(fd)
+        # self.dotGraph.dot(open(self.dotPath, "w"))
+        # render(engine='dot', format='png',
+        #        filepath=self.dotPath, outfile=self.pngPath)
 
+        self.saveDotGraph(self.dotPath)
         while boolTrue:
             received = client_socket.recv(2048).decode('utf-8')
             print(received)
@@ -71,57 +51,51 @@ class StreamClient():
                 received, numA, numUpper, numLower)
 
     def stupidAlgorithm(self, received, numA, numUpper, numLower):
-        node = None
-        newPngPath = None
-        print("start node: ", self.nodeDict["START"])
-        print("end node: ", self.nodeDict["END"])
+        name = None
         if (received == "A" or received == "a"):
             numA += 1
-            # node = self.dotGraph.newItem("A")
-            # self.dotGraph.newLink(self.start, node)
-            # self.dotGraph.newLink(node, self.end)
-            node = self.addNode("A")
-            newPngPath = os.path.join(self.dir_path, f"testDotA{numA}.png")
-            print("nodeA: ", node)
+            name = self.addNode("A")
         elif (received.isupper()):
             numUpper += 1
-            # node = self.dotGraph.newItem("UPPER")
-            # self.dotGraph.newLink(self.start, node)
-            # self.dotGraph.newLink(node, self.end)
-            node = self.addNode("UPPER")
-            newPngPath = os.path.join(
-                self.dir_path, f"testDotUpper{numUpper}.png")
-            print("nodeUpper: ", node)
+            name = self.addNode("UPPER")
         elif (received.islower()):
             numLower += 1
-            # node = self.dotGraph.newItem("LOWER")
-            # self.dotGraph.newLink(self.start, node)
-            # self.dotGraph.newLink(node, self.end)
-            node = self.addNode("LOWER")
-            newPngPath = os.path.join(
-                self.dir_path, f"testDotLower{numLower}.png")
-            print("nodeLower: ", node)
+            name = self.addNode("LOWER")
 
         if (numUpper % 5 == 0 or numUpper % 5 == 0 or numUpper % 5 == 0):
             print(f"numA: {numA}, numUpper: {numUpper}, numLower: {numLower}")
-            print("Making node blue: ", node)
-            self.dotGraph.styleApply("BLUE", node)
+            self.version += 1  # indicate a change
+            node = self.dotGraph.get_node(name)
+            node.attr['color'] = 'red'
 
-        self.dotGraph.dot()
+        if (self.version != self.versionCopy):  # if some change was made
+            print("Changes were made")
+            newPath = os.path.join(self.dir_path, f"testDot-{self.version}")
+            self.saveDotGraph(newPath + ".dot")
+            self.drawGraph(newPath + ".png")
+            # send the update somewhere
 
-        self.dotGraph.dot(open(self.dotPath, "w"))
-        render(engine='dot', format='png',
-               filepath=self.dotPath, outfile=newPngPath)
-
+        self.versionCopy = self.version
         return numA, numUpper, numLower
 
+    def saveDotGraph(self, dotPath):
+        dotGraphString = self.dotGraph.string()
+        print(dotGraphString)
+        self.dotGraph.write(dotPath)
+        return dotGraphString
+
+    def drawGraph(self, pngPath):
+        self.dotGraph.layout()  # default to neato.
+        # dotGraph.layout(prog='dot')  # Otherwise use dot:
+        self.dotGraph.draw(pngPath, format='png')
+
     def addNode(self, nodeName):
-        if (nodeName not in self.nodeDict):
-            node = self.dotGraph.newItem(nodeName)
-            self.nodeDict[nodeName] = node
-            self.dotGraph.newLink(self.nodeDict["START"], node)
-            self.dotGraph.newLink(node, self.nodeDict["END"])
-        return node
+        if (not self.dotGraph.has_node(nodeName)):
+            self.dotGraph.add_node(nodeName)
+            self.dotGraph.add_edge("START", nodeName)
+            self.dotGraph.add_edge(nodeName, "END")
+            self.version += 1  # indicate a change
+        return nodeName
 
     def close(self):
         self.client_socket.shutdown(socket.SHUT_RDWR)
