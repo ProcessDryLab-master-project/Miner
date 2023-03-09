@@ -15,6 +15,7 @@ import graphviz as gv
 from graphviz import render
 import copy
 import pygraphviz as pgv
+import requests
 
 
 class StreamClient():
@@ -27,6 +28,7 @@ class StreamClient():
     dotGraph.add_node('END')
     version = 0
     versionCopy = version
+    responseId = None
 
     def startConnection(self):
         # create socket
@@ -71,12 +73,32 @@ class StreamClient():
         if (self.version != self.versionCopy):  # if some change was made
             print("Changes were made")
             newPath = os.path.join(self.dir_path, f"testDot-{self.version}")
-            self.saveDotGraph(newPath + ".dot")
-            self.drawGraph(newPath + ".png")
+            dotPath = newPath + ".dot"
+            pngPath = newPath + ".png"
+            self.saveDotGraph(dotPath)
+            self.drawGraph(pngPath)
+            self.responseId = self.sendDotGraph(dotPath, self.responseId)
             # send the update somewhere
 
         self.versionCopy = self.version
         return numA, numUpper, numLower
+
+    def sendDotGraph(self, filePath, responseId):
+        url = 'https://localhost:4000/resources/'
+
+        formData = {
+            'file': open(filePath, 'rb'),
+            'fileLabel': 'Streaming Dot File',
+            'fileExtension': '.dot',
+            'fileType': 'Visualization'
+        }
+        if (responseId != None):
+            formData['overwriteId'] = responseId
+
+        response = requests.post(url, files=formData)
+        print("Repository response:")
+        print(response.text)
+        return response.text
 
     def saveDotGraph(self, dotPath):
         dotGraphString = self.dotGraph.string()
