@@ -72,13 +72,14 @@ class StreamClient():
 
         if (self.version != self.versionCopy):  # if some change was made
             print("Changes were made")
+            # TODO: The newPath saves updates in new files. This is ONLY for testing and should be removed eventually.
             newPath = os.path.join(self.dir_path, f"testDot-{self.version}")
             dotPath = newPath + ".dot"
-            pngPath = newPath + ".png"
             self.saveDotGraph(dotPath)
-            self.drawGraph(pngPath)
             self.responseId = self.sendDotGraph(dotPath, self.responseId)
-            # send the update somewhere
+
+            # pngPath = newPath + ".png"
+            # self.drawGraph(pngPath)
 
         self.versionCopy = self.version
         return numA, numUpper, numLower
@@ -98,6 +99,7 @@ class StreamClient():
             ('file', ('testDot-1.dot', open(filePath, 'rb'), 'application/octet-stream'))
         ]
 
+        # TODO: verify=False is to get around SSL verification error. We should fix this at some point
         response = requests.request(
             "POST", url, data=payload, files=files, verify=False)
 

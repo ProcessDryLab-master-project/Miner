@@ -36,11 +36,10 @@ class StreamServer():
                 counter = 0
                 while boolTrue:
                     counter += 1
-                    # stringToSend = "event" + str(counter)
                     stringToSend = random.choice(string.ascii_letters)
 
                     client_socket.send(f"{stringToSend}".encode('utf-8'))
-                    time.sleep(5)
+                    time.sleep(3)
 
                     if keyboard.is_pressed("q"):
                         print("CLOSING CONNECTION")
