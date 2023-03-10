@@ -84,27 +84,25 @@ class StreamClient():
         return numA, numUpper, numLower
 
     def sendDotGraph(self, filePath, responseId):
-        url = 'https://localhost:4000/resources/'
+        print("ResponseId: ", responseId)
+        url = "https://localhost:4000/resources/"
 
-        formData = {
-            'file': open(filePath, 'rb'),
-            'fileLabel': 'Streaming Dot File',
+        payload = {
+            'fileLabel': 'Dot File Example',
             'fileExtension': '.dot',
             'fileType': 'Visualization'
         }
         if (responseId != None):
-            formData['overwriteId'] = responseId
+            payload['overwriteId'] = responseId
+        files = [
+            ('file', ('testDot-1.dot', open(filePath, 'rb'), 'application/octet-stream'))
+        ]
 
-        # headers = requests.utils.default_headers()
-        # response = requests.request("POST", url, headers=headers, files=formData, verify=False)
-        print("Sending formdata:")
-        print(formData)
-        print("File:")
-        print(formData["file"])
-        response = requests.post(url, files=formData, verify=False)
-        print("Repository response:")
-        print(response.text)
-        return response.text
+        response = requests.request(
+            "POST", url, data=payload, files=files, verify=False)
+
+        responseId = response.text.replace('"', '')
+        return responseId
 
     def saveDotGraph(self, dotPath):
         dotGraphString = self.dotGraph.string()

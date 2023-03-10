@@ -40,7 +40,7 @@ class StreamServer():
                     stringToSend = random.choice(string.ascii_letters)
 
                     client_socket.send(f"{stringToSend}".encode('utf-8'))
-                    time.sleep(10)
+                    time.sleep(5)
 
                     if keyboard.is_pressed("q"):
                         print("CLOSING CONNECTION")
