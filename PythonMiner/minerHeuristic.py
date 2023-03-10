@@ -7,6 +7,8 @@ from pm4py.algo.discovery.alpha import algorithm as alphaMiner
 from pm4py.visualization.petri_net import visualizer as pn_visualizer
 from pm4py.objects.log.importer.xes import importer as xes_importer
 from pm4py.objects.petri_net.importer import importer as pnml_importer
+from pm4py.algo.discovery.heuristics import algorithm as hminer
+
 # from pm4py.visualization.common.save import save as saver
 import graphviz  # https://pypi.org/project/graphviz/
 
@@ -19,16 +21,30 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         fileSavePath = sys.argv[1]
         fileName = sys.argv[2]
-        argsDict = json.loads(sys.argv[3])
+
+        # print("fileSavePath: ", fileSavePath)
+        # print("fileName: ", fileName)
+        # print("argsDict: ", paramString)
+
+        # for key in argsDict: # print keys
+        #     print(key)
+        # for key in argsDict: # print values
+        #     print(argsDict[key])
 
         log = xes_importer.apply(fileSavePath)
-        net, initialMarking, finalMarking = alphaMiner.apply(log)
+        if len(sys.argv) > 3:
+            paramString = sys.argv[3]
+            argsDict = json.loads(paramString)
+            net, initialMarking, finalMarking = hminer.apply(log, argsDict)
+        else:
+            net, initialMarking, finalMarking = hminer.apply(log)
 
-        pnmlPath = os.path.join(result_folder, "alpha-" + fileName + ".pnml")
+        nameWithExtension = "heuristic-" + fileName + ".pnml"
+        pnmlPath = os.path.join(result_folder, nameWithExtension)
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)
 
-        # imagePath = os.path.join(result_folder, "alpha-" + fileName + ".png")
+        # pnmlPath = os.path.join(result_folder, "heuristic-" + fileName + ".pnml")
         # gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
         # pn_visualizer.save(gviz, imagePath)
 

@@ -1,9 +1,17 @@
 import spawn from "child_process";
 import once from "events";
 
-export default async function runMiner(fileSavePath, fileName) {
-  const minerToRun = "minerAlpha.py"
-  const pythonProcess = spawn.spawn("python", [`./PythonMiner/${minerToRun}`, fileSavePath, fileName]);
+export default async function runMiner(fileSavePath, fileName, parameters) {
+  // const minerToRun = "minerAlpha.py"
+  const minerToRun = "minerHeuristic.py"
+  console.log("Parameters: " + parameters);
+  let pythonProcess;
+  if(parameters == undefined) {
+    pythonProcess = spawn.spawn("python", [`./PythonMiner/${minerToRun}`, fileSavePath, fileName]);
+  }
+  else {
+    pythonProcess = spawn.spawn("python", [`./PythonMiner/${minerToRun}`, fileSavePath, fileName, parameters]);
+  }
   let output = '';
   pythonProcess.stdin.setEncoding = 'utf-8';
 

@@ -31,6 +31,7 @@ export default function initEndpoints(app) {
     let fileExtension = body.fileExtension;
     let logName = `${incomingFileId}.${fileExtension}`
     let resourceType = "Visualization" // TODO: Specify the type of resource to be generated. Should miner decide this? Or frontend?
+    let parameters = JSON.stringify(body.params);
 
     const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
     console.log("\n\n\nURL to get file: " + fileURL);
@@ -39,7 +40,7 @@ export default function initEndpoints(app) {
     let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
     console.log(`Log saved to ${fileSavePath}`);
 
-    let minerResult = await Wrapper(fileSavePath, incomingFileId, fileExtension);
+    let minerResult = await Wrapper(fileSavePath, incomingFileId, parameters);
     console.log("Wrapper miner result: " + minerResult);
 
     console.log("URL to send result: " + repositoryOutputPath);
