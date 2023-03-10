@@ -1,4 +1,4 @@
-from StreamServer import StreamServer
+from SocketServer import StreamServer
 
 
 server = StreamServer()

@@ -13,6 +13,7 @@ import graphviz  # https://pypi.org/project/graphviz/
 # Run this script with this command:
 # python ./PythonMiner/main.py ./PythonMiner/test.png ./PythonMiner/test.pnml ./PythonMiner/example-log.xes
 dir_path = os.path.dirname(os.path.realpath(__file__))
+result_folder = os.path.join(dir_path, 'generated')
 # print("\n\nDirectory path from python: " + dir_path)
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -27,8 +28,8 @@ if __name__ == "__main__":
         log = xes_importer.apply(fileSavePath)
         net, initialMarking, finalMarking = alphaMiner.apply(log)
 
-        imagePath = os.path.join(dir_path, fileName + ".png")
-        pnmlPath = os.path.join(dir_path, fileName + ".pnml")
+        imagePath = os.path.join(result_folder, fileName + ".png")
+        pnmlPath = os.path.join(result_folder, fileName + ".pnml")
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         # output = pm4py.write.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)

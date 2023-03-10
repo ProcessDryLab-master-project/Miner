@@ -52,7 +52,6 @@ def stupidAlgorithm(received, numA, numUpper, numLower):
         name = addNode("LOWER")
 
     if (numUpper % 5 == 0 or numUpper % 5 == 0 or numUpper % 5 == 0):
-        # print(f"numA: {numA}, numUpper: {numUpper}, numLower: {numLower}")
         version += 1  # indicate a change
         node = dotGraph.get_node(name)
         node.attr['color'] = 'red'
@@ -61,9 +60,6 @@ def stupidAlgorithm(received, numA, numUpper, numLower):
         print("Changes were made")
         saveDotGraph(filePath)
         responseId = sendDotGraph(filePath, responseId)
-
-        # pngPath = newPath + ".png"
-        # drawGraph(pngPath)
 
     versionCopy = version
     return numA, numUpper, numLower

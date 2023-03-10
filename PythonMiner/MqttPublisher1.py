@@ -1,4 +1,5 @@
 # Mqtt medium guide: https://medium.com/python-point/mqtt-basics-with-python-examples-7c758e605d4
+# Can create another publisher by copying everything from this file and only changing clientName
 import paho.mqtt.client as mqtt
 from random import randrange, uniform, choice
 import string

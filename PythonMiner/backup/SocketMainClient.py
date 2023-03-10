@@ -1,4 +1,4 @@
-from StreamClient import StreamClient
+from SocketClient import StreamClient
 
 
 server = StreamClient()
