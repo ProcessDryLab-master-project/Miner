@@ -19,11 +19,9 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         fileSavePath = sys.argv[1]
         fileName = sys.argv[2]
-        fileType = sys.argv[3]
         # arg1 = sys.argv[1]
         # print("fileSavePath: ", fileSavePath)
         # print("fileName: ", fileName)
-        # print("fileType: ", fileType)
 
         log = xes_importer.apply(fileSavePath)
         net, initialMarking, finalMarking = alphaMiner.apply(log)

@@ -84,7 +84,6 @@ export default function initEndpoints(app) {
     let repositoryOutputPath = body.repositoryOutputPath;
     let incomingFileId = body.fileId; // The id for the file we request from repo
     let fileExtension = body.fileExtension;
-    let fileType = body.fileType;
     let logName = `${incomingFileId}.${fileExtension}`
 
     const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
@@ -113,6 +112,7 @@ export default function initEndpoints(app) {
     let repositoryOutputPath = new URL("api/v1/resources", body.repository);
     let logName = body.inputs["Source file"].name;
     let fileName = logName.replace(/\.[^/.]+$/, "");
+    let resourceType = "Visualization" // TODO: Specify the type of resource to be generated. Should miner decide this? Or frontend?
 
     let endpoint = path.join("api/v1/resources", fileId, "content");
     const fileURL = new URL(endpoint, repositoryInputPath).toString();
@@ -122,13 +122,13 @@ export default function initEndpoints(app) {
     let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
     console.log(`Repository response: ${repoGetResp}, Log saved to ${fileSavePath}`);
 
-    let minerResult = await Wrapper(fileSavePath, fileName, "fileType");
+    let minerResult = await Wrapper(fileSavePath, fileName);
     console.log("Wrapper miner result: " + minerResult);
 
     console.log("URL to send result: " + repositoryOutputPath);
     let pnmlFileName = fileName+".pnml";
     console.log("PNML file name: " + pnmlFileName);
-    let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, pnmlFileName);
+    let repoPostResp = await sendResourceToRepo(repositoryOutputPath, minerResult, pnmlFileName, resourceType);
     console.log("repoPostResp: " + repoPostResp);
     res.send(repoGetResp);
     // res.sendStatus(200);

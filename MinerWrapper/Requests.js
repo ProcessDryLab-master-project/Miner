@@ -8,7 +8,6 @@ const agent = new https.Agent({
 });
 
 export const getResourceFromRepo = async (url, filePath) => {
-  // let filePath = './Uploads';
   const res = await fetch(url, { agent });
   const fileStream = fs.createWriteStream(filePath);
   await new Promise((resolve, reject) => {
@@ -18,7 +17,7 @@ export const getResourceFromRepo = async (url, filePath) => {
   });
 };
 
-export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFileId) => {
+export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFileId, resourceType) => {
   const filePath = minerResult;
   const nameWithoutExtension = filePath.split('\\').pop().split('/').pop().split('.').pop(); // Removes path and extension from filePath to get file name.
   const fileExtension = filePath.split('.').pop();
@@ -28,7 +27,7 @@ export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFi
   const fileStream = fs.createReadStream(filePath);
   formdata.append('field-name', fileStream, { knownLength: fileSizeInBytes });
   formdata.append('fileLabel', nameWithoutExtension);
-  formdata.append('fileType', "Visualization");
+  formdata.append('resourceType', resourceType);
   formdata.append('fileExtension', fileExtension);
   formdata.append('basedOnId', incomingFileId);
   var requestOptions = {

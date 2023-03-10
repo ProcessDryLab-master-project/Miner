@@ -12,7 +12,7 @@ timeToRun = 60
 url = "https://localhost:4000/resources/"
 fileLabel = "miner-2-png"
 fileExtension = "png"
-fileType = "Visualization"
+resourceType = "Visualization"
 
 # publicly available broker. We need our own
 mqttBroker = "mqtt.eclipseprojects.io"  # Don't specify "https://"
@@ -73,7 +73,7 @@ def sendDotGraph(filePath, responseId):
     payload = {
         'fileLabel': fileLabel,
         'fileExtension': fileExtension,
-        'fileType': fileType
+        'resourceType': resourceType
     }
     if (responseId != None):
         payload['overwriteId'] = responseId

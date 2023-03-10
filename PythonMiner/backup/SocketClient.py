@@ -91,7 +91,7 @@ class StreamClient():
         payload = {
             'fileLabel': 'Dot File Example',
             'fileExtension': '.dot',
-            'fileType': 'Visualization'
+            'resourceType': 'Visualization'
         }
         if (responseId != None):
             payload['overwriteId'] = responseId
