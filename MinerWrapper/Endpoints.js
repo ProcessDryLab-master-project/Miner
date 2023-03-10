@@ -84,6 +84,7 @@ export default function initEndpoints(app) {
     let repositoryOutputPath = body.repositoryOutputPath;
     let incomingFileId = body.fileId; // The id for the file we request from repo
     let fileExtension = body.fileExtension;
+    let fileType = body.fileType;
     let logName = `${incomingFileId}.${fileExtension}`
 
     const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
@@ -91,7 +92,7 @@ export default function initEndpoints(app) {
 
     let fileSavePath = `./Downloads/${logName}`;
     let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
-    console.log(`Repository response: ${repoGetResp}, Log saved to ${fileSavePath}`);
+    console.log(`Log saved to ${fileSavePath}`);
 
     let minerResult = await Wrapper(fileSavePath, incomingFileId, fileExtension);
     console.log("Wrapper miner result: " + minerResult);

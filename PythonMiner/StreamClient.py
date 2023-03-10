@@ -48,7 +48,7 @@ class StreamClient():
         self.saveDotGraph(self.dotPath)
         while boolTrue:
             received = client_socket.recv(2048).decode('utf-8')
-            print(received)
+            # print(received)
             numA, numUpper, numLower = self.stupidAlgorithm(
                 received, numA, numUpper, numLower)
 
@@ -65,7 +65,7 @@ class StreamClient():
             name = self.addNode("LOWER")
 
         if (numUpper % 5 == 0 or numUpper % 5 == 0 or numUpper % 5 == 0):
-            print(f"numA: {numA}, numUpper: {numUpper}, numLower: {numLower}")
+            # print(f"numA: {numA}, numUpper: {numUpper}, numLower: {numLower}")
             self.version += 1  # indicate a change
             node = self.dotGraph.get_node(name)
             node.attr['color'] = 'red'
@@ -95,14 +95,20 @@ class StreamClient():
         if (responseId != None):
             formData['overwriteId'] = responseId
 
-        response = requests.post(url, files=formData)
+        # headers = requests.utils.default_headers()
+        # response = requests.request("POST", url, headers=headers, files=formData, verify=False)
+        print("Sending formdata:")
+        print(formData)
+        print("File:")
+        print(formData["file"])
+        response = requests.post(url, files=formData, verify=False)
         print("Repository response:")
         print(response.text)
         return response.text
 
     def saveDotGraph(self, dotPath):
         dotGraphString = self.dotGraph.string()
-        print(dotGraphString)
+        # print(dotGraphString)
         self.dotGraph.write(dotPath)
         return dotGraphString
 
