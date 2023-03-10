@@ -52,7 +52,7 @@ class StreamServer():
         return False
 
 
-# VIDEO STREAMING EXAMPLE
+# VIDEO STREAMING ON SOCET EXAMPLE
 # while True:
 # 	client_socket,addr = server_socket.accept()
 # 	print('GOT CONNECTION FROM:',addr)

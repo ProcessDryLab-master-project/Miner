@@ -31,18 +31,15 @@ export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFi
   formdata.append('fileType', "Visualization");
   formdata.append('fileExtension', fileExtension);
   formdata.append('basedOnId', incomingFileId);
-
   var requestOptions = {
     agent: agent,
     method: 'POST',
     body: formdata,
     redirect: 'follow'
   };
-
-  fetch(repositoryPath, requestOptions)
-    .then(response => response.text())
-    .then(result => console.log(result))
-    .catch(error => console.log('error', error));
+  let fetchData  = await fetch(repositoryPath, requestOptions)
+  let response = await fetchData.json();
+  return response;
 };
 
 // export function getResource(destination, resourceType, resourceName) {
