@@ -17,26 +17,37 @@ export const getResourceFromRepo = async (url, filePath) => {
   });
 };
 
-export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFileId, resourceType) => {
+export const sendResourceToRepo = async (
+  repositoryPath,
+  minerResult,
+  incomingFileId,
+  resourceType
+) => {
   const filePath = minerResult;
-  const nameWithoutExtension = filePath.split('\\').pop().split('/').pop().split('.').pop(); // Removes path and extension from filePath to get file name.
-  const fileExtension = filePath.split('.').pop();
+  const nameWithoutExtension = filePath
+    .split("\\")
+    .pop()
+    .split("/")
+    .pop()
+    .split(".")
+    .pop(); // Removes path and extension from filePath to get file name.
+  const fileExtension = filePath.split(".").pop();
   const formdata = new FormData();
   const stats = fs.statSync(filePath);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(filePath);
-  formdata.append('field-name', fileStream, { knownLength: fileSizeInBytes });
-  formdata.append('fileLabel', nameWithoutExtension);
-  formdata.append('resourceType', resourceType);
-  formdata.append('fileExtension', fileExtension);
-  formdata.append('basedOnId', incomingFileId);
+  formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
+  formdata.append("resourceLabel", nameWithoutExtension);
+  formdata.append("resourceType", resourceType);
+  formdata.append("fileExtension", fileExtension);
+  formdata.append("basedOnId", incomingFileId);
   var requestOptions = {
     agent: agent,
-    method: 'POST',
+    method: "POST",
     body: formdata,
-    redirect: 'follow'
+    redirect: "follow",
   };
-  let fetchData  = await fetch(repositoryPath, requestOptions)
+  let fetchData = await fetch(repositoryPath, requestOptions);
   let response = await fetchData.json();
   return response;
 };

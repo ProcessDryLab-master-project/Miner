@@ -10,7 +10,7 @@ clientName = "Event Miner (Subscriber 1)"
 timeToRun = 60
 
 url = "https://localhost:4000/resources/"
-fileLabel = "miner-1-dot"
+resourceLabel = "miner-1-dot"
 fileExtension = "dot"
 resourceType = "Visualization"
 
@@ -22,7 +22,7 @@ client.connect(mqttBroker)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
-filePath = os.path.join(result_folder, f"{fileLabel}.{fileExtension}")
+filePath = os.path.join(result_folder, f"{resourceLabel}.{fileExtension}")
 print(f'file path for client {clientName}: {filePath}')
 
 
@@ -70,7 +70,7 @@ def sendDotGraph(filePath, responseId):
     # url = "https://localhost:4000/resources/"
 
     payload = {
-        'fileLabel': fileLabel,
+        'resourceLabel': resourceLabel,
         'fileExtension': fileExtension,
         'resourceType': resourceType
     }

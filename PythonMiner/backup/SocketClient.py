@@ -89,7 +89,7 @@ class StreamClient():
         url = "https://localhost:4000/resources/"
 
         payload = {
-            'fileLabel': 'Dot File Example',
+            'resourceLabel': 'Dot File Example',
             'fileExtension': '.dot',
             'resourceType': 'Visualization'
         }
