@@ -15,6 +15,7 @@ export const getResourceFromRepo = async (url, filePath) => {
     res.body.on("error", reject);
     fileStream.on("finish", resolve);
   });
+  console.log(`Log saved to ${filePath}`);
 };
 
 export const sendResourceToRepo = async (
@@ -52,46 +53,43 @@ export const sendResourceToRepo = async (
   return response;
 };
 
-// export function getResource(destination, resourceType, resourceName) {
-//   const data = {
-//     resourceType: resourceType,
-//     resourceName: resourceName,
-//   };
+export const initiateResourceOnRepo = async (
+  repositoryPath,
+  resourceLabel,
+  resourceType,
+  fileExtension
+) => {
+  let tmpPath = await createTmpFile(fileExtension);
+  const formdata = new FormData();
+  const stats = fs.statSync(tmpPath);
+  const fileSizeInBytes = stats.size;
+  const readStream = fs.createReadStream(tmpPath);
+  formdata.append("field-name", readStream, { knownLength: fileSizeInBytes });
+  formdata.append("resourceLabel", resourceLabel);
+  formdata.append("resourceType", resourceType);
+  formdata.append("fileExtension", fileExtension);
+  var requestOptions = {
+    agent: agent,
+    method: "POST",
+    body: formdata,
+    redirect: "follow",
+  };
+  let fetchData = await fetch(repositoryPath, requestOptions);
+  let response = await fetchData.json();
+  console.log("rep resp: " + response);
+  return response;
+};
 
-//   fetch(destination, {
-//     method: "GET", // or 'PUT'
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(data),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       return data;
-//     })
-//     .catch((error) => {
-//       console.error("Error:", error);
-//     });
-// }
-
-// export const sendResource = async (url, result) => {
-//   const response = await fetch(url, {
-//     agent: agent,
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "text/xml",
-//     },
-//     body: result,
-//   })
-//     .then((response) => {
-//       console.log("Response status: " + response.status);
-//       return response.text();
-//     })
-//     .then((responseText) => {
-//       console.log("Response text: " + responseText);
-//     })
-//     .catch((error) => {
-//       console.log("Error caught: " + error);
-//     });
-//   return response;
-// };
+async function createTmpFile(extension) {
+  let tmpPath = `./Downloads/tmp.${extension}`;
+  let result = {};
+  let output = JSON.stringify(result);
+  try {
+    let x = await fs.promises.writeFile(tmpPath, output, "utf8", (err) =>
+      console.log(err)
+    );
+    return tmpPath;
+  } catch (err) {
+    console.error("Error occurred while reading directory!", err);
+  }
+}

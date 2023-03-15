@@ -6,6 +6,7 @@ import requests
 import os
 import json
 
+
 # Variables that we could get from elsewhere
 topic = "EventStream"
 clientName = "Event Miner (Subscriber 2)"

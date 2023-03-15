@@ -19,12 +19,16 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        fileSavePath = sys.argv[1]
-        fileName = sys.argv[2]
+        wrapperArgsString = sys.argv[1]
+        wrapperArgsDict = json.loads(wrapperArgsString)
+        fileSavePath = wrapperArgsDict["fileSavePath"]
+        fileName = wrapperArgsDict["incomingFileId"]
+        minerParameters = wrapperArgsDict["minerParameters"]
+        # minerParams = json.loads(wrapperArgsDict["minerParameters"])
 
         # print("fileSavePath: ", fileSavePath)
         # print("fileName: ", fileName)
-        # print("argsDict: ", paramString)
+        # print("argsDict: ", minerParams)
 
         # for key in argsDict: # print keys
         #     print(key)
@@ -32,10 +36,9 @@ if __name__ == "__main__":
         #     print(argsDict[key])
 
         log = xes_importer.apply(fileSavePath)
-        if len(sys.argv) > 3:
-            paramString = sys.argv[3]
-            argsDict = json.loads(paramString)
-            net, initialMarking, finalMarking = hminer.apply(log, argsDict)
+        if minerParameters != None:
+            net, initialMarking, finalMarking = hminer.apply(
+                log, minerParameters)
         else:
             net, initialMarking, finalMarking = hminer.apply(log)
 
