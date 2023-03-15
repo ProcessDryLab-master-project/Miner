@@ -1,8 +1,10 @@
+# pip install requests
+# pip install paho-mqtt
 import paho.mqtt.client as mqtt
 import time
-import pygraphviz as pgv
 import requests
 import os
+import json
 
 # Variables that we could get from elsewhere
 topic = "EventStream"
@@ -10,8 +12,9 @@ clientName = "Event Miner (Subscriber 2)"
 timeToRun = 60
 
 url = "https://localhost:4000/resources/"
-resourceLabel = "miner-2-png"
-fileExtension = "png"
+resourceLabel = "miner-2-json"
+fileExtension = "json"
+fileName = f"{resourceLabel}.{fileExtension}"
 resourceType = "Visualization"
 
 # publicly available broker. We need our own
@@ -22,53 +25,23 @@ client.connect(mqttBroker)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
-filePath = os.path.join(result_folder, f"{resourceLabel}.{fileExtension}")
+filePath = os.path.join(result_folder, fileName)
 print(f'file path for client {clientName}: {filePath}')
 
 
 # Global variables that probably shouldn't be!
-dotGraph = pgv.AGraph(name="StreamGraph", strict=True, directed=True)
-dotGraph.add_node('START')
-dotGraph.add_node('END')
-version = 0
-versionCopy = version
 responseId = None
-gNumUpper = 1
-gNumLower = 1
-gNumA = 1
+alphabetList = []
 
 
-def stupidAlgorithm(received, numA, numUpper, numLower):
-    name = None
-    global version, versionCopy, responseId
-    if (received == "A" or received == "a"):
-        numA += 1
-        name = addNode("A")
-    elif (received.isupper()):
-        numUpper += 1
-        name = addNode("UPPER")
-    elif (received.islower()):
-        numLower += 1
-        name = addNode("LOWER")
-
-    if (numUpper % 5 == 0 or numUpper % 5 == 0 or numUpper % 5 == 0):
-        # print(f"numA: {numA}, numUpper: {numUpper}, numLower: {numLower}")
-        version += 1  # indicate a change
-        node = dotGraph.get_node(name)
-        node.attr['color'] = 'red'
-
-    if (version != versionCopy):  # if some change was made
-        print("Changes were made")
-        drawGraph(filePath)
-        responseId = sendDotGraph(filePath, responseId)
-
-    versionCopy = version
-    return numA, numUpper, numLower
+def saveToFile(filePath):
+    global alphabetList
+    with open(filePath, 'w', encoding='utf-8') as f:
+        json.dump(alphabetList, f, ensure_ascii=False, indent=4)
 
 
-def sendDotGraph(filePath, responseId):
+def sendFile(filePath, responseId):
     print("ResponseId: ", responseId)
-    # url = "https://localhost:4000/resources/"
 
     payload = {
         'resourceLabel': resourceLabel,
@@ -78,7 +51,7 @@ def sendDotGraph(filePath, responseId):
     if (responseId != None):
         payload['overwriteId'] = responseId
     files = [
-        ('file', ('testDot-1.dot', open(filePath, 'rb'), 'application/octet-stream'))
+        ('file', (fileName, open(filePath, 'rb'), 'application/octet-stream'))
     ]
 
     # TODO: verify=False is to get around SSL verification error. We should fix this at some point
@@ -89,39 +62,22 @@ def sendDotGraph(filePath, responseId):
     return responseId
 
 
-def saveDotGraph(filePath):
-    dotGraphString = dotGraph.string()
-    # print(dotGraphString)
-    dotGraph.write(filePath)
-    return dotGraphString
-
-
-def drawGraph(filePath):
-    dotGraph.layout()  # default to neato.
-    # dotGraph.layout(prog='dot')  # Otherwise use dot:
-    dotGraph.draw(filePath, format=fileExtension)
-
-
-def addNode(nodeName):
-    if (not dotGraph.has_node(nodeName)):
-        dotGraph.add_node(nodeName)
-        dotGraph.add_edge("START", nodeName)
-        dotGraph.add_edge(nodeName, "END")
-        global version
-        version += 1  # indicate a change
-    return nodeName
-
-
 def on_message(client, userdata, message):
-    received = str(message.payload.decode("utf-8"))
+    global responseId, alphabetList
+    received = str(message.payload.decode("utf-8")).capitalize()
     print("received message: ", received)
-    global gNumA, gNumUpper, gNumLower
-    # numA = gNumA
-    # numUpper = gNumUpper
-    # numLower = gNumLower
-    print(f"numA: {gNumA}, numUpper: {gNumUpper}, numLower: {gNumLower}")
-    gNumA, gNumUpper, gNumLower = stupidAlgorithm(
-        received, gNumA, gNumUpper, gNumLower)
+
+    if (any(received in d for d in alphabetList)):  # if list
+        index = next(i for i, aDict in enumerate(
+            alphabetList) if received in aDict)
+    # if (index != None):
+        tmpValue = alphabetList[index][received]
+        tmpValue = tmpValue + 1
+        alphabetList[index] = {received: tmpValue}
+    else:
+        alphabetList.append({received: 1})
+    saveToFile(filePath)
+    responseId = sendFile(filePath, responseId)
 
 
 def subscribeAndRun():

@@ -1,3 +1,11 @@
+# pip install requests
+# pip install paho-mqtt
+
+# pygraphviz is a bit special. Will need to install like this:
+# python -m pip install --global-option=build_ext `
+#               --global-option="-IC:\Program Files\Graphviz\include" `
+#               --global-option="-LC:\Program Files\Graphviz\lib" `
+#               pygraphviz
 import paho.mqtt.client as mqtt
 import time
 import pygraphviz as pgv
