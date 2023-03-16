@@ -2,8 +2,8 @@
   "Label": "Alfa Miner",
   "Type": "Miner",
   "Access": "Public",
-  "ResourceInputExtension": ["xes"],
-  "ResourceOutputExtension": ["pnml"],
+  "FileInputExtension": ["xes"],
+  "FileOutputExtension": ["pnml"],
   "ResourceInputType": "EventLog",
   "ResourceOutputType": "Visualization"
 }
