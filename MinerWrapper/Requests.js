@@ -18,30 +18,19 @@ export const getResourceFromRepo = async (url, filePath) => {
   console.log(`Log saved to ${filePath}`);
 };
 
-export const sendResourceToRepo = async (
-  repositoryPath,
-  minerResult,
-  incomingFileId,
-  resourceType
-) => {
+export const sendResourceToRepo = async (repositoryPath, minerResult, incomingFileId, resourceType) => {
   const filePath = minerResult;
-  const nameWithoutExtension = filePath
-    .split("\\")
-    .pop()
-    .split("/")
-    .pop()
-    .split(".")
-    .pop(); // Removes path and extension from filePath to get file name.
+  const nameWithoutExtension = filePath.split("\\").pop().split("/").pop().split(".").pop(); // Removes path and extension from filePath to get file name.
   const fileExtension = filePath.split(".").pop();
   const formdata = new FormData();
   const stats = fs.statSync(filePath);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(filePath);
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
-  formdata.append("resourceLabel", nameWithoutExtension);
-  formdata.append("resourceType", resourceType);
-  formdata.append("fileExtension", fileExtension);
-  formdata.append("basedOnId", incomingFileId);
+  formdata.append("ResourceLabel", nameWithoutExtension);
+  formdata.append("ResourceType", resourceType);
+  formdata.append("FileExtension", fileExtension);
+  formdata.append("Parents", incomingFileId);
   var requestOptions = {
     agent: agent,
     method: "POST",

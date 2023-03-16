@@ -3,8 +3,8 @@ import once from "events";
 
 export default async function runMiner(body) {
   // const minerToRun = "minerAlpha.py"
-  // const minerToRun = "minerHeuristic.py";
-  const minerToRun = "MqttMinerHistogram.py";
+  const minerToRun = "minerHeuristic.py";
+  // const minerToRun = "MqttMinerHistogram.py";
   const minerPath = `./PythonMiner/${minerToRun}`;
   let wrapperArgs = JSON.stringify(body);
   console.log("wrapperArgs: " + wrapperArgs);

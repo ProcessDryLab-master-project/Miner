@@ -20,10 +20,16 @@ result_folder = os.path.join(dir_path, 'generated')
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
+        # print("\n\nRunning python script")
+        # print(wrapperArgsString)
+        # sys.stdout.flush()
         wrapperArgsDict = json.loads(wrapperArgsString)
-        fileSavePath = wrapperArgsDict["fileSavePath"]
-        fileName = wrapperArgsDict["incomingFileId"]
-        minerParameters = wrapperArgsDict["minerParameters"]
+        fileSavePath = wrapperArgsDict["FileSavePath"] # Location of incoming xes file that wrapper saved
+        input = wrapperArgsDict["Input"]
+        output = wrapperArgsDict["Output"]
+        resourceLabel = output["ResourceLabel"]
+        fileExtension = output["FileExtension"]
+        minerParameters = input["MinerParameters"]
         # minerParams = json.loads(wrapperArgsDict["minerParameters"])
 
         # print("fileSavePath: ", fileSavePath)
@@ -37,12 +43,11 @@ if __name__ == "__main__":
 
         log = xes_importer.apply(fileSavePath)
         if minerParameters != None:
-            net, initialMarking, finalMarking = hminer.apply(
-                log, minerParameters)
+            net, initialMarking, finalMarking = hminer.apply(log, minerParameters)
         else:
             net, initialMarking, finalMarking = hminer.apply(log)
 
-        nameWithExtension = "heuristic-" + fileName + ".pnml"
+        nameWithExtension = resourceLabel + fileExtension
         pnmlPath = os.path.join(result_folder, nameWithExtension)
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)
