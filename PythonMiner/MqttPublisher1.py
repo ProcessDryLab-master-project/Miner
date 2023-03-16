@@ -6,7 +6,7 @@ import string
 import time
 
 # Variables that we could get from elsewhere
-topic = "EventStream"
+topic = "AlphabetStream"
 clientName = "Event Publisher"
 
 # publicly available broker. We need our own

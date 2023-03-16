@@ -1,5 +1,9 @@
 {
   "Label": "Alfa Miner",
   "Type": "Miner",
-  "Access": "Public"
+  "Access": "Public",
+  "ResourceInputExtension": "xes",
+  "ResourceOutputExtension": "pnml",
+  "ResourceInputType": "EventLog",
+  "ResourceOutputType": "Visualization"
 }

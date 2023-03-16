@@ -1,11 +1,59 @@
 {
-  "Label": "PaliaMiner",
+  "Label": "Heuristic Miner",
   "Type": "Miner",
   "Access": "Public",
-  "Parameters": [
+  "ResourceInputExtension": "xes",
+  "ResourceOutputExtension": "pnml",
+  "ResourceInputType": "EventLog",
+  "ResourceOutputType": "Visualization",
+  "MinerParameters": [
     {
-      "Name": "p1",
-      "Type": "bool"
+      "name": "DEPENDENCY_THRESH",
+      "type": "double",
+      "min": 0,
+      "max": 1,
+      "default": 0.5,
+      "descr": ""
+    },
+    {
+      "name": "AND_MEASURE_THRESH",
+      "type": "double",
+      "min": 0,
+      "max": 1,
+      "default": 0.65,
+      "descr": ""
+    },
+    {
+      "name": "MIN_ACT_COUNT",
+      "type": "int",
+      "min": 0,
+      "max": 20,
+      "default": 1,
+      "descr": ""
+    },
+    {
+      "name": "MIN_DFG_OCCURRENCES",
+      "type": "int",
+      "min": 0,
+      "max": 20,
+      "default": 1,
+      "descr": ""
+    },
+    {
+      "name": "DFG_PRE_CLEANING_NOISE_THRESH",
+      "type": "double",
+      "min": 0,
+      "max": 1,
+      "default": 0.05,
+      "descr": ""
+    },
+    {
+      "name": "LOOP_LENGTH_TWO_THRESH",
+      "type": "int",
+      "min": 0,
+      "max": 20,
+      "default": 2,
+      "descr": ""
     }
   ]
 }

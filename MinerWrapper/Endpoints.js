@@ -27,11 +27,11 @@ export default function initEndpoints(app) {
 
   app.post(`${endpointStart}/miner`, async function (req, res) {
     let body = await req.body;
-    let repositoryInputPath = body.repositoryInputPath;
-    let repositoryOutputPath = body.repositoryOutputPath;
-    let incomingFileId = body.fileId; // The id for the file we request from repo
+    let repositoryInputPath = body.input.repositoryPath;
+    let repositoryOutputPath = body.output.repositoryPath;
+    let resourceInputId = body.input.resourceId; // The id for the file we request from repo
     let fileExtension = body.fileExtension;
-    let logName = `${incomingFileId}.${fileExtension}`;
+    let logName = `${resourceInputId}.${fileExtension}`;
     let resourceTypeInput = body.resourceTypeInput;
     let resourceTypeOutput = body.resourceTypeOutput;
     let resourceLabel = body.resourceLabel;
@@ -53,18 +53,18 @@ export default function initEndpoints(app) {
       body["overwriteId"] = repoResp;
       minerResult = await Wrapper(body);
     } else {
-      const fileURL = new URL(incomingFileId, repositoryInputPath).toString();
+      const fileURL = new URL(resourceInputId, repositoryInputPath).toString();
       console.log("\n\n\nURL to get file: " + fileURL);
       let repoGetResp = await getResourceFromRepo(fileURL, fileSavePath);
       body["fileSavePath"] = fileSavePath;
-      body["incomingFileId"] = incomingFileId;
+      body["resourceInputId"] = resourceInputId;
       minerResult = await Wrapper(body);
       console.log("Wrapper miner result: " + minerResult);
       console.log("URL to send result: " + repositoryOutputPath);
       let repoPostResp = await sendResourceToRepo(
         repositoryOutputPath,
         minerResult,
-        incomingFileId,
+        resourceInputId,
         resourceTypeOutput
       );
       console.log("repoPostResp: " + repoPostResp);
@@ -75,7 +75,7 @@ export default function initEndpoints(app) {
     let repoPostResp = await sendResourceToRepo(
       repositoryOutputPath,
       minerResult,
-      incomingFileId,
+      resourceInputId,
       resourceTypeOutput
     );
     console.log("repoPostResp: " + repoPostResp);
