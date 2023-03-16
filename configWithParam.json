@@ -2,8 +2,8 @@
   "Label": "Heuristic Miner",
   "Type": "Miner",
   "Access": "Public",
-  "ResourceInputExtension": "xes",
-  "ResourceOutputExtension": "pnml",
+  "ResourceInputExtension": ["xes"],
+  "ResourceOutputExtension": ["pnml"],
   "ResourceInputType": "EventLog",
   "ResourceOutputType": "Visualization",
   "MinerParameters": [
