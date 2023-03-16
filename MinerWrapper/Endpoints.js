@@ -1,6 +1,8 @@
 import Wrapper from "./Wrapper.js";
 const port = 5000;
-const configPath = "./config.json";
+const configPath = "./configWithParam.json";
+// const configPath = "./configNoParam.json";
+// const configPath = "./configStream.json";
 import fs from "fs";
 import path from "path";
 import {
@@ -15,17 +17,17 @@ export default function initEndpoints(app) {
   app.get("/", function (req, res) {
     res.send("Default page");
   });
-  app.get(`${endpointStart}/system/ping`, function (req, res) {
+  app.get(`/ping`, function (req, res) {
     res.send("pong");
   });
-  app.get(`${endpointStart}/configurations`, function (req, res) {
+  app.get(`/configurations`, function (req, res) {
     console.log("Getting a request on /configurations");
     const file = fs.readFileSync(configPath);
     const json = JSON.parse(file);
     res.send(json);
   });
 
-  app.post(`${endpointStart}/miner`, async function (req, res) {
+  app.post(`/miner`, async function (req, res) {
     let body = await req.body;
     let repositoryInputPath = body.input.repositoryPath;
     let repositoryOutputPath = body.output.repositoryPath;
