@@ -27,22 +27,18 @@ export default function initEndpoints(app, config) {
     const inputResourceType = metadataObject.ResourceType;
     const inputResourceId = metadataObject.ResourceId;
     const minerId = body.MinerId;
-    console.log("minerId: " + minerId);
     const minerToRun = config.find(miner => miner.MinerId == minerId);
-    console.log({ "minerToRun": minerToRun });
     const resourceOutputType = minerToRun.ResourceOutputType;
-    console.log("resourceOutputType: " + resourceOutputType);
     const pathToExternal = minerToRun.External;
-    console.log("external file to run: " + pathToExternal);
 
     let minerResult;
     if (inputResourceType == "EventStream") {
       console.log("Running as an EventStream");
-      let repoResp = await initiateResourceOnRepo(repositoryOutputPath, resourceLabel, resourceTypeOutput, fileExtension);
+      let repoResp = await initiateResourceOnRepo(output, metadataObject, resourceOutputType);
       console.log("Repo init resp: " + repoResp);
       res.send(repoResp);
       body["OverwriteId"] = repoResp; // TODO: Maybe this shouldn't be added to body if wrapper takes care of all communication
-      minerResult = await Wrapper(body);
+      minerResult = await Wrapper(body, pathToExternal);
     } 
     else {
       const inputFileExtension = metadataObject.FileInfo.FileExtension;

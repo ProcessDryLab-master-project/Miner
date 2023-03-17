@@ -12,10 +12,10 @@ clientName = "Event Miner (Subscriber 2)"
 dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
 # Global variables that probably shouldn't be!
-alphabetList = []
 
-global resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, overwriteId, fileExtension
+global alphabetList, resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, overwriteId, fileExtension
 overwriteId = None
+alphabetList = []
 # Default values.
 fileExtension = "json"
 resourceTypeOutput = "Visualization" # TODO: Only used when sending, which will likely be moved out to wrapper
@@ -24,17 +24,14 @@ streamBroker = "mqtt.eclipseprojects.io"
 timeToRun = 60
 client = mqtt.Client(clientName)
 
-
 def saveToFile(filePath):
-    global alphabetList
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(alphabetList, f, ensure_ascii=False, indent=4)
 
-
-def sendFile(filePath, overwriteId):
-    # global resourceTypeOutput, repositoryOutputPath
-    # print("overwriteId: ", overwriteId)
-
+# TODO: Eventually we want this to be done by the wrapper.
+def sendFile(filePath):
+    global overwriteId
+    print("overwriteId: ", overwriteId)
     payload = {
         'resourceLabel': resourceLabel,
         'fileExtension': fileExtension,
@@ -49,12 +46,9 @@ def sendFile(filePath, overwriteId):
     # TODO: verify=False is to get around SSL verification error. We should fix this at some point
     response = requests.request("POST", repositoryOutputPath, data=payload, files=files, verify=False)
 
-    responseId = response.text.replace('"', '')
-    return responseId
-
+    overwriteId = response.text.replace('"', '')
 
 def on_message(client, userdata, message):
-    global responseId, alphabetList
     received = str(message.payload.decode("utf-8")).capitalize()
     print("received message: ", received)
 
@@ -68,7 +62,7 @@ def on_message(client, userdata, message):
     else:
         alphabetList.append({received: 1})
     saveToFile(filePath)
-    responseId = sendFile(filePath, responseId)
+    sendFile(filePath)
 
 
 def subscribeAndRun(client, streamTopic):
@@ -85,53 +79,31 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
         wrapperArgsDict = json.loads(wrapperArgsString)
-        print(wrapperArgsString)
-
-        input = wrapperArgsDict["Input"]
-        print("input: ", input)
-        metadataObject = input["MetadataObject"]
-        print("metadataObject: ", metadataObject)
-        output = wrapperArgsDict["Output"]
-        print("output: ", output)
-        resourceLabel = output["ResourceLabel"]
-        print("resourceLabel: ", resourceLabel)
-        fileExtension = output["FileExtension"]
-        print("fileExtension: ", fileExtension)
-        minerParameters = input["MinerParameters"]
-        print("minerParameters: ", minerParameters)
-        streamBroker = metadataObject["Host"]
-        print("streamBroker: ", streamBroker)
-        streamTopic = metadataObject["StreamInfo"]["StreamTopic"]
-        print("streamTopic: ", streamTopic)
-        repositoryOutputPath = output["Host"]
-        print("repositoryOutputPath: ", repositoryOutputPath)
-
 
         overwriteId = wrapperArgsDict["OverwriteId"]
+        input = wrapperArgsDict["Input"]
+        metadataObject = input["MetadataObject"]
+        output = wrapperArgsDict["Output"]
+        resourceLabel = output["ResourceLabel"]
+        fileExtension = output["FileExtension"]
+        minerParameters = input.get("MinerParameters")
+        streamBroker = metadataObject["Host"]
+        streamTopic = metadataObject["StreamInfo"]["StreamTopic"]
+        repositoryOutputPath = output["Host"]
+
+        # print(wrapperArgsString)
+        # print("input: ", input)
+        # print("metadataObject: ", metadataObject)
+        # print("output: ", output)
+        # print("resourceLabel: ", resourceLabel)
+        # print("fileExtension: ", fileExtension)
+        # print("minerParameters: ", minerParameters)
+        # print("streamBroker: ", streamBroker)
+        # print("streamTopic: ", streamTopic)
+        # print("repositoryOutputPath: ", repositoryOutputPath)
 
         fileName = f"{resourceLabel}.{fileExtension}"
         filePath = os.path.join(result_folder, fileName)
-        # print(f'file path for client {clientName}: {filePath}')
-        # client = mqtt.Client(clientName)
         client.connect(streamBroker)
 
         subscribeAndRun(client, streamTopic)
-
-# # Variables that we could get from elsewhere
-# topic = "EventStream"
-# timeToRun = 60
-# url = "https://localhost:4000/resources/"
-# resourceLabel = "miner-2-json"
-# fileName = f"{resourceLabel}.{fileExtension}"
-# resourceType = "Visualization"
-
-# # publicly available broker. We need our own
-# mqttBroker = "mqtt.eclipseprojects.io"  # Don't specify "https://"
-
-# client = mqtt.Client(clientName)
-# client.connect(mqttBroker)
-
-# dir_path = os.path.dirname(os.path.realpath(__file__))
-# result_folder = os.path.join(dir_path, 'generated')
-# filePath = os.path.join(result_folder, fileName)
-# print(f'file path for client {clientName}: {filePath}')

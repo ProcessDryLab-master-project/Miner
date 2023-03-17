@@ -19,7 +19,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 };
 
 export const sendResourceToRepo = async (output, metadataObject, minerResult, resourceOutputType) => {
-  let description = `Miner result from ${output.ResourceLabel}.`
+  let description = `Miner result from ${metadataObject.ResourceLabel}.`
 
   const formdata = new FormData();
   const stats = fs.statSync(minerResult);
@@ -43,35 +43,36 @@ export const sendResourceToRepo = async (output, metadataObject, minerResult, re
   return response;
 };
 
-export const initiateResourceOnRepo = async (
-  repositoryPath,
-  resourceLabel,
-  resourceType,
-  fileExtension
-) => {
-  let tmpPath = await createTmpFile(fileExtension);
+export const initiateResourceOnRepo = async (output, metadataObject, resourceOutputType) => {
+  let description = `Streaming result from ${metadataObject.ResourceLabel}.`
+  let tmpPath = await createTmpFile(output.FileExtension);
   const formdata = new FormData();
   const stats = fs.statSync(tmpPath);
   const fileSizeInBytes = stats.size;
-  const readStream = fs.createReadStream(tmpPath);
-  formdata.append("field-name", readStream, { knownLength: fileSizeInBytes });
-  formdata.append("resourceLabel", resourceLabel);
-  formdata.append("resourceType", resourceType);
-  formdata.append("fileExtension", fileExtension);
+  const fileStream = fs.createReadStream(tmpPath);
+
+  formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
+  formdata.append("ResourceLabel", output.ResourceLabel);
+  formdata.append("ResourceType", resourceOutputType);
+  formdata.append("FileExtension", output.FileExtension);
+  formdata.append("Description", description);
+  formdata.append("Parents", metadataObject.ResourceId);
+
   var requestOptions = {
     agent: agent,
     method: "POST",
     body: formdata,
     redirect: "follow",
   };
-  let fetchData = await fetch(repositoryPath, requestOptions);
+  let fetchData = await fetch(output.Host, requestOptions);
   let response = await fetchData.json();
-  console.log("rep resp: " + response);
+  console.log("repository resp: " + response);
   return response;
 };
 
 async function createTmpFile(extension) {
   let tmpPath = `./Downloads/tmp.${extension}`;
+  // let tmpPath = `./Tmp/tmp.${extension}`;
   let result = {};
   let output = JSON.stringify(result);
   try {
