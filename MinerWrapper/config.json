@@ -1,0 +1,84 @@
+[
+  {
+    "MinerId": "1",
+    "Label": "Alfa Miner",
+    "Type": "Miner",
+    "External": "./PythonMiner/minerAlpha.py",
+    "Access": "Public",
+    "FileInputExtension": ["xes"],
+    "FileOutputExtension": ["pnml"],
+    "ResourceInputType": "EventLog",
+    "ResourceOutputType": "Visualization"
+  },
+  {
+    "MinerId": "2",
+    "Label": "Heuristic Miner",
+    "Type": "Miner",
+    "External": "./PythonMiner/minerHeuristic.py",
+    "Access": "Public",
+    "FileInputExtension": ["xes"],
+    "FileOutputExtension": ["pnml"],
+    "ResourceInputType": "EventLog",
+    "ResourceOutputType": "Visualization",
+    "MinerParameters": [
+      {
+        "name": "DEPENDENCY_THRESH",
+        "type": "double",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "descr": ""
+      },
+      {
+        "name": "AND_MEASURE_THRESH",
+        "type": "double",
+        "min": 0,
+        "max": 1,
+        "default": 0.65,
+        "descr": ""
+      },
+      {
+        "name": "MIN_ACT_COUNT",
+        "type": "int",
+        "min": 0,
+        "max": 20,
+        "default": 1,
+        "descr": ""
+      },
+      {
+        "name": "MIN_DFG_OCCURRENCES",
+        "type": "int",
+        "min": 0,
+        "max": 20,
+        "default": 1,
+        "descr": ""
+      },
+      {
+        "name": "DFG_PRE_CLEANING_NOISE_THRESH",
+        "type": "double",
+        "min": 0,
+        "max": 1,
+        "default": 0.05,
+        "descr": ""
+      },
+      {
+        "name": "LOOP_LENGTH_TWO_THRESH",
+        "type": "int",
+        "min": 0,
+        "max": 20,
+        "default": 2,
+        "descr": ""
+      }
+    ]
+  },
+  {
+    "MinerId": "3",
+    "Label": "Alphabet Stream Miner",
+    "Type": "Miner",
+    "External": "./PythonMiner/MqttMinerHistogram.py",
+    "Access": "Public",
+    "FileOutputExtension": ["json"],
+    "ResourceInputType": "EventStream",
+    "ResourceOutputType": "Visualization"
+  }
+]

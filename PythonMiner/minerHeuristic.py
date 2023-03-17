@@ -30,16 +30,15 @@ if __name__ == "__main__":
         resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
         minerParameters = input["MinerParameters"]
-        # minerParams = json.loads(wrapperArgsDict["minerParameters"])
 
         # print("fileSavePath: ", fileSavePath)
-        # print("fileName: ", fileName)
-        # print("argsDict: ", minerParams)
+        # print("resourceLabel: ", resourceLabel)
+        # print("minerParameters: ", minerParameters)
 
-        # for key in argsDict: # print keys
+        # for key in minerParameters: # print keys
         #     print(key)
-        # for key in argsDict: # print values
-        #     print(argsDict[key])
+        # for key in minerParameters: # print values
+        #     print(minerParameters[key])
 
         log = xes_importer.apply(fileSavePath)
         if minerParameters != None:

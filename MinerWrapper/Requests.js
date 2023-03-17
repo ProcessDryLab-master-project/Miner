@@ -2,7 +2,6 @@ import fetch from "node-fetch";
 import https from "https";
 import fs from "fs";
 import FormData from "form-data";
-const configPath = "./configWithParam.json";
 
 const agent = new https.Agent({
   rejectUnauthorized: false,
@@ -19,10 +18,8 @@ export const getResourceFromRepo = async (url, filePath) => {
   console.log(`Log saved to ${filePath}`);
 };
 
-export const sendResourceToRepo = async (output, metadataObject, minerResult) => {
-  const configFile = fs.readFileSync(configPath);
-  const configJson = JSON.parse(configFile);
-  let description = `Miner result from ${configJson.Label}.`
+export const sendResourceToRepo = async (output, metadataObject, minerResult, resourceOutputType) => {
+  let description = `Miner result from ${output.ResourceLabel}.`
 
   const formdata = new FormData();
   const stats = fs.statSync(minerResult);
@@ -31,10 +28,10 @@ export const sendResourceToRepo = async (output, metadataObject, minerResult) =>
 
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   formdata.append("ResourceLabel", output.ResourceLabel);
-  formdata.append("ResourceType", configJson.ResourceOutputType);
+  formdata.append("ResourceType", resourceOutputType);
   formdata.append("FileExtension", output.FileExtension);
   formdata.append("Description", description);
-  formdata.append("Parents", metadataObject.ResourceID);
+  formdata.append("Parents", metadataObject.ResourceId);
   var requestOptions = {
     agent: agent,
     method: "POST",

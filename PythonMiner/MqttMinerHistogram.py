@@ -8,16 +8,17 @@ import json
 import sys
 
 clientName = "Event Miner (Subscriber 2)"
-fileExtension = "json"
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
 # Global variables that probably shouldn't be!
 alphabetList = []
 
-global resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, responseId
-responseId = None
-resourceTypeOutput = "Visualization"
+global resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, overwriteId, fileExtension
+overwriteId = None
+# Default values.
+fileExtension = "json"
+resourceTypeOutput = "Visualization" # TODO: Only used when sending, which will likely be moved out to wrapper
 repositoryOutputPath = "https://localhost:4000/resources/"
 streamBroker = "mqtt.eclipseprojects.io"
 timeToRun = 60
@@ -30,24 +31,23 @@ def saveToFile(filePath):
         json.dump(alphabetList, f, ensure_ascii=False, indent=4)
 
 
-def sendFile(filePath, responseId):
-    global resourceTypeOutput, repositoryOutputPath
-    print("ResponseId: ", responseId)
+def sendFile(filePath, overwriteId):
+    # global resourceTypeOutput, repositoryOutputPath
+    # print("overwriteId: ", overwriteId)
 
     payload = {
         'resourceLabel': resourceLabel,
         'fileExtension': fileExtension,
-        'resourceType': resourceTypeOutput
+        'resourceType': resourceTypeOutput 
     }
-    if (responseId != None):
-        payload['overwriteId'] = responseId
+    if (overwriteId != None):
+        payload['OverwriteId'] = overwriteId
     files = [
         ('file', (fileName, open(filePath, 'rb'), 'application/octet-stream'))
     ]
 
     # TODO: verify=False is to get around SSL verification error. We should fix this at some point
-    response = requests.request(
-        "POST", repositoryOutputPath, data=payload, files=files, verify=False)
+    response = requests.request("POST", repositoryOutputPath, data=payload, files=files, verify=False)
 
     responseId = response.text.replace('"', '')
     return responseId
@@ -87,19 +87,27 @@ if __name__ == "__main__":
         wrapperArgsDict = json.loads(wrapperArgsString)
         print(wrapperArgsString)
 
-        # fileSavePath = wrapperArgsDict["fileSavePath"]
-        # fileName = wrapperArgsDict["incomingFileId"]
-        # resourceTypeInput = wrapperArgsDict["resourceTypeInput"]
-        # print("resourceTypeOutput before: ", resourceTypeOutput)
-        resourceTypeOutput = wrapperArgsDict["resourceTypeOutput"]
-        # print("resourceTypeOutput after: ", resourceTypeOutput)
+        input = wrapperArgsDict["Input"]
+        print("input: ", input)
+        metadataObject = input["MetadataObject"]
+        print("metadataObject: ", metadataObject)
+        output = wrapperArgsDict["Output"]
+        print("output: ", output)
+        resourceLabel = output["ResourceLabel"]
+        print("resourceLabel: ", resourceLabel)
+        fileExtension = output["FileExtension"]
+        print("fileExtension: ", fileExtension)
+        minerParameters = input["MinerParameters"]
+        print("minerParameters: ", minerParameters)
+        streamBroker = metadataObject["Host"]
+        print("streamBroker: ", streamBroker)
+        streamTopic = metadataObject["StreamInfo"]["StreamTopic"]
+        print("streamTopic: ", streamTopic)
+        repositoryOutputPath = output["Host"]
+        print("repositoryOutputPath: ", repositoryOutputPath)
 
-        streamBroker = wrapperArgsDict["streamBroker"]
-        streamTopic = wrapperArgsDict["streamTopic"]
-        resourceLabel = wrapperArgsDict["resourceLabel"]
-        timeToRun = wrapperArgsDict["timeToRun"]
-        repositoryOutputPath = wrapperArgsDict["repositoryOutputPath"]
-        responseId = wrapperArgsDict["overwriteId"]
+
+        overwriteId = wrapperArgsDict["OverwriteId"]
 
         fileName = f"{resourceLabel}.{fileExtension}"
         filePath = os.path.join(result_folder, fileName)

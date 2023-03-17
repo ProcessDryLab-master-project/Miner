@@ -1,25 +1,13 @@
 import Wrapper from "./Wrapper.js";
 const port = 5000;
-
-// Use these 2 for Heuristic Miner
-const minerToRun = "minerHeuristic.py";
-const configPath = "./configWithParam.json";
-// Use these 2 for Alpha Miner
-// const minerToRun = "minerAlpha.py"
-// const configPath = "./configNoParam.json";
-// use these 2 for Streaming Miner
-// const minerToRun = "MqttMinerHistogram.py";
-// const configPath = "./configStream.json";
-
-import fs from "fs";
-import path from "path";
 import {
   getResourceFromRepo,
   sendResourceToRepo,
   initiateResourceOnRepo,
 } from "./Requests.js";
 
-export default function initEndpoints(app) {
+export default function initEndpoints(app, config) {
+  // console.log({ "config endpoints": config });
   app.get("/", function (req, res) {
     res.send("Default page");
   });
@@ -28,9 +16,7 @@ export default function initEndpoints(app) {
   });
   app.get(`/configurations`, function (req, res) {
     console.log("Getting a request on /configurations");
-    const file = fs.readFileSync(configPath);
-    const json = JSON.parse(file);
-    res.send(json);
+    res.send(config);
   });
 
   app.post(`/miner`, async function (req, res) {
@@ -39,15 +25,23 @@ export default function initEndpoints(app) {
     const metadataObject = input.MetadataObject;
     const output = body.Output;
     const inputResourceType = metadataObject.ResourceType;
-    const inputResourceId = metadataObject.ResourceID;
+    const inputResourceId = metadataObject.ResourceId;
+    const minerId = body.MinerId;
+    console.log("minerId: " + minerId);
+    const minerToRun = config.find(miner => miner.MinerId == minerId);
+    console.log({ "minerToRun": minerToRun });
+    const resourceOutputType = minerToRun.ResourceOutputType;
+    console.log("resourceOutputType: " + resourceOutputType);
+    const pathToExternal = minerToRun.External;
+    console.log("external file to run: " + pathToExternal);
+
     let minerResult;
-    
     if (inputResourceType == "EventStream") {
       console.log("Running as an EventStream");
       let repoResp = await initiateResourceOnRepo(repositoryOutputPath, resourceLabel, resourceTypeOutput, fileExtension);
       console.log("Repo init resp: " + repoResp);
       res.send(repoResp);
-      body["overwriteId"] = repoResp;
+      body["OverwriteId"] = repoResp; // TODO: Maybe this shouldn't be added to body if wrapper takes care of all communication
       minerResult = await Wrapper(body);
     } 
     else {
@@ -58,11 +52,11 @@ export default function initEndpoints(app) {
       let repoGetResp = await getResourceFromRepo(fileURL, inputFilePath);
       
       body["FileSavePath"] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
-      minerResult = await Wrapper(body, minerToRun);
+      minerResult = await Wrapper(body, pathToExternal);
       console.log("Wrapper miner result: " + minerResult);
 
       console.log("URL to send result: " + output.Host);
-      let repoPostResp = await sendResourceToRepo(output, metadataObject, minerResult);
+      let repoPostResp = await sendResourceToRepo(output, metadataObject, minerResult, resourceOutputType);
       console.log("repoPostResp: " + repoPostResp);
       res.send(repoPostResp);
     }

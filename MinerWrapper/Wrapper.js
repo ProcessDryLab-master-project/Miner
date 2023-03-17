@@ -1,11 +1,11 @@
 import spawn from "child_process";
 import once from "events";
 
-export default async function runMiner(body, minerToRun) {
-  const minerPath = `./PythonMiner/${minerToRun}`;
+export default async function runMiner(body, pathToExternal) {
+  // const minerPath = `./PythonMiner/${minerToRun}`;
   let wrapperArgs = JSON.stringify(body);
   console.log("wrapperArgs: " + wrapperArgs);
-  let pythonProcess = spawn.spawn("python", [minerPath, wrapperArgs]);
+  let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
   let output = "";
   pythonProcess.stdin.setEncoding = "utf-8";
 
