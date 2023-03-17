@@ -26,12 +26,17 @@ export const sendResourceToRepo = async (output, metadataObject, minerResult, re
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(minerResult);
 
+  let parents = [
+    metadataObject.ResourceId
+  ]
+  parents = JSON.stringify(parents);
+
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   formdata.append("ResourceLabel", output.ResourceLabel);
   formdata.append("ResourceType", resourceOutputType);
   formdata.append("FileExtension", output.FileExtension);
   formdata.append("Description", description);
-  formdata.append("Parents", metadataObject.ResourceId);
+  formdata.append("Parents", parents);
   var requestOptions = {
     agent: agent,
     method: "POST",

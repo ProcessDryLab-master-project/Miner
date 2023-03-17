@@ -4,7 +4,7 @@ import once from "events";
 export default async function runMiner(body, pathToExternal) {
   // const minerPath = `./PythonMiner/${minerToRun}`;
   let wrapperArgs = JSON.stringify(body);
-  console.log("wrapperArgs: " + wrapperArgs);
+  // console.log("wrapperArgs: " + wrapperArgs);
   let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
   let output = "";
   pythonProcess.stdin.setEncoding = "utf-8";
