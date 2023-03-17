@@ -50,13 +50,17 @@ export const initiateResourceOnRepo = async (output, metadataObject, resourceOut
   const stats = fs.statSync(tmpPath);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(tmpPath);
+  let parents = [
+    metadataObject.ResourceId
+  ]
+  parents = JSON.stringify(parents);
 
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   formdata.append("ResourceLabel", output.ResourceLabel);
   formdata.append("ResourceType", resourceOutputType);
   formdata.append("FileExtension", output.FileExtension);
   formdata.append("Description", description);
-  formdata.append("Parents", metadataObject.ResourceId);
+  formdata.append("Parents", parents);
 
   var requestOptions = {
     agent: agent,
