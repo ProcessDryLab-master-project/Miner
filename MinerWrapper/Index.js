@@ -3,11 +3,15 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import fs from "fs";
 
-import config from "./config.json" assert { type: "json" };
+// import config from "./config.json" assert { type: "json" };
+
+const loadJSON = (path) => JSON.parse(fs.readFileSync(new URL(path, import.meta.url)));
+
+const config = loadJSON('./config.json');
+
 // let config = await import("./config.json", {
 //   assert: { type: "json" },
 // });
-// console.log({ "config start": config }); // config.default instead with method above
 
 const app = express()
 // Allow cors
