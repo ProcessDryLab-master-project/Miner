@@ -17,14 +17,19 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        fileSavePath = sys.argv[1]
-        fileName = sys.argv[2]
-        argsDict = json.loads(sys.argv[3])
+        wrapperArgsString = sys.argv[1]
+        wrapperArgsDict = json.loads(wrapperArgsString)
+        fileSavePath = wrapperArgsDict["FileSavePath"] # Location of incoming xes file that wrapper saved
+        input = wrapperArgsDict["Input"]
+        output = wrapperArgsDict["Output"]
+        resourceLabel = output["ResourceLabel"]
+        fileExtension = output["FileExtension"]
 
         log = xes_importer.apply(fileSavePath)
         net, initialMarking, finalMarking = alphaMiner.apply(log)
 
-        pnmlPath = os.path.join(result_folder, "alpha-" + fileName + ".pnml")
+        nameWithExtension = f"{resourceLabel}.{fileExtension}"
+        pnmlPath = os.path.join(result_folder, nameWithExtension)
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)
 

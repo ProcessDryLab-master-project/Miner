@@ -1,10 +1,7 @@
 import spawn from "child_process";
 import once from "events";
 
-export default async function runMiner(body) {
-  // const minerToRun = "minerAlpha.py"
-  const minerToRun = "minerHeuristic.py";
-  // const minerToRun = "MqttMinerHistogram.py";
+export default async function runMiner(body, minerToRun) {
   const minerPath = `./PythonMiner/${minerToRun}`;
   let wrapperArgs = JSON.stringify(body);
   console.log("wrapperArgs: " + wrapperArgs);
@@ -18,7 +15,6 @@ export default async function runMiner(body) {
   });
   // Handle error output
   pythonProcess.stderr.on("data", (data) => {
-    // As said before, convert the Uint8Array to a readable string.
     console.log("error:" + data);
   });
   pythonProcess.stdout.on("end", async function (code) {
@@ -52,32 +48,3 @@ export default async function runMiner(body) {
   //   });
   // });
 }
-
-function miner() {
-  // const spawn = require("child_process").spawn;
-  // const logPath = "../PythonMiner/example-log.xes";
-  // const pnmlPath = "../PythonMiner/running-example.pnml";
-  // const imgPath = "../PythonMiner/running-example.png";
-  const logPath = "./example-log.xes";
-  const pnmlPath = "./running-example.pnml";
-  const imgPath = "./running-example.png";
-  const pythonProcess = spawn.spawn("python", [
-    "./PythonMiner/main.py",
-    imgPath,
-    pnmlPath,
-    logPath,
-  ]);
-
-  // var commandtoRun = "C:/Users/sebas/source/repos/PDL/PythonMiner/dist/main.exe";
-  // const pythonProcess = spawn('cmd.exe', ["/c", commandtoRun, imgPath, pnmlPath, logPath])
-
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(data.toString());
-  });
-
-  pythonProcess.stderr.on("data", (data) => {
-    console.log(data.toString());
-  });
-}
-
-// miner();

@@ -47,7 +47,7 @@ if __name__ == "__main__":
         else:
             net, initialMarking, finalMarking = hminer.apply(log)
 
-        nameWithExtension = resourceLabel + fileExtension
+        nameWithExtension = f"{resourceLabel}.{fileExtension}"
         pnmlPath = os.path.join(result_folder, nameWithExtension)
         output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)
