@@ -34,8 +34,7 @@ export default function initEndpoints(app, config) {
     let minerResult;
     if (inputResourceType == "EventStream") {
       console.log("Running as an EventStream");
-      let repoResp = await initiateResourceOnRepo(output, metadataObject, resourceOutputType);
-      console.log("Repo init resp: " + repoResp);
+      let repoResp = await initiateResourceOnRepo(output, resourceOutputType);
       res.send(repoResp);
       body["OverwriteId"] = repoResp; // TODO: Maybe this shouldn't be added to body if wrapper takes care of all communication
       minerResult = await Wrapper(body, pathToExternal);
@@ -45,16 +44,16 @@ export default function initEndpoints(app, config) {
       const fileURL = new URL(inputResourceId, metadataObject.Host).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
       console.log("URL to get file: " + fileURL);
       const inputFilePath = `./Downloads/${inputResourceId}.${inputFileExtension}`;
-      let repoGetResp = await getResourceFromRepo(fileURL, inputFilePath);
+      await getResourceFromRepo(fileURL, inputFilePath);
+      let overwriteId = await initiateResourceOnRepo(output, resourceOutputType);
+      res.send(overwriteId);
       
       body["FileSavePath"] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
       minerResult = await Wrapper(body, pathToExternal);
       console.log("Wrapper miner result: " + minerResult);
 
       console.log("URL to send result: " + output.Host);
-      let repoPostResp = await sendResourceToRepo(output, metadataObject, minerResult, resourceOutputType);
-      console.log("repoPostResp: " + repoPostResp);
-      res.send(repoPostResp);
+      await sendResourceToRepo(output, metadataObject, minerResult, resourceOutputType, overwriteId);
     }
   });
 
