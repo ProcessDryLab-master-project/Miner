@@ -6,7 +6,7 @@
     "External": "./PythonMiner/minerAlpha.py",
     "Access": "Public",
     "FileInputExtension": ["xes"],
-    "FileOutputExtension": ["pnml"],
+    "FileOutputExtension": ["pnml", "png"],
     "ResourceInputType": "EventLog",
     "ResourceOutputType": "Visualization"
   },
@@ -17,7 +17,7 @@
     "External": "./PythonMiner/minerHeuristic.py",
     "Access": "Public",
     "FileInputExtension": ["xes"],
-    "FileOutputExtension": ["pnml"],
+    "FileOutputExtension": ["pnml", "png"],
     "ResourceInputType": "EventLog",
     "ResourceOutputType": "Visualization",
     "MinerParameters": [

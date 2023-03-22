@@ -29,14 +29,16 @@ if __name__ == "__main__":
         net, initialMarking, finalMarking = alphaMiner.apply(log)
 
         nameWithExtension = f"{resourceLabel}.{fileExtension}"
-        pnmlPath = os.path.join(result_folder, nameWithExtension)
-        pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
-        print(pnmlPath)
-
-        # imagePath = os.path.join(result_folder, "alpha-" + fileName + ".png")
-        # gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
-        # pn_visualizer.save(gviz, imagePath)
-
+        
+        savePath = os.path.join(result_folder, nameWithExtension)
+        if(fileExtension == "pnml"):
+            pm4py.write_pnml(net, initialMarking, finalMarking, savePath)
+            print(savePath)
+        if(fileExtension == "png"):
+            gviz = pn_visualizer.apply(net, initialMarking, finalMarking, parameters=None, variant=pn_visualizer.Variants.FREQUENCY)
+            pn_visualizer.save(gviz, savePath)
+            print(savePath)
+            
 # Commands:
 # Test program locally (without making it an .exe)
 # python main.py C:\Users\sebas\source\repos\PDL\MinerNode\Resources\Images\running-example.png C:\Users\sebas\source\repos\PDL\MinerNode\Resources\PNML\running-example.pnml C:\Users\sebas\source\repos\PDL\MinerNode\Resources\Logs\running-example.xes
