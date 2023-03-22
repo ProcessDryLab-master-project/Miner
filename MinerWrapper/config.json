@@ -80,5 +80,16 @@
     "FileOutputExtension": ["json"],
     "ResourceInputType": "EventStream",
     "ResourceOutputType": "Visualization"
+  },
+  {
+    "MinerId": "4",
+    "Label": "Inductive Miner to BPMN",
+    "Type": "Miner",
+    "External": "./PythonMiner/minerInductiveBpmn.py",
+    "Access": "Public",
+    "FileInputExtension": ["xes"],
+    "FileOutputExtension": ["bpmn"],
+    "ResourceInputType": "EventLog",
+    "ResourceOutputType": "Visualization"
   }
 ]

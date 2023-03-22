@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
         nameWithExtension = f"{resourceLabel}.{fileExtension}"
         pnmlPath = os.path.join(result_folder, nameWithExtension)
-        output = pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
+        pm4py.write_pnml(net, initialMarking, finalMarking, pnmlPath)
         print(pnmlPath)
 
         # pnmlPath = os.path.join(result_folder, "heuristic-" + fileName + ".pnml")
