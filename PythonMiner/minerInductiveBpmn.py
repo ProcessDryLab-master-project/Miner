@@ -3,7 +3,11 @@ import sys
 import pm4py
 import json
 from pm4py.objects.log.importer.xes import importer as xes_importer
-
+# pygraphviz is a bit special. See https://pygraphviz.github.io/documentation/stable/install.html. Install like this:
+# python -m pip install --global-option=build_ext `
+#               --global-option="-IC:\Program Files\Graphviz\include" `
+#               --global-option="-LC:\Program Files\Graphviz\lib" `
+#               pygraphviz
 dir_path = os.path.dirname(os.path.realpath(__file__))
 result_folder = os.path.join(dir_path, 'generated')
 

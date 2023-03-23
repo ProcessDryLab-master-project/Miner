@@ -3,71 +3,86 @@
     "MinerId": "1",
     "Label": "Alfa Miner",
     "Type": "Miner",
-    "External": "./PythonMiner/minerAlpha.py",
+    "External": "./PythonMiner/MinerAlpha.py",
     "Access": "Public",
-    "FileInputExtension": ["xes"],
-    "FileOutputExtension": ["pnml", "png"],
-    "ResourceInputType": "EventLog",
-    "ResourceOutputType": "Visualization"
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "pnml",
+      "ResourceType": "PetriNet"
+    },
+    "MinerParameters":[]
   },
   {
     "MinerId": "2",
     "Label": "Heuristic Miner",
     "Type": "Miner",
-    "External": "./PythonMiner/minerHeuristic.py",
+    "External": "./PythonMiner/MinerHeuristic.py",
     "Access": "Public",
-    "FileInputExtension": ["xes"],
-    "FileOutputExtension": ["pnml", "png"],
-    "ResourceInputType": "EventLog",
-    "ResourceOutputType": "Visualization",
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "png",
+      "ResourceType": "Image"
+    },
     "MinerParameters": [
       {
-        "name": "DEPENDENCY_THRESH",
-        "type": "double",
-        "min": 0,
-        "max": 1,
-        "default": 0.5,
-        "descr": ""
+        "Name": "DEPENDENCY_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.5,
+        "Description": ""
       },
       {
-        "name": "AND_MEASURE_THRESH",
-        "type": "double",
-        "min": 0,
-        "max": 1,
-        "default": 0.65,
-        "descr": ""
+        "Name": "AND_MEASURE_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.65,
+        "Description": ""
       },
       {
-        "name": "MIN_ACT_COUNT",
-        "type": "int",
-        "min": 0,
-        "max": 20,
-        "default": 1,
-        "descr": ""
+        "Name": "MIN_ACT_COUNT",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 1,
+        "Description": ""
       },
       {
-        "name": "MIN_DFG_OCCURRENCES",
-        "type": "int",
-        "min": 0,
-        "max": 20,
-        "default": 1,
-        "descr": ""
+        "Name": "MIN_DFG_OCCURRENCES",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 1,
+        "Description": ""
       },
       {
-        "name": "DFG_PRE_CLEANING_NOISE_THRESH",
-        "type": "double",
-        "min": 0,
-        "max": 1,
-        "default": 0.05,
-        "descr": ""
+        "Name": "DFG_PRE_CLEANING_NOISE_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.05,
+        "Description": ""
       },
       {
-        "name": "LOOP_LENGTH_TWO_THRESH",
-        "type": "int",
-        "min": 0,
-        "max": 20,
-        "default": 2,
-        "descr": ""
+        "Name": "LOOP_LENGTH_TWO_THRESH",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 2,
+        "Description": ""
       }
     ]
   },
@@ -77,19 +92,64 @@
     "Type": "Miner",
     "External": "./PythonMiner/MqttMinerHistogram.py",
     "Access": "Public",
-    "FileOutputExtension": ["json"],
-    "ResourceInputType": "EventStream",
-    "ResourceOutputType": "Visualization"
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
   },
   {
     "MinerId": "4",
     "Label": "Inductive Miner to BPMN",
     "Type": "Miner",
-    "External": "./PythonMiner/minerInductiveBpmn.py",
+    "External": "./PythonMiner/MinerInductiveBpmn.py",
     "Access": "Public",
-    "FileInputExtension": ["xes"],
-    "FileOutputExtension": ["bpmn"],
-    "ResourceInputType": "EventLog",
-    "ResourceOutputType": "Visualization"
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "bpmn",
+      "ResourceType": "ProcessModel"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "5",
+    "Label": "Conformance Checker",
+    "Type": "Miner",
+    "External": "./PythonMiner/MinerConformance.py",
+    "Access": "Public",
+    "ResourceInput": [
+      {
+        "Name": "LogToFilter",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      },
+      {
+        "Name": "LogToCheck",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      },
+      {
+        "Name": "ReferenceModel",
+        "FileExtension": "pnml",
+        "ResourceType": "ProcessModel"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Alignment"
+    },
+    "MinerParameters":[]
   }
 ]
