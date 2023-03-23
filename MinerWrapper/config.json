@@ -1,7 +1,7 @@
 [
   {
     "MinerId": "1",
-    "Label": "Alfa Miner",
+    "MinerLabel": "Alfa Miner",
     "Type": "Miner",
     "External": "./PythonMiner/MinerAlpha.py",
     "Access": "Public",
@@ -20,7 +20,7 @@
   },
   {
     "MinerId": "2",
-    "Label": "Heuristic Miner",
+    "MinerLabel": "Heuristic Miner",
     "Type": "Miner",
     "External": "./PythonMiner/MinerHeuristic.py",
     "Access": "Public",
@@ -88,7 +88,7 @@
   },
   {
     "MinerId": "3",
-    "Label": "Alphabet Stream Miner",
+    "MinerLabel": "Alphabet Stream Miner",
     "Type": "Miner",
     "External": "./PythonMiner/MqttMinerHistogram.py",
     "Access": "Public",
@@ -106,7 +106,7 @@
   },
   {
     "MinerId": "4",
-    "Label": "Inductive Miner to BPMN",
+    "MinerLabel": "Inductive Miner to BPMN",
     "Type": "Miner",
     "External": "./PythonMiner/MinerInductiveBpmn.py",
     "Access": "Public",
@@ -125,7 +125,7 @@
   },
   {
     "MinerId": "5",
-    "Label": "Conformance Checker",
+    "MinerLabel": "Conformance Checker",
     "Type": "Miner",
     "External": "./PythonMiner/MinerConformance.py",
     "Access": "Public",
