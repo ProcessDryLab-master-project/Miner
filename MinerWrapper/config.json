@@ -3,7 +3,7 @@
     "MinerId": "1",
     "MinerLabel": "Alfa Miner",
     "Type": "Miner",
-    "External": "./PythonMiner/MinerAlpha.py",
+    "External": "./Miners/MinerAlpha.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -22,7 +22,7 @@
     "MinerId": "2",
     "MinerLabel": "Heuristic Miner",
     "Type": "Miner",
-    "External": "./PythonMiner/MinerHeuristic.py",
+    "External": "./Miners/MinerHeuristic.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -90,7 +90,7 @@
     "MinerId": "3",
     "MinerLabel": "Alphabet Stream Miner",
     "Type": "Miner",
-    "External": "./PythonMiner/MqttMinerHistogram.py",
+    "External": "./Miners/MqttMinerHistogram.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -108,7 +108,7 @@
     "MinerId": "4",
     "MinerLabel": "Inductive Miner to BPMN",
     "Type": "Miner",
-    "External": "./PythonMiner/MinerInductiveBpmn.py",
+    "External": "./Miners/MinerInductiveBpmn.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -127,7 +127,7 @@
     "MinerId": "5",
     "MinerLabel": "Conformance Checker",
     "Type": "Miner",
-    "External": "./PythonMiner/MinerConformance.py",
+    "External": "./Miners/MinerConformance.py",
     "Access": "Public",
     "ResourceInput": [
       {
