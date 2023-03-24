@@ -18,20 +18,22 @@ result_folder = os.path.join(dir_path, 'generated')
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
-        wrapperArgsDict = json.loads(wrapperArgsString)
-        fileSavePath = wrapperArgsDict["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
-        input = wrapperArgsDict["Input"]
-        output = wrapperArgsDict["Output"]
+        body = json.loads(wrapperArgsString)
+        fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
+        output = body["Output"]
         resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
-
+        # print("fileSavePath: ", fileSavePath)
 
         log = xes_importer.apply(fileSavePath)
+        # print("imported log")
         net, initialMarking, finalMarking = alphaMiner.apply(log)
-
+        # print("ran miner")
         nameWithExtension = f"{resourceLabel}.{fileExtension}"
+        # print("nameWithExtension: ", nameWithExtension)
         
         savePath = os.path.join(result_folder, nameWithExtension)
+        # print("savePath: ", savePath)
         if(fileExtension == "pnml"):
             pm4py.write_pnml(net, initialMarking, finalMarking, savePath)
             print(savePath)

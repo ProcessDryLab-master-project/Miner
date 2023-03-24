@@ -18,8 +18,9 @@ export default async function runMiner(body, pathToExternal) {
     console.log("error:" + data);
   });
   pythonProcess.stdout.on("end", async function (code) {
-    console.log("output: " + output);
-    console.log(`Exit code is: ${code}`);
+    console.log("Spawn output: " + output);
+    if(code != undefined)
+      console.log(`Exit code is: ${code}`);
   });
 
   await once.once(pythonProcess, "close");

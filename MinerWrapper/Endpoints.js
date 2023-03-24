@@ -20,6 +20,9 @@ export default function initEndpoints(app, config) {
   });
 
   app.post(`/miner`, async function (req, res) {
+    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    console.log("fullUrl: " + fullUrl);
+
     let body = await req.body;
     const input = body.Input
     const resources = input.Resources;
@@ -29,30 +32,37 @@ export default function initEndpoints(app, config) {
     const resourceOutputExtension = minerToRun.ResourceOutput.FileExtension;
     const resourceOutputType = minerToRun.ResourceOutput.ResourceType;
     const pathToExternal = minerToRun.External;
-    // console.log(config);
-    let rinput = minerToRun.ResourceInput;
-    console.log(rinput);
     let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name)
     console.log(inputKeys);
 
     let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
     res.send(overwriteId);
+
+    let parents = [];
     for (let i = 0; i < inputKeys.length; i++) {
       const key = inputKeys[i];
       const metadataObject = resources[key];
-      const inputResourceId = metadataObject.ResourceId;
-      const resourceInfo = metadataObject.ResourceInfo;
-      const inputResourceType = resourceInfo.ResourceType;
+      if(metadataObject != undefined) { // Maybe loop through input resources instead to avoid this check.
+        const inputResourceId = metadataObject.ResourceId;
+        const resourceInfo = metadataObject.ResourceInfo;
+        const inputResourceType = resourceInfo.ResourceType;
 
-      // Get all files if it's not a Stream. Streams only take 1 input right now.
-      if (inputResourceType != "EventStream") {
-        const inputFileExtension = resourceInfo.FileExtension;
-        const fileURL = new URL(inputResourceId, resourceInfo.Host).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
-        console.log("URL to get file: " + fileURL);
-        const inputFilePath = `./Downloads/${inputResourceId}.${inputFileExtension}`;
-        body[key] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
-        
-        await getResourceFromRepo(fileURL, inputFilePath);
+        parents.push({
+          ResourceId: inputResourceId,
+          From: key,
+        })
+        // Get all files if it's not a Stream. Streams only take 1 input right now.
+        if (inputResourceType != "EventStream") {
+          const inputFileExtension = resourceInfo.FileExtension;
+          const fileURL = new URL(inputResourceId, resourceInfo.Host).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
+          console.log("URL to get file: " + fileURL);
+          const inputFilePath = `./Downloads/${inputResourceId}.${inputFileExtension}`;
+          body[key] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
+          let promise = await getResourceFromRepo(fileURL, inputFilePath);
+          // promise.then((value) => {
+          //   console.log("Promise value: " + value);
+          // });
+        }
       }
     }
 
@@ -61,7 +71,7 @@ export default function initEndpoints(app, config) {
     console.log("Wrapper miner result: " + minerResult);
 
     console.log("URL to send result: " + output.Host);
-    await sendResourceToRepo(output, metadataObject, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);
+    await sendResourceToRepo(output, parents, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);
     
   });
 

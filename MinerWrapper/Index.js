@@ -9,10 +9,6 @@ const loadJSON = (path) => JSON.parse(fs.readFileSync(new URL(path, import.meta.
 
 const config = loadJSON('./config.json');
 
-// let config = await import("./config.json", {
-//   assert: { type: "json" },
-// });
-
 const app = express()
 // Allow cors
 app.use(cors())

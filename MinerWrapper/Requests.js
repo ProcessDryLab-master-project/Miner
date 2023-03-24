@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import https from "https";
 import fs from "fs";
 import FormData from "form-data";
+import os from "os";
 
 const agent = new https.Agent({
   rejectUnauthorized: false,
@@ -10,25 +11,21 @@ const agent = new https.Agent({
 export const getResourceFromRepo = async (url, filePath) => {
   const res = await fetch(url, { agent });
   const fileStream = fs.createWriteStream(filePath);
-  await new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     res.body.pipe(fileStream);
     res.body.on("error", reject);
     fileStream.on("finish", resolve);
   });
-  console.log(`Log saved to ${filePath}`);
 };
 
-export const sendResourceToRepo = async (output, metadataObject, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
-  let description = `Miner result from ${metadataObject.ResourceLabel}.`
+export const sendResourceToRepo = async (output, parents, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
+  let description = `Miner result from ` + fullUrl;
 
   const formdata = new FormData();
   const stats = fs.statSync(minerResult);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(minerResult);
 
-  let parents = [
-    metadataObject.ResourceId
-  ]
   parents = JSON.stringify(parents);
 
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
