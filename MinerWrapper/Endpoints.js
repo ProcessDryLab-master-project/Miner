@@ -58,10 +58,8 @@ export default function initEndpoints(app, config) {
           console.log("URL to get file: " + fileURL);
           const inputFilePath = `./Downloads/${inputResourceId}.${inputFileExtension}`;
           body[key] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
-          let promise = await getResourceFromRepo(fileURL, inputFilePath);
-          // promise.then((value) => {
-          //   console.log("Promise value: " + value);
-          // });
+          let result = await getResourceFromRepo(fileURL, inputFilePath);
+          console.log("Result from fetching file: " + result);
         }
       }
     }

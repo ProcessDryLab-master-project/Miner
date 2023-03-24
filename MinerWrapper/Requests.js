@@ -9,14 +9,32 @@ const agent = new https.Agent({
 });
 
 export const getResourceFromRepo = async (url, filePath) => {
-  const res = await fetch(url, { agent });
-  const fileStream = fs.createWriteStream(filePath);
-  return await new Promise((resolve, reject) => {
-    res.body.pipe(fileStream);
-    res.body.on("error", reject);
-    fileStream.on("finish", resolve);
-  });
-};
+  let result = fetch(url, { agent })
+  .then(
+    res =>
+      new Promise((resolve, reject) => {
+        const fileWriteStream = fs.createWriteStream(filePath);
+        res.body.pipe(fileWriteStream);
+        res.body.on("end", () => resolve("File saved"));
+        fileWriteStream.on("error", reject);
+      })
+  )
+  .then(success => success)
+  .catch(error => error);
+  return result;
+}
+// export const getResourceFromRepo = async (url, filePath) => {
+//   const res = await fetch(url, { agent });
+//   const fileWriteStream = fs.createWriteStream(filePath);
+//   const promise = new Promise((resolve, reject) => {
+//     res.body.pipe(fileWriteStream);
+//     res.body.on("error", reject);
+//     fileWriteStream.on("finish", resolve);
+//   });
+//   promise
+//     .then((value) => { console.log("Promise resolve value: " + value); })
+//     .catch((value) => { console.log("Promise reject value: " + value); });
+// };
 
 export const sendResourceToRepo = async (output, parents, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
   let description = `Miner result from ` + fullUrl;
