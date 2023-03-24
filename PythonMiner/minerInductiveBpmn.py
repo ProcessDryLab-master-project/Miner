@@ -15,7 +15,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
         wrapperArgsDict = json.loads(wrapperArgsString)
-        fileSavePath = wrapperArgsDict["FileSavePath"] # Location of incoming xes file that wrapper saved
+        fileSavePath = wrapperArgsDict["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
         input = wrapperArgsDict["Input"]
         output = wrapperArgsDict["Output"]
         resourceLabel = output["ResourceLabel"]

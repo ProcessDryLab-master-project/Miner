@@ -18,7 +18,7 @@ export const getResourceFromRepo = async (url, filePath) => {
   console.log(`Log saved to ${filePath}`);
 };
 
-export const sendResourceToRepo = async (output, metadataObject, minerResult, resourceOutputType, overwriteId) => {
+export const sendResourceToRepo = async (output, metadataObject, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
   let description = `Miner result from ${metadataObject.ResourceLabel}.`
 
   const formdata = new FormData();
@@ -34,7 +34,7 @@ export const sendResourceToRepo = async (output, metadataObject, minerResult, re
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   formdata.append("ResourceLabel", output.ResourceLabel);
   formdata.append("ResourceType", resourceOutputType);
-  formdata.append("FileExtension", output.FileExtension);
+  formdata.append("FileExtension", resourceOutputExtension);
   formdata.append("Description", description);
   formdata.append("Parents", parents);
   formdata.append("OverwriteId", overwriteId);
@@ -50,12 +50,12 @@ export const sendResourceToRepo = async (output, metadataObject, minerResult, re
   return response;
 };
 
-export const initiateResourceOnRepo = async (output, resourceOutputType) => {
+export const initiateResourceOnRepo = async (output, resourceOutputExtension, resourceOutputType) => {
   const formdata = new FormData();
 
   formdata.append("ResourceLabel", output.ResourceLabel);
   formdata.append("ResourceType", resourceOutputType);
-  formdata.append("FileExtension", output.FileExtension);
+  formdata.append("FileExtension", resourceOutputExtension);
 
   var requestOptions = {
     agent: agent,
