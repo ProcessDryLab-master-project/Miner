@@ -18,6 +18,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
         body = json.loads(wrapperArgsString)
+        overwriteId = body["OverwriteId"]
         fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
         output = body["Output"]
         resourceLabel = output["ResourceLabel"]
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
         log = xes_importer.apply(fileSavePath)
         net, initialMarking, finalMarking = alphaMiner.apply(log)
-        nameWithExtension = f"{resourceLabel}.{fileExtension}"
+        nameWithExtension = f"{overwriteId}.{fileExtension}"
         
         savePath = os.path.join(result_folder, nameWithExtension)
         if(fileExtension == "pnml"):

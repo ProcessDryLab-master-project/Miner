@@ -36,7 +36,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 //     .catch((value) => { console.log("Promise reject value: " + value); });
 // };
 
-export const sendResourceToRepo = async (output, parents, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
+export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
   let description = `Miner result from ` + fullUrl;
 
   const formdata = new FormData();
@@ -45,12 +45,14 @@ export const sendResourceToRepo = async (output, parents, fullUrl, minerResult, 
   const fileStream = fs.createReadStream(minerResult);
 
   parents = JSON.stringify(parents);
+  generatedFrom = JSON.stringify(generatedFrom);
 
   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   formdata.append("ResourceLabel", output.ResourceLabel);
   formdata.append("ResourceType", resourceOutputType);
   formdata.append("FileExtension", resourceOutputExtension);
   formdata.append("Description", description);
+  formdata.append("GeneratedFrom", generatedFrom);
   formdata.append("Parents", parents);
   formdata.append("OverwriteId", overwriteId);
   var requestOptions = {

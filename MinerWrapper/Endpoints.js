@@ -21,7 +21,6 @@ export default function initEndpoints(app, config) {
 
   app.post(`/miner`, async function (req, res) {
     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-    console.log("Own Url: " + fullUrl);
 
     let body = await req.body;
     const input = body.Input
@@ -32,13 +31,19 @@ export default function initEndpoints(app, config) {
     const resourceOutputExtension = minerToRun.ResourceOutput.FileExtension;
     const resourceOutputType = minerToRun.ResourceOutput.ResourceType;
     const pathToExternal = minerToRun.External;
-    let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name)
-    console.log(inputKeys);
+    let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
 
     let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
+    body["OverwriteId"] = overwriteId;
     res.send(overwriteId);
 
     let parents = [];
+    let generatedFrom = {
+      SourceHost: fullUrl,
+      SourceId: minerToRun.MinerId,
+      SourceLabel: minerToRun.MinerLabel,
+    }
+    // Loop through all input
     for (let i = 0; i < inputKeys.length; i++) {
       const key = inputKeys[i];
       const metadataObject = resources[key];
@@ -49,7 +54,7 @@ export default function initEndpoints(app, config) {
 
         parents.push({
           ResourceId: inputResourceId,
-          From: key,
+          UsedAs: key,
         })
         // Get all files if it's not a Stream. Streams only take 1 input right now.
         if (inputResourceType != "EventStream") {
@@ -65,12 +70,10 @@ export default function initEndpoints(app, config) {
     }
 
     
-    let minerResult = await Wrapper(body, pathToExternal);
-    console.log("Wrapper miner result: " + minerResult);
-
-    console.log("URL to send result: " + output.Host);
-    await sendResourceToRepo(output, parents, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);
-    
+    let minerResult = await Wrapper(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId);
+    // console.log("Wrapper miner result: " + minerResult);
+    // console.log("URL to send result: " + output.Host);
+    // await sendResourceToRepo(output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);
   });
 
   app.listen(port, () => {

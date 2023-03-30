@@ -1,7 +1,7 @@
 [
   {
     "MinerId": "1",
-    "MinerLabel": "Alfa Miner",
+    "MinerLabel": "Alpha Miner",
     "Type": "Miner",
     "External": "./Miners/MinerAlpha.py",
     "Access": "Public",
