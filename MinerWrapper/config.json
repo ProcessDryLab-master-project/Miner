@@ -106,7 +106,7 @@
   },
   {
     "MinerId": "4",
-    "MinerLabel": "Inductive Miner to BPMN",
+    "MinerLabel": "Inductive Miner",
     "Type": "Miner",
     "External": "./Miners/MinerInductiveBpmn.py",
     "Access": "Public",

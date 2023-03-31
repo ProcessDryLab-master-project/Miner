@@ -5,7 +5,17 @@ import {
 } from "./Requests.js";
 export default async function runMiner(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId) {
   let wrapperArgs = JSON.stringify(body);
-  let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
+  let pythonProcess;
+  pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
+  // if(pythonProcess == undefined) {  // TODO: Shouldn't start and kill process like this. Just temporary.
+  //   console.log("Starting new process");
+  //   pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
+  // }
+  // else {
+  //   console.log("Killing process: " + pythonProcess.pid);
+  //   pythonProcess.kill();
+  //   pythonProcess = undefined;
+  // }
   pythonProcess.stdin.setEncoding = "utf-8";
   let processOutput = "";
   pythonProcess.stdout.on("data", (data) => {
