@@ -2,35 +2,99 @@ import spawn from "child_process";
 import once from "events";
 import {
   sendResourceToRepo,
-} from "./Requests.js";
-export default async function runMiner(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId) {
+} from "./API/Requests.js";
+
+// import {
+//   removeRunningProcess,
+//   addRunningProcess
+// } from "./API/Endpoints.js";
+
+var processDict = {
+  someId: null, // TODO: Just here for testing, delete when cleaning up
+};
+var processStatusDict = {
+  someId: {                 // TODO: Just here for testing, delete when cleaning up
+    // Process: null,       // the running process
+    ProcessStatus: "crash", // running, complete, crash,
+    ResourceId: null,       // The id for a resource
+    Error: null,            // If something went wrong, this is where we put the error msg.
+  }
+};
+
+export async function stopProcess(processId) {
+  console.log(`Attempting to kill process with ID: ${processId}`);
+  if(processDict[processId] == undefined) {
+    console.log(`No process exists with ID: ${processId}`);
+    return false; // Process does not exist
+  }
+  else {
+    console.log(`Killing process with ID: ${processId}`);
+    processDict[processId].kill();
+    deleteFromProcessDict(processId);
+    return `Process killed: ${processId}`;
+  }
+}
+export async function getProcessStatus(processId) {
+  let processStatusObj = processStatusDict[processId];
+  if(processStatusObj == undefined) {
+    return `No process exists with ID: ${processId}`;
+  }
+  else {
+    console.log(`Returning process status for id: ${processId}`);
+    if(processStatusObj.ProcessStatus != "running"){
+      console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
+      deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
+    }
+    return processStatusObj;
+  }
+}
+
+function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
+  processStatusDict[processId] = {
+    ProcessStatus: processStatus, // running, stopped, complete, crash
+    ResourceId: resourceId,       // The id for a resource (undefined if not complete or not a stream)
+    Error: errorMsg,
+  };
+  // let processStatusObjString = JSON.stringify(processStatusDict, null, 4); // TODO: Delete on cleanup
+  // console.log(`Status dict:\n${processStatusObjString}`);
+}
+function deleteFromProcessDict(processId){
+  delete processDict[processId];
+  delete processStatusDict[processId];
+}
+
+export async function processStart(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId) {
   let wrapperArgs = JSON.stringify(body);
-  let pythonProcess;
-  pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
-  // if(pythonProcess == undefined) {  // TODO: Shouldn't start and kill process like this. Just temporary.
-  //   console.log("Starting new process");
-  //   pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
-  // }
-  // else {
-  //   console.log("Killing process: " + pythonProcess.pid);
-  //   pythonProcess.kill();
-  //   pythonProcess = undefined;
-  // }
+  let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
+  let processId = pythonProcess.pid;
+  console.log(`\n\n\nProcess successfully started: ${processId}`);
+
+  processDict[processId] = pythonProcess;
+  updateProcessStatus(processId, "running");
+
+  console.log(`Process added to dict: ${Object.keys(processDict)}`);
+  
+
   pythonProcess.stdin.setEncoding = "utf-8";
   let processOutput = "";
+  pythonProcess.on('exit', function (code, signal) {
+    console.log(`Child process exited with code: ${code} and signal ${signal}`);
+    delete processDict[processId]; // Remove only from this dict
+    if(code == 0) updateProcessStatus(processId, "complete");
+    else if (code == 1) updateProcessStatus(processId, "crash");
+    else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
+  });
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString();
     processOutput = processOutput.trim();
     console.log("Process output: " + processOutput);
-    sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId);
+    let repoResponse = sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId);
+    console.log("repoResponse: " + repoResponse.ok);
+    if(repoResponse.ok) updateProcessStatus(pythonProcess.pid, "running");
+    else updateProcessStatus(pythonProcess.pid, "crash", undefined, "Repository error response: " + repoResponse);
   });
-  pythonProcess.stderr.on("data", (data) => { // Handle error output
+  pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
     console.log("error:" + data);
-  });
-  pythonProcess.stdout.on("exit", async function (code) {
-    console.log("\nSpawn output:\n" + processOutput);
-    if(code != undefined)
-      console.log(`Exit code is: ${code}`);
   });
 }
 

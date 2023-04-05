@@ -1,12 +1,17 @@
-import Wrapper from "./Wrapper.js";
+// import Wrapper from "./Wrapper.js";
 const port = 5000;
 import {
   getResourceFromRepo,
-  sendResourceToRepo,
   initiateResourceOnRepo,
+  sendResourceToRepo,
 } from "./Requests.js";
+import {
+  stopProcess,
+  getProcessStatus,
+  processStart,
+} from "../Wrapper.js";
 
-export default function initEndpoints(app, config) {
+export function initEndpoints(app, config) {
   // console.log({ "config endpoints": config });
   app.get("/", function (req, res) {
     res.send("Default page");
@@ -17,6 +22,23 @@ export default function initEndpoints(app, config) {
   app.get(`/configurations`, function (req, res) {
     console.log("Getting a request on /configurations");
     res.send(config);
+  });
+
+  app.get(`/status/:processId`, async function (req, res) {
+    let processId = req.params.processId
+    console.log(`Getting a request on /status for id ${processId}`);
+    let statusDict = await getProcessStatus(processId);
+    
+    // let processStatusObjString = JSON.stringify(statusDict, null, 4); // TODO: Delete on cleanup
+    // console.log(`Status dict in endpoints:\n${processStatusObjString}`);
+    res.status(200).send(statusDict);
+  });
+  
+  app.delete(`/stop/:processId`, function (req, res) {
+    let processId = req.params.processId
+    console.log(`Getting a request on /stop for id ${processId}`);
+    let result = stopProcess(processId);
+    res.send(result);
   });
 
   app.post(`/miner`, async function (req, res) {
@@ -70,7 +92,7 @@ export default function initEndpoints(app, config) {
     }
 
     
-    let minerResult = await Wrapper(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId);
+    let minerResult = await processStart(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId);
     // console.log("Wrapper miner result: " + minerResult);
     // console.log("URL to send result: " + output.Host);
     // await sendResourceToRepo(output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);

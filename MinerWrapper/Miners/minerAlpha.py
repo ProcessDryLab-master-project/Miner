@@ -10,7 +10,6 @@ from pm4py.objects.petri_net.importer import importer as pnml_importer
 # from pm4py.visualization.common.save import save as saver
 import graphviz  # https://pypi.org/project/graphviz/
 
-
 # Run this script with this command:
 # python ./PythonMiner/main.py ./PythonMiner/test.png ./PythonMiner/test.pnml ./PythonMiner/example-log.xes
 result_folder = './Tmp'

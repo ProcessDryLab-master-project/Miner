@@ -25,10 +25,13 @@ app.use(bodyParser.text({ type: "text/plain" }));
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true })); // other example said false
 
-import Endpoints from './Endpoints.js';
+import {
+  initEndpoints,
+} from "./API/Endpoints.js";
+// import Endpoints from './Endpoints.js';
 function startEndPoints() {
   if(verifyConfig())
-    Endpoints(app, config);
+    initEndpoints(app, config);
 }
 startEndPoints();
 
