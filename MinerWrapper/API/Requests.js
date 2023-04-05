@@ -54,7 +54,10 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl
   formdata.append("Description", description);
   formdata.append("GeneratedFrom", generatedFrom);
   formdata.append("Parents", parents);
-  if(overwriteId != undefined) formdata.append("OverwriteId", overwriteId);
+  if(overwriteId != undefined) {
+    formdata.append("OverwriteId", overwriteId);
+    formdata.append("Dynamic", true);
+  }
   var requestOptions = {
     agent: agent,
     method: "POST",

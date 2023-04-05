@@ -71,13 +71,12 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
   let wrapperArgs = JSON.stringify(body);
   let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
   let processId = pythonProcess.pid;
+  sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
 
   // Create dictionaries to keep track of processes and their status
   processDict[processId] = pythonProcess; 
   updateProcessStatus(processId, "running");
-  // Just send status object instead of processId??
-  sendProcessId(processId); // Return process id to caller (frontend)
 
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
@@ -87,6 +86,7 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
   pythonProcess.on('exit', function (code, signal) {
     console.log(`Child process exited with code: ${code} and signal ${signal}`);
     delete processDict[processId]; // Remove only from this dict
+    // TODO: if (overwriteId != undefined) update metadata object in repository to change dynamic = false
     if(code == 0) updateProcessStatus(processId, "complete");
     else if (code == 1) updateProcessStatus(processId, "crash");
     else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
