@@ -53,33 +53,16 @@ export async function getProcessStatus(processId) {
 
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
   if(!processStatusDict[processId]) processStatusDict[processId] = {};
-  // processStatusDict[processId] = {
-  //   ProcessStatus: processStatus === null ? undefined : processStatus,
-  //   ResourceId: resourceId === null ? undefined : resourceId,
-  //   Error: errorMsg === null ? undefined : errorMsg,
-  // }
-
   processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
   processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
   processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
-
-  // processStatusDict[processId] = {
-  //   ProcessStatus: processStatus, // running, stopped, complete, crash
-  //   ResourceId: resourceId ? processStatusDict[processId].ResourceId,       // The id for a resource (undefined if not complete or not a stream)
-  //   Error: errorMsg ? processStatusDict[processId].Error,              // If an error msg has occured, put it here.
-  // };
-  let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
-  console.log(`Status dict update:\n${processStatusObjString}`);
+  // let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
+  // console.log(`Status dict update:\n${processStatusObjString}`);
 }
 function deleteFromProcessDict(processId){
   delete processDict[processId];
   delete processStatusDict[processId];
 }
-// function uuidv4() {
-//   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-//     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-//   );
-// }
 
 export async function processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType) {
   let overwriteId; // Streams will need this to overwrite their output on repository.
