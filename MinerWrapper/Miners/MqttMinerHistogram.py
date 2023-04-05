@@ -14,7 +14,6 @@ result_folder = './Tmp'
 # Global variables that probably shouldn't be!
 
 global alphabetList, resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, overwriteId, fileExtension
-overwriteId = None
 alphabetList = []
 # Default values.
 fileExtension = "json"
@@ -59,17 +58,17 @@ def subscribeAndRun(client, streamTopic):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
-        wrapperArgsDict = json.loads(wrapperArgsString)
+        body = json.loads(wrapperArgsString)
         
-        overwriteId = wrapperArgsDict["OverwriteId"]
-        input = wrapperArgsDict["Input"]
+        resultFileId = body["ResultFileId"]
+        input = body["Input"]
         # minerParameters = input.get("MinerParameters")
         # print("minerParameters: ", minerParameters)
         streamMetadata = input["Resources"]["InputStream"]
         streamInfo = streamMetadata["ResourceInfo"]
         streamBroker = streamInfo["Host"]
         streamTopic = streamInfo["StreamTopic"]
-        output = wrapperArgsDict["Output"]
+        output = body["Output"]
         resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
         repositoryOutputPath = output["Host"]
@@ -84,7 +83,7 @@ if __name__ == "__main__":
         # print("streamTopic: ", streamTopic)
         # print("repositoryOutputPath: ", repositoryOutputPath)
 
-        fileName = f"{overwriteId}.{fileExtension}"
+        fileName = f"{resultFileId}.{fileExtension}"
         filePath = os.path.join(result_folder, fileName)
         client.connect(streamBroker)
         subscribeAndRun(client, streamTopic)

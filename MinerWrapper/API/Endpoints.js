@@ -28,9 +28,6 @@ export function initEndpoints(app, config) {
     let processId = req.params.processId
     console.log(`Getting a request on /status for id ${processId}`);
     let statusDict = await getProcessStatus(processId);
-    
-    // let processStatusObjString = JSON.stringify(statusDict, null, 4); // TODO: Delete on cleanup
-    // console.log(`Status dict in endpoints:\n${processStatusObjString}`);
     res.status(200).send(statusDict);
   });
   
@@ -55,9 +52,9 @@ export function initEndpoints(app, config) {
     const pathToExternal = minerToRun.External;
     let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
 
-    let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
-    body["OverwriteId"] = overwriteId;
-    res.send(overwriteId);
+    // let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
+    // body["OverwriteId"] = overwriteId;
+    // res.send(overwriteId);
 
     let parents = [];
     let generatedFrom = {
@@ -91,8 +88,14 @@ export function initEndpoints(app, config) {
       }
     }
 
+    function sendProcessId(processId) {
+      console.log(`Sending processId ${processId}`);
+      res.send(processId.toString());
+    } 
     
-    let minerResult = await processStart(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId);
+    await processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType);
+    // send processId (minerResult???)
+
     // console.log("Wrapper miner result: " + minerResult);
     // console.log("URL to send result: " + output.Host);
     // await sendResourceToRepo(output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId);

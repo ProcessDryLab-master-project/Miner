@@ -54,17 +54,21 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl
   formdata.append("Description", description);
   formdata.append("GeneratedFrom", generatedFrom);
   formdata.append("Parents", parents);
-  formdata.append("OverwriteId", overwriteId);
+  if(overwriteId != undefined) formdata.append("OverwriteId", overwriteId);
   var requestOptions = {
     agent: agent,
     method: "POST",
     body: formdata,
     redirect: "follow",
   };
-  let fetchData = await fetch(output.Host, requestOptions);
-  let response = await fetchData.json();
-  console.log("Repository send file response: " + response);
-  return response;
+  let responseData = await fetch(output.Host, requestOptions);
+  let response = await responseData.json();
+  let responseObj = {
+    response: response,
+    status: responseData.ok,
+  }
+  // console.log(`REQUESTS: Sent file to repository with status ${responseData.ok} and response ${response}`);
+  return responseObj;
 };
 
 export const initiateResourceOnRepo = async (output, resourceOutputExtension, resourceOutputType) => {

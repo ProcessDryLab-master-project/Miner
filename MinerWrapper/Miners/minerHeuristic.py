@@ -24,10 +24,11 @@ if __name__ == "__main__":
         # print("\n\nRunning python script")
         # print(wrapperArgsString)
         # sys.stdout.flush()
-        wrapperArgsDict = json.loads(wrapperArgsString)
-        fileSavePath = wrapperArgsDict["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
-        input = wrapperArgsDict["Input"]
-        output = wrapperArgsDict["Output"]
+        body = json.loads(wrapperArgsString)
+        resultFileId = body["ResultFileId"]
+        fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
+        input = body["Input"]
+        output = body["Output"]
         resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
         minerParameters = input["MinerParameters"]
@@ -47,7 +48,7 @@ if __name__ == "__main__":
         else:
             net, initialMarking, finalMarking = hminer.apply(log)
 
-        nameWithExtension = f"{resourceLabel}.{fileExtension}"
+        nameWithExtension = f"{resultFileId}.{fileExtension}"
         savePath = os.path.join(result_folder, nameWithExtension)
         if(fileExtension == "pnml"):
             pm4py.write_pnml(net, initialMarking, finalMarking, savePath)

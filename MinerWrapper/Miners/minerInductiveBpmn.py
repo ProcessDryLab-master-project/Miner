@@ -12,10 +12,11 @@ result_folder = './Tmp'
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         wrapperArgsString = sys.argv[1]
-        wrapperArgsDict = json.loads(wrapperArgsString)
-        fileSavePath = wrapperArgsDict["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
-        input = wrapperArgsDict["Input"]
-        output = wrapperArgsDict["Output"]
+        body = json.loads(wrapperArgsString)
+        resultFileId = body["ResultFileId"]
+        fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
+        input = body["Input"]
+        output = body["Output"]
         resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 
         bpmn_graph = pm4py.convert_to_bpmn(tree)
 
-        nameWithExtension = f"{resourceLabel}.{fileExtension}"
+        nameWithExtension = f"{resultFileId}.{fileExtension}"
         bpmnPath = os.path.join(result_folder, nameWithExtension)
         pm4py.write_bpmn(bpmn_graph, bpmnPath)
         print(bpmnPath)

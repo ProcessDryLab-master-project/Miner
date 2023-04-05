@@ -1,5 +1,6 @@
 import spawn from "child_process";
 import once from "events";
+import crypto from "crypto";
 import {
   sendResourceToRepo,
 } from "./API/Requests.js";
@@ -14,7 +15,6 @@ var processDict = {
 };
 var processStatusDict = {
   someId: {                 // TODO: Just here for testing, delete when cleaning up
-    // Process: null,       // the running process
     ProcessStatus: "crash", // running, complete, crash,
     ResourceId: null,       // The id for a resource
     Error: null,            // If something went wrong, this is where we put the error msg.
@@ -45,32 +45,56 @@ export async function getProcessStatus(processId) {
       console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
       deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
     }
+    let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
+    console.log(`Status dict send:\n${processStatusObjString}`);
     return processStatusObj;
   }
 }
 
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
-  processStatusDict[processId] = {
-    ProcessStatus: processStatus, // running, stopped, complete, crash
-    ResourceId: resourceId,       // The id for a resource (undefined if not complete or not a stream)
-    Error: errorMsg,
-  };
-  // let processStatusObjString = JSON.stringify(processStatusDict, null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict:\n${processStatusObjString}`);
+  if(!processStatusDict[processId]) processStatusDict[processId] = {};
+  // processStatusDict[processId] = {
+  //   ProcessStatus: processStatus === null ? undefined : processStatus,
+  //   ResourceId: resourceId === null ? undefined : resourceId,
+  //   Error: errorMsg === null ? undefined : errorMsg,
+  // }
+
+  processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
+  processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
+  processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
+
+  // processStatusDict[processId] = {
+  //   ProcessStatus: processStatus, // running, stopped, complete, crash
+  //   ResourceId: resourceId ? processStatusDict[processId].ResourceId,       // The id for a resource (undefined if not complete or not a stream)
+  //   Error: errorMsg ? processStatusDict[processId].Error,              // If an error msg has occured, put it here.
+  // };
+  let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
+  console.log(`Status dict update:\n${processStatusObjString}`);
 }
 function deleteFromProcessDict(processId){
   delete processDict[processId];
   delete processStatusDict[processId];
 }
+// function uuidv4() {
+//   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+//     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+//   );
+// }
 
-export async function processStart(body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, overwriteId) {
+export async function processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType) {
+  let overwriteId; // Streams will need this to overwrite their output on repository.
+  let resultFileId = crypto.randomUUID(); // Unique name the miner should save its result as.
+  body["ResultFileId"] = resultFileId;
   let wrapperArgs = JSON.stringify(body);
   let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
   let processId = pythonProcess.pid;
   console.log(`\n\n\nProcess successfully started: ${processId}`);
 
-  processDict[processId] = pythonProcess;
+  // Create dictionaries to keep track of processes and their status
+  processDict[processId] = pythonProcess; 
   updateProcessStatus(processId, "running");
+  // Just send status object instead of processId??
+  sendProcessId(processId); // Return process id to caller (frontend)
 
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
@@ -88,10 +112,15 @@ export async function processStart(body, pathToExternal, output, parents, genera
     processOutput = data.toString();
     processOutput = processOutput.trim();
     console.log("Process output: " + processOutput);
-    let repoResponse = sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId);
-    console.log("repoResponse: " + repoResponse.ok);
-    if(repoResponse.ok) updateProcessStatus(pythonProcess.pid, "running");
-    else updateProcessStatus(pythonProcess.pid, "crash", undefined, "Repository error response: " + repoResponse);
+    sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId)
+    .then((responseObj) => {
+      console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+      if(responseObj.status) {
+        overwriteId = responseObj.response;
+        updateProcessStatus(processId, "running", overwriteId);
+      }
+      else updateProcessStatus(processId, "crash", undefined, "Repository error response: " + responseObj.response);
+    });
   });
   pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
     console.log("error:" + data);
