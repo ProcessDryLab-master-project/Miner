@@ -50,6 +50,7 @@ export function initEndpoints(app, config) {
     const resourceOutputExtension = minerToRun.ResourceOutput.FileExtension;
     const resourceOutputType = minerToRun.ResourceOutput.ResourceType;
     const pathToExternal = minerToRun.External;
+    let isStreamMiner = false;
     let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
 
     // let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
@@ -75,8 +76,11 @@ export function initEndpoints(app, config) {
           ResourceId: inputResourceId,
           UsedAs: key,
         })
-        // Get all files if it's not a Stream. Streams only take 1 input right now.
-        if (inputResourceType != "EventStream") {
+        if(inputResourceType == "EventStream") {
+          isStreamMiner = true;
+        }
+        else { // Get all files if it's not a Stream. Streams only take 1 input right now.
+        // if (inputResourceType != "EventStream") {
           const inputFileExtension = resourceInfo.FileExtension;
           const fileURL = new URL(inputResourceId, resourceInfo.Host).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
           console.log("URL to get file: " + fileURL);
@@ -93,7 +97,7 @@ export function initEndpoints(app, config) {
       res.send(processId.toString());
     } 
     
-    await processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType);
+    await processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, isStreamMiner);
     // send processId (minerResult???)
 
     // console.log("Wrapper miner result: " + minerResult);

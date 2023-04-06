@@ -23,6 +23,9 @@ streamBroker = "mqtt.eclipseprojects.io"
 timeToRun = 30
 client = mqtt.Client(clientName)
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def saveToFile(filePath):
     with open(filePath, 'w', encoding='utf-8') as f:
         json.dump(alphabetList, f, ensure_ascii=False, indent=4)
@@ -32,16 +35,15 @@ def saveToFile(filePath):
 
 def on_message(client, userdata, message):
     received = str(message.payload.decode("utf-8")).capitalize()
-
-    if (any(received in d for d in alphabetList)):  # if list
-        index = next(i for i, aDict in enumerate(
-            alphabetList) if received in aDict)
-        
-        tmpValue = alphabetList[index][received]
-        tmpValue = tmpValue + 1
-        alphabetList[index] = {received: tmpValue}
+    # eprint("Received: ", received)
+    if(any(received in sublist for sublist in alphabetList)):
+        index = next(i for i, sublist in enumerate(alphabetList) if received in sublist)
+        # eprint("Index: ", index)
+        innerList = alphabetList[index]
+        innerList[1] = innerList[1] + 1
+        alphabetList[index] = [received, innerList[1]]
     else:
-        alphabetList.append({received: 1})
+        alphabetList.append([received, 1])
     saveToFile(filePath)
 
 

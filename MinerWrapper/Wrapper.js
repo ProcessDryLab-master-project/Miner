@@ -3,6 +3,7 @@ import once from "events";
 import crypto from "crypto";
 import {
   sendResourceToRepo,
+  updateMetadata,
 } from "./API/Requests.js";
 
 // import {
@@ -30,6 +31,10 @@ export async function stopProcess(processId) {
   else {
     console.log(`Killing process with ID: ${processId}`);
     processDict[processId].kill();
+    if(processStatusDict[processId].ResourceId) {
+      console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
+      updateMetadata(processStatusDict[processId].ResourceId, "true");
+    }
     deleteFromProcessDict(processId);
     return `Process killed: ${processId}`;
   }
@@ -64,19 +69,20 @@ function deleteFromProcessDict(processId){
   delete processStatusDict[processId];
 }
 
-export async function processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType) {
+export async function processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, fullUrl, resourceOutputExtension, resourceOutputType, isStreamMiner) {
   let overwriteId; // Streams will need this to overwrite their output on repository.
   let resultFileId = crypto.randomUUID(); // Unique name the miner should save its result as.
   body["ResultFileId"] = resultFileId;
   let wrapperArgs = JSON.stringify(body);
   let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
   let processId = pythonProcess.pid;
-  sendProcessId(processId); // Return process id to caller (frontend)
-  console.log(`\n\n\nProcess successfully started: ${processId}`);
 
   // Create dictionaries to keep track of processes and their status
   processDict[processId] = pythonProcess; 
   updateProcessStatus(processId, "running");
+  
+  sendProcessId(processId); // Return process id to caller (frontend)
+  console.log(`\n\n\nProcess successfully started: ${processId}`);
 
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
@@ -95,7 +101,7 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
     processOutput = data.toString();
     processOutput = processOutput.trim();
     console.log("Process output: " + processOutput);
-    sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId)
+    sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId, isStreamMiner)
     .then((responseObj) => {
       console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
       if(responseObj.status) {

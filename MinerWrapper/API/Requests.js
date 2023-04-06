@@ -23,20 +23,27 @@ export const getResourceFromRepo = async (url, filePath) => {
   .catch(error => error);
   return result;
 }
-// export const getResourceFromRepo = async (url, filePath) => {
-//   const res = await fetch(url, { agent });
-//   const fileWriteStream = fs.createWriteStream(filePath);
-//   const promise = new Promise((resolve, reject) => {
-//     res.body.pipe(fileWriteStream);
-//     res.body.on("error", reject);
-//     fileWriteStream.on("finish", resolve);
-//   });
-//   promise
-//     .then((value) => { console.log("Promise resolve value: " + value); })
-//     .catch((value) => { console.log("Promise reject value: " + value); });
-// };
 
-export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId) => {
+export const updateMetadata = async (overwriteId, isDynamic) => {
+  const formdata = new FormData();
+  formdata.append("OverwriteId", overwriteId);
+  formdata.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
+  var requestOptions = {
+    agent: agent,
+    method: "POST",
+    body: formdata,
+    redirect: "follow",
+  };
+  let responseData = await fetch(output.Host, requestOptions);
+  let response = await responseData.json();
+  let responseObj = {
+    response: response,
+    status: responseData.ok,
+  }
+  return responseObj;
+}
+
+export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId, isDynamic) => {
   let description = `Miner result from ` + fullUrl;
 
   const formdata = new FormData();
@@ -54,10 +61,8 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl
   formdata.append("Description", description);
   formdata.append("GeneratedFrom", generatedFrom);
   formdata.append("Parents", parents);
-  if(overwriteId != undefined) {
-    formdata.append("OverwriteId", overwriteId);
-    formdata.append("Dynamic", true);
-  }
+  if(overwriteId != undefined) formdata.append("OverwriteId", overwriteId);
+  if(isDynamic) formdata.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
     agent: agent,
     method: "POST",
