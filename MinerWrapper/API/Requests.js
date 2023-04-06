@@ -24,17 +24,17 @@ export const getResourceFromRepo = async (url, filePath) => {
   return result;
 }
 
-export const updateMetadata = async (overwriteId, isDynamic) => {
+export const updateMetadata = async (url, overwriteId, isDynamic) => {
+  const fileURL = new URL(overwriteId, "https://localhost:4000/resources/metadata/").toString()
   const formdata = new FormData();
-  formdata.append("OverwriteId", overwriteId);
   formdata.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
     agent: agent,
-    method: "POST",
+    method: "PUT",
     body: formdata,
     redirect: "follow",
   };
-  let responseData = await fetch(output.Host, requestOptions);
+  let responseData = await fetch(fileURL, requestOptions);
   let response = await responseData.json();
   let responseObj = {
     response: response,

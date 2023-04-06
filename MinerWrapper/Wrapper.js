@@ -33,7 +33,7 @@ export async function stopProcess(processId) {
     processDict[processId].kill();
     if(processStatusDict[processId].ResourceId) {
       console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(processStatusDict[processId].ResourceId, "true");
+      updateMetadata(processStatusDict[processId].ResourceId, false);
     }
     deleteFromProcessDict(processId);
     return `Process killed: ${processId}`;
@@ -100,7 +100,7 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString();
     processOutput = processOutput.trim();
-    console.log("Process output: " + processOutput);
+    console.log("Process output: " + processOutput + " and overwriteId: " + overwriteId);
     sendResourceToRepo(output, parents, generatedFrom, fullUrl, processOutput, resourceOutputExtension, resourceOutputType, overwriteId, isStreamMiner)
     .then((responseObj) => {
       console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
@@ -112,7 +112,7 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
     });
   });
   pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
-    console.log("error:" + data);
+    console.log("Logging:" + data);
   });
 }
 

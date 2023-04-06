@@ -8,7 +8,7 @@ import time
 
 # Variables that we could get from elsewhere
 topic = "AlphabetStream"
-clientName = "Event Publisher 1"
+clientName = "Event Publisher 2"
 
 # publicly available broker. We need our own
 mqttBroker = "mqtt.eclipseprojects.io"  # Don't specify "https://"
