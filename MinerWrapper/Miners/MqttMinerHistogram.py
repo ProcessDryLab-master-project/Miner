@@ -45,7 +45,12 @@ def on_message(client, userdata, message):
     else:
         alphabetList.append([received, 1])
     saveToFile(filePath)
-
+global boolRun
+def on_disconnect(client, userdata,rc=0):
+    # logging.debug("DisConnected result code "+str(rc))
+    eprint("Disconnected")
+    stopRun = True
+    client.loop_stop()
 
 def subscribeAndRun(client, streamTopic):
     # Run loop for timeToRun seconds. In the loop, subscribe to "TEMPERATURE". When we receive a message, we execute on_message function
@@ -53,7 +58,8 @@ def subscribeAndRun(client, streamTopic):
     # client.loop_forever()
     client.subscribe(streamTopic)
     client.on_message = on_message
-    time.sleep(timeToRun)
+    while not boolRun: time.sleep(0.1)
+    # time.sleep(timeToRun)
     client.loop_stop()
 
 
@@ -85,7 +91,9 @@ if __name__ == "__main__":
         # print("streamTopic: ", streamTopic)
         # print("repositoryOutputPath: ", repositoryOutputPath)
 
+        boolRun = False
         fileName = f"{resultFileId}.{fileExtension}"
         filePath = os.path.join(result_folder, fileName)
+        # client.connect_async(streamBroker)
         client.connect(streamBroker)
         subscribeAndRun(client, streamTopic)
