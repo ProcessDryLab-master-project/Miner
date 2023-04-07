@@ -27,7 +27,6 @@ export const getResourceFromRepo = async (url, filePath) => {
 export const updateMetadata = async (url, overwriteId, isDynamic) => {
   const fileURL = new URL(overwriteId, "https://localhost:4000/resources/metadata/").toString()
   const data = new FormData();
-  // const data = new URLSearchParams(); 
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
     agent: agent,
@@ -55,7 +54,6 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, minerRe
   generatedFrom = JSON.stringify(generatedFrom);
 
   const data = new FormData();
-  // const data = new URLSearchParams(); 
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   data.append("ResourceLabel", output.ResourceLabel);
   data.append("ResourceType", resourceOutputType);
@@ -77,75 +75,5 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, minerRe
     response: response,
     status: responseData.ok,
   }
-  // console.log(`REQUESTS: Sent file to repository with status ${responseData.ok} and response ${response}`);
   return responseObj;
 };
-
-// export const initiateResourceOnRepo = async (output, resourceOutputExtension, resourceOutputType) => {
-//   const formdata = new FormData();
-
-//   formdata.append("ResourceLabel", output.ResourceLabel);
-//   formdata.append("ResourceType", resourceOutputType);
-//   formdata.append("FileExtension", resourceOutputExtension);
-
-//   var requestOptions = {
-//     agent: agent,
-//     method: "POST",
-//     body: formdata,
-//     redirect: "follow",
-//   };
-//   let fetchData = await fetch(output.HostInit, requestOptions);
-//   let response = await fetchData.json();
-//   console.log("Repository init response: " + response);
-//   return response;
-// };
-
-// export const initiateResourceOnRepo = async (output, metadataObject, resourceOutputType) => {
-//   let description = `Streaming result from ${metadataObject.ResourceLabel}.`
-//   let tmpPath = await createTmpFile(output.FileExtension);
-//   const formdata = new FormData();
-//   const stats = fs.statSync(tmpPath);
-//   const fileSizeInBytes = stats.size;
-//   const fileStream = fs.createReadStream(tmpPath);
-//   let parents = [
-//     metadataObject.ResourceId
-//   ]
-//   parents = JSON.stringify(parents);
-
-//   formdata.append("field-name", fileStream, { knownLength: fileSizeInBytes });
-//   formdata.append("ResourceLabel", output.ResourceLabel);
-//   formdata.append("ResourceType", resourceOutputType);
-//   formdata.append("FileExtension", output.FileExtension);
-//   formdata.append("Description", description);
-//   formdata.append("Parents", parents);
-
-//   var requestOptions = {
-//     agent: agent,
-//     method: "POST",
-//     body: formdata,
-//     redirect: "follow",
-//   };
-//   let fetchData = await fetch(output.Host, requestOptions);
-//   let response = await fetchData.json();
-//   console.log("repository resp: " + response);
-//   return response;
-// };
-
-// async function createTmpFile(extension) {
-//   let tmpPath = `./Downloads/tmp.${extension}`;
-//   // let tmpPath = `./Tmp/tmp.${extension}`;
-//   let result = {};
-//   let output = JSON.stringify(result);
-//   try {
-//     let x = await fs.promises.writeFile(tmpPath, output, "utf8", (err) =>
-//       console.log(err)
-//     );
-//     return tmpPath;
-//   } catch (err) {
-//     console.error("Error occurred while reading directory!", err);
-//   }
-// }
-
-function isEmptyOrSpaces(str){
-  return str === null || str.match(/^ *$/) !== null;
-}
