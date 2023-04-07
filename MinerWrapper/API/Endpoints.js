@@ -2,8 +2,8 @@
 const port = 5000;
 import {
   getResourceFromRepo,
-  initiateResourceOnRepo,
-  sendResourceToRepo,
+  // initiateResourceOnRepo,
+  // sendResourceToRepo,
 } from "./Requests.js";
 import {
   stopProcess,
@@ -52,10 +52,6 @@ export function initEndpoints(app, config) {
     const pathToExternal = minerToRun.External;
     let isStreamMiner = false;
     let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
-
-    // let overwriteId = await initiateResourceOnRepo(output, resourceOutputExtension, resourceOutputType);
-    // body["OverwriteId"] = overwriteId;
-    // res.send(overwriteId);
 
     let parents = [];
     let generatedFrom = {

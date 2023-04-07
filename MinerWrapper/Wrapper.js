@@ -19,6 +19,7 @@ var processStatusDict = {
     ProcessStatus: "crash", // running, complete, crash,
     ResourceId: null,       // The id for a resource
     Error: null,            // If something went wrong, this is where we put the error msg.
+    // HostInit: "https://localhost:4000/resources/metadata/", // Should be filled out somewhere
   }
 };
 
@@ -29,14 +30,13 @@ export async function stopProcess(processId) {
     return false; // Process does not exist
   }
   else {
-    console.log(`Killing process with ID: ${processId}`);
     processDict[processId].kill();
-    if(processStatusDict[processId].ResourceId) {
-      console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(processStatusDict[processId].ResourceId, false);
-    }
-    deleteFromProcessDict(processId);
-    return `Process killed: ${processId}`;
+    // if(processStatusDict[processId].ResourceId) {
+      // console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
+      // updateMetadata(processStatusDict[processId].HostInit, processStatusDict[processId].ResourceId, false);
+    // }
+    // deleteFromProcessDict(processId);
+    return `Killing process with ID: ${processId}`;
   }
 }
 export async function getProcessStatus(processId) {
@@ -61,8 +61,9 @@ function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
   processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
   processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
   processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
-  // let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict update:\n${processStatusObjString}`);
+  // processStatusDict[processId].HostInit = hostUpdate ? hostUpdate : processStatusDict[processId].HostInit
+  let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
+  console.log(`Status dict update:\n${processStatusObjString}`);
 }
 function deleteFromProcessDict(processId){
   delete processDict[processId];
@@ -78,8 +79,9 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
   let processId = pythonProcess.pid;
 
   // Create dictionaries to keep track of processes and their status
-  processDict[processId] = pythonProcess; 
+  processDict[processId] = pythonProcess;
   updateProcessStatus(processId, "running");
+  // updateProcessStatus(processId, "running");
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
@@ -95,6 +97,14 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
     // TODO: if (overwriteId != undefined) update metadata object in repository to change dynamic = false
     if(code == 0) updateProcessStatus(processId, "complete");
     else if (code == 1) updateProcessStatus(processId, "crash");
+    else if(signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
+      console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
+      if(processStatusDict[processId].ResourceId) {
+        console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
+        updateMetadata(output.HostInit, processStatusDict[processId].ResourceId, false);
+      }
+      deleteFromProcessDict(processId);
+    }
     else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   });
   pythonProcess.stdout.on("data", (data) => {
@@ -108,7 +118,7 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
         overwriteId = responseObj.response;
         updateProcessStatus(processId, "running", overwriteId);
       }
-      else updateProcessStatus(processId, "crash", undefined, "Repository error response: " + responseObj.response);
+      else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
     });
   });
   pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
