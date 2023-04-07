@@ -44,8 +44,8 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
   return responseObj;
 }
 
-export const sendResourceToRepo = async (output, parents, generatedFrom, fullUrl, minerResult, resourceOutputExtension, resourceOutputType, overwriteId, isDynamic) => {
-  let description = `Miner result from ` + fullUrl;
+export const sendResourceToRepo = async (output, parents, generatedFrom, minerResult, resourceOutputExtension, resourceOutputType, overwriteId, isDynamic) => {
+  let description = `Miner result from some miner`;
 
   const stats = fs.statSync(minerResult);
   const fileSizeInBytes = stats.size;
