@@ -1,15 +1,9 @@
 import spawn from "child_process";
-import once from "events";
 import crypto from "crypto";
 import {
   sendResourceToRepo,
   updateMetadata,
 } from "./API/Requests.js";
-
-// import {
-//   removeRunningProcess,
-//   addRunningProcess
-// } from "./API/Endpoints.js";
 
 var processDict = {
   someId: null, // TODO: Just here for testing, delete when cleaning up
@@ -19,26 +13,19 @@ var processStatusDict = {
     ProcessStatus: "crash", // running, complete, crash,
     ResourceId: null,       // The id for a resource
     Error: null,            // If something went wrong, this is where we put the error msg.
-    // HostInit: "https://localhost:4000/resources/metadata/", // Should be filled out somewhere
   }
 };
 
-export async function stopProcess(processId) {
-  console.log(`Attempting to kill process with ID: ${processId}`);
-  if(processDict[processId] == undefined) {
-    console.log(`No process exists with ID: ${processId}`);
-    return false; // Process does not exist
+export async function getStatusList() {
+  let processStatusList = [];
+  for(var processId in processStatusDict){
+    let tmpStatusObj = processStatusDict[processId];
+    tmpStatusObj.ProcessId = processId;
+    processStatusList.push(tmpStatusObj)
   }
-  else {
-    processDict[processId].kill();
-    // if(processStatusDict[processId].ResourceId) {
-      // console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      // updateMetadata(processStatusDict[processId].HostInit, processStatusDict[processId].ResourceId, false);
-    // }
-    // deleteFromProcessDict(processId);
-    return `Killing process with ID: ${processId}`;
-  }
+  return processStatusList;
 }
+
 export async function getProcessStatus(processId) {
   let processStatusObj = processStatusDict[processId];
   if(processStatusObj == undefined) {
@@ -50,9 +37,20 @@ export async function getProcessStatus(processId) {
       console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
       deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
     }
-    let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
-    console.log(`Status dict send:\n${processStatusObjString}`);
+    // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
+    // console.log(`Status dict send:\n${processStatusObjString}`);
     return processStatusObj;
+  }
+}
+
+export async function stopProcess(processId) {
+  console.log(`Attempting to kill process with ID: ${processId}`);
+  if(processDict[processId] == undefined) {
+    return false; // Process does not exist, BadRequest 400.
+  }
+  else {
+    processDict[processId].kill();
+    return true;  // Process exists and was stopped
   }
 }
 
@@ -61,9 +59,8 @@ function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
   processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
   processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
   processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
-  // processStatusDict[processId].HostInit = hostUpdate ? hostUpdate : processStatusDict[processId].HostInit
-  let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
-  console.log(`Status dict update:\n${processStatusObjString}`);
+  // let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
+  // console.log(`Status dict update:\n${processStatusObjString}`);
 }
 function deleteFromProcessDict(processId){
   delete processDict[processId];
@@ -81,11 +78,9 @@ export async function processStart(sendProcessId, body, pathToExternal, output, 
   // Create dictionaries to keep track of processes and their status
   processDict[processId] = pythonProcess;
   updateProcessStatus(processId, "running");
-  // updateProcessStatus(processId, "running");
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
-
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
 

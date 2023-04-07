@@ -8,6 +8,7 @@ import {
 import {
   stopProcess,
   getProcessStatus,
+  getStatusList,
   processStart,
 } from "../Wrapper.js";
 
@@ -24,6 +25,12 @@ export function initEndpoints(app, config) {
     res.send(config);
   });
 
+  app.get(`/status`, async function (req, res) {
+    console.log(`Getting a request on /status for status list`);
+    let statusList = await getStatusList();
+    res.status(200).send(statusList);
+  });
+
   app.get(`/status/:processId`, async function (req, res) {
     let processId = req.params.processId
     console.log(`Getting a request on /status for id ${processId}`);
@@ -31,11 +38,12 @@ export function initEndpoints(app, config) {
     res.status(200).send(statusDict);
   });
   
-  app.delete(`/stop/:processId`, function (req, res) {
+  app.delete(`/stop/:processId`, async function (req, res) {
     let processId = req.params.processId
     console.log(`Getting a request on /stop for id ${processId}`);
-    let result = stopProcess(processId);
-    res.send(result);
+    let result = await stopProcess(processId);
+    if(result) res.status(200).send(`Killed process with ID: ${processId}`)
+    else res.status(400).send(`No active process with ID: ${processId}`)
   });
 
   app.post(`/miner`, async function (req, res) {
@@ -71,7 +79,7 @@ export function initEndpoints(app, config) {
         parents.push({
           ResourceId: inputResourceId,
           UsedAs: key,
-        })
+        });
         if(inputResourceType == "EventStream") {
           isStreamMiner = true;
         }
