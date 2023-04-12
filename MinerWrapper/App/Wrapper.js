@@ -2,6 +2,9 @@ import spawn from "child_process";
 import crypto from "crypto";
 import fs from 'fs';
 import {
+  removeFile,
+} from "./Utils.js";
+import {
   sendResourceToRepo,
   getResourceFromRepo,
   updateMetadata,
@@ -31,7 +34,7 @@ export async function getStatusList() {
 export async function getProcessStatus(processId) {
   let processStatusObj = processStatusDict[processId];
   if(processStatusObj == undefined) {
-    return `No process exists with ID: ${processId}`;
+    return false;
   }
   else {
     console.log(`Returning process status for id: ${processId}`);
@@ -111,6 +114,12 @@ export async function processStart(sendProcessId, req, config) {
         updateProcessStatus(processId, "running", resourceId);
       }
       else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+    })
+    .catch((error) => {
+      updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
+      console.log(`Error with processId ${processId}: ${error}`);
+      processDict[processId].kill();
+      // delete processDict[processId];
     });
   });
   pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
@@ -122,6 +131,7 @@ export async function processStart(sendProcessId, req, config) {
 function onProcessExit(code, signal, processId, bodyOutput, processOutput, savedFilePaths) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
   delete processDict[processId]; // Remove only from this dict
+  if(processStatusDict[processId].ProcessStatus == "crash") return; // Likely means repository crashed.
   if (code == 0)
     updateProcessStatus(processId, "complete");
   else if (code == 1)
@@ -137,9 +147,9 @@ function onProcessExit(code, signal, processId, bodyOutput, processOutput, saved
   else
     console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
 
-  cleanupFiles(processOutput);
+    removeFile(processOutput);
   savedFilePaths.forEach(path => {
-    cleanupFiles(path);
+    removeFile(path);
   });
 }
 
@@ -188,13 +198,4 @@ function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
 function deleteFromProcessDict(processId){
   delete processDict[processId];
   delete processStatusDict[processId];
-}
-function cleanupFiles(filePath){
-  fs.unlink(filePath, (err) => {
-    if (err) {
-        throw err;
-    }
-
-    console.log("Delete File successfully.");
-  });
 }

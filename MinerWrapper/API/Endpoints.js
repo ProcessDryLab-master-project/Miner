@@ -28,15 +28,16 @@ export function initEndpoints(app, config) {
     let processId = req.params.processId
     console.log(`Getting a request on /status for id ${processId}`);
     let statusDict = await getProcessStatus(processId);
-    res.status(200).send(statusDict);
+    if(statusDict) res.status(200).send(statusDict);
+    else res.status(400).send(`No process exists with ID: ${processId}`);
   });
   
   app.delete(`/stop/:processId`, async function (req, res) {
     let processId = req.params.processId
     console.log(`Getting a request on /stop for id ${processId}`);
     let result = await stopProcess(processId);
-    if(result) res.status(200).send(`Killed process with ID: ${processId}`)
-    else res.status(400).send(`No active process with ID: ${processId}`)
+    if(result) res.status(200).send(`Killed process with ID: ${processId}`);
+    else res.status(400).send(`No active process with ID: ${processId}`);
   });
 
   app.post(`/miner`, async function (req, res) {

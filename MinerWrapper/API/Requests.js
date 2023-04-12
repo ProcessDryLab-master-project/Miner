@@ -34,6 +34,10 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
     body: data,
     redirect: "follow",
   };
+  // let responseData = fetch(fileURL, requestOptions)
+  // .then(res => {
+
+  // });
   let responseData = await fetch(fileURL, requestOptions);
   let response = await responseData.json();
   let responseObj = {

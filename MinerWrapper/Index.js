@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import fs from "fs";
+import {
+  cleanupFiles,
+} from "./App/Utils.js";
 
 // import config from "./config.json" assert { type: "json" };
 
@@ -30,6 +33,7 @@ import {
 } from "./API/Endpoints.js";
 // import Endpoints from './Endpoints.js';
 function startEndPoints() {
+  cleanupFiles();
   if(verifyConfig())
     initEndpoints(app, config);
 }
