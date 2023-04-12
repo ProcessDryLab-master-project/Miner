@@ -37,7 +37,7 @@ export async function getProcessStatus(processId) {
     return false;
   }
   else {
-    console.log(`Returning process status for id: ${processId}`);
+    // console.log(`Returning process status for id: ${processId}`);
     if(processStatusObj.ProcessStatus != "running"){
       console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
       deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
@@ -105,7 +105,7 @@ export async function processStart(sendProcessId, req, config) {
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString();
     processOutput = processOutput.trim();
-    console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
+    // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
     sendResourceToRepo(bodyOutput, parents, generatedFrom, processOutput, resourceOutputExtension, resourceOutputType, resourceId, isStreamMiner)
     .then((responseObj) => {
       console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
@@ -144,10 +144,8 @@ function onProcessExit(code, signal, processId, bodyOutput, processOutput, saved
     }
     deleteFromProcessDict(processId);
   }
-  else
-    console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
-
-    removeFile(processOutput);
+  else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
+  
   savedFilePaths.forEach(path => {
     removeFile(path);
   });

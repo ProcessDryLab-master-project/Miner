@@ -34,7 +34,7 @@ def saveToFile(filePath):
 
 def on_message(client, userdata, message):
     received = str(message.payload.decode("utf-8")).capitalize()
-    eprint("Received: ", received)
+    # eprint("Received: ", received)
     if(any(received in sublist for sublist in alphabetList)):
         index = next(i for i, sublist in enumerate(alphabetList) if received in sublist)
         # eprint("Index: ", index)
