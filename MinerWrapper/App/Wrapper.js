@@ -5,6 +5,31 @@ import {
   removeFile,
 } from "./Utils.js";
 import {
+  getBodyInput,
+  getMetadataList,
+  getSingleMetadata,
+  getBodyOutput,
+  getBodyOutputHost,
+  getBodyOutputHostInit,
+  getBodyOutputLabel,
+  getBodyMinerId,
+  getMetadataResourceId,
+  getMetadataResourceInfo,
+  getMetadataResourceType,
+  getMetadataFileExtension,
+  getMetadataHost,
+} from "./BodyUnpacker.js";
+import {
+  getMinerResourceOutput,
+  getMinerId,
+  getMinerLabel,
+  getMinerResourceOutputType,
+  getMinerResourceOutputExtension,
+  getMinerExternal,
+  getMinerResourceInput,
+  getMinerResourceInputKeys,
+} from "./ConfigUnpacker.js";
+import {
   sendResourceToRepo,
   getResourceFromRepo,
   updateMetadata,
@@ -59,19 +84,19 @@ export async function stopProcess(processId) {
   }
 }
 
-// export async function processStart(sendProcessId, body, pathToExternal, output, parents, generatedFrom, ownUrl, resourceOutputExtension, resourceOutputType, isStreamMiner) {
 export async function processStart(sendProcessId, req, config) {
   let ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
   let body = await req.body;
-  const input = body.Input
-  const resources = input.Resources;
-  const bodyOutput = body.Output;
-  const minerId = body.MinerId;
-  const minerToRun = config.find(miner => miner.MinerId == minerId);
-  const resourceOutputExtension = minerToRun.ResourceOutput.FileExtension;
-  const resourceOutputType = minerToRun.ResourceOutput.ResourceType;
-  const pathToExternal = minerToRun.External;
-  let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
+  const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
+  const minerToRun2 = config.find(miner => miner.MinerId == body.MinerId);
+  // const input = body.Input
+  // const resources = input.Resources;
+  // const bodyOutput = body.Output;
+  // const minerId = getBodyMinerId(body);
+  // const resourceOutputExtension = minerToRun.ResourceOutput.FileExtension;
+  // const resourceOutputType = minerToRun.ResourceOutput.ResourceType;
+  // const pathToExternal = minerToRun.External;
+  // let inputKeys = minerToRun.ResourceInput.map(rInput => rInput.Name);
   
   let resourceId; // Streams will need this to overwrite their output on repository.
   let resultFileId = crypto.randomUUID(); // Unique name the miner should save its result as.
@@ -79,14 +104,9 @@ export async function processStart(sendProcessId, req, config) {
 
   let savedFilePaths = [];
   let parents = [];
-  let generatedFrom = {
-    SourceHost: ownUrl,
-    SourceId: minerToRun.MinerId,
-    SourceLabel: minerToRun.MinerLabel,
-  }
-  let isStreamMiner = await getFilesToMine(inputKeys, resources, parents, savedFilePaths, body);
+  let isStreamMiner = await getFilesToMine(body, minerToRun, parents, savedFilePaths);
   let wrapperArgs = JSON.stringify(body);
-  let pythonProcess = spawn.spawn("python", [pathToExternal, wrapperArgs]);
+  let pythonProcess = spawn.spawn("python", [getMinerExternal(minerToRun), wrapperArgs]);
   let processId = pythonProcess.pid;
 
   // Create dictionaries to keep track of processes and their status
@@ -102,16 +122,17 @@ export async function processStart(sendProcessId, req, config) {
   pythonProcess.stdin.setEncoding = "utf-8";
   let processOutput = "";
   pythonProcess.on('exit', function (code, signal) {
-    onProcessExit(code, signal, processId, bodyOutput, processOutput, savedFilePaths);
+    onProcessExit(code, signal, processId, savedFilePaths);
   });
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString();
     data = null;
     processOutput = processOutput.trim();
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
+    // TODO: Some "updateResourceOnRepo" function, that makes a PUT request instead of sending OverwriteId. 
     if(canSend) {
       canSend = false;
-      sendResourceToRepo(bodyOutput, parents, generatedFrom, processOutput, resourceOutputExtension, resourceOutputType, resourceId, isStreamMiner)
+      sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput, resourceId, isStreamMiner)
       .then((responseObj) => {
         console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if(responseObj.status) {
@@ -135,7 +156,7 @@ export async function processStart(sendProcessId, req, config) {
 }
 
 
-function onProcessExit(code, signal, processId, bodyOutput, processOutput, savedFilePaths) {
+function onProcessExit(code, signal, processId, savedFilePaths) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
   delete processDict[processId]; // Remove only from this dict
   if(processStatusDict[processId].ProcessStatus == "crash") return; // Likely means repository crashed.
@@ -147,7 +168,7 @@ function onProcessExit(code, signal, processId, bodyOutput, processOutput, saved
     console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
     if (processStatusDict[processId].ResourceId) {
       console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(bodyOutput.HostInit, processStatusDict[processId].ResourceId, false);
+      updateMetadata(getBodyOutputHostInit(body), processStatusDict[processId].ResourceId, false);
     }
     deleteFromProcessDict(processId);
   }
@@ -158,29 +179,31 @@ function onProcessExit(code, signal, processId, bodyOutput, processOutput, saved
   });
 }
 
-async function getFilesToMine(inputKeys, resources, parents, savedFilePaths, body) {
+async function getFilesToMine(body, minerToRun, parents, savedFilePaths) {
+  let inputKeys = getMinerResourceInputKeys(minerToRun);
+
   let isStreamMiner = false;
   // Loop through all input resources
   for (let i = 0; i < inputKeys.length; i++) {
     const key = inputKeys[i];
-    const metadataObject = resources[key];
+    const metadataObject = getSingleMetadata(body, key);
     if (metadataObject != undefined) { // Maybe loop through input resources instead to avoid this check.
-      const inputResourceId = metadataObject.ResourceId;
-      const resourceInfo = metadataObject.ResourceInfo;
-      const inputResourceType = resourceInfo.ResourceType;
+      // const inputResourceId = metadataObject.ResourceId;
+      // const resourceInfo = metadataObject.ResourceInfo;
+      // const inputResourceType = resourceInfo.ResourceType;
 
       parents.push({
-        ResourceId: inputResourceId,
+        ResourceId: getMetadataResourceId(metadataObject),
         UsedAs: key,
       });
-      if (inputResourceType == "EventStream") {
+      if (getMetadataResourceType(metadataObject) == "EventStream") {
         isStreamMiner = true;
       }
       else { // Get all files if it's not a Stream. Streams only take 1 input right now.
-        const inputFileExtension = resourceInfo.FileExtension;
-        const fileURL = new URL(inputResourceId, resourceInfo.Host).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
+        // const inputFileExtension = resourceInfo.FileExtension;
+        const fileURL = new URL(getMetadataResourceId(metadataObject), getMetadataHost(metadataObject)).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
         console.log("URL to get file: " + fileURL);
-        const inputFilePath = `./Tmp/${inputResourceId}.${inputFileExtension}`;
+        const inputFilePath = `./Tmp/${getMetadataResourceId(metadataObject)}.${getMetadataFileExtension(metadataObject)}`;
         savedFilePaths.push(inputFilePath);
         body[key] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
         let result = await getResourceFromRepo(fileURL, inputFilePath);

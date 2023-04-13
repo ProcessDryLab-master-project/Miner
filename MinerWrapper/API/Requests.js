@@ -3,6 +3,31 @@ import https from "https";
 import fs from "fs";
 import FormData from "form-data";
 import os from "os";
+import {
+  getBodyInput,
+  getMetadataList,
+  getSingleMetadata,
+  getBodyOutput,
+  getBodyOutputHost,
+  getBodyOutputHostInit,
+  getBodyOutputLabel,
+  getBodyMinerId,
+  getMetadataResourceId,
+  getMetadataResourceInfo,
+  getMetadataResourceType,
+  getMetadataFileExtension,
+  getMetadataHost,
+} from "../App/BodyUnpacker.js";
+import {
+  getMinerResourceOutput,
+  getMinerId,
+  getMinerLabel,
+  getMinerResourceOutputType,
+  getMinerResourceOutputExtension,
+  getMinerExternal,
+  getMinerResourceInput,
+  getMinerResourceInputKeys,
+} from "../App/ConfigUnpacker.js";
 
 const agent = new https.Agent({
   rejectUnauthorized: false,
@@ -47,9 +72,14 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
   return responseObj;
 }
 
-export const sendResourceToRepo = async (output, parents, generatedFrom, minerResult, resourceOutputExtension, resourceOutputType, overwriteId, isDynamic) => {
-  let description = `Miner result from some miner`;
+export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, overwriteId, isDynamic) => {
+  let generatedFrom = {
+    SourceHost: ownUrl,
+    SourceId: getMinerId(minerToRun),
+    SourceLabel: getMinerLabel(minerToRun),
+  }
 
+  let description = `Miner result from some miner`;
   const stats = fs.statSync(minerResult);
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(minerResult);
@@ -59,9 +89,9 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, minerRe
 
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
-  data.append("ResourceLabel", output.ResourceLabel);
-  data.append("ResourceType", resourceOutputType);
-  data.append("FileExtension", resourceOutputExtension);
+  data.append("ResourceLabel", getBodyOutputLabel(body));
+  data.append("ResourceType", getMinerResourceOutputType(minerToRun));
+  data.append("FileExtension", getMinerResourceOutputExtension(minerToRun));
   data.append("Description", description);
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
@@ -82,7 +112,7 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, minerRe
 
 
   // Old
-  let responseData = await fetch(output.Host, requestOptions);
+  let responseData = await fetch(getBodyOutputHost(body), requestOptions);
   let response = await responseData.json();
   let responseObj = {
     response: response,
