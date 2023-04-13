@@ -54,7 +54,7 @@ export async function stopProcess(processId) {
     return false; // Process does not exist, BadRequest 400.
   }
   else {
-    processDict[processId].kill();
+    processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
     return true;  // Process exists and was stopped
   }
 }
@@ -97,6 +97,8 @@ export async function processStart(sendProcessId, req, config) {
   console.log(`\n\n\nProcess successfully started: ${processId}`);
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
+  let canSend = true;
+
   pythonProcess.stdin.setEncoding = "utf-8";
   let processOutput = "";
   pythonProcess.on('exit', function (code, signal) {
@@ -104,23 +106,28 @@ export async function processStart(sendProcessId, req, config) {
   });
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString();
+    data = null;
     processOutput = processOutput.trim();
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
-    sendResourceToRepo(bodyOutput, parents, generatedFrom, processOutput, resourceOutputExtension, resourceOutputType, resourceId, isStreamMiner)
-    .then((responseObj) => {
-      console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-      if(responseObj.status) {
-        resourceId = responseObj.response;
-        updateProcessStatus(processId, "running", resourceId);
-      }
-      else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
-    })
-    .catch((error) => {
-      updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
-      console.log(`Error with processId ${processId}: ${error}`);
-      processDict[processId].kill();
-      // delete processDict[processId];
-    });
+    if(canSend) {
+      canSend = false;
+      sendResourceToRepo(bodyOutput, parents, generatedFrom, processOutput, resourceOutputExtension, resourceOutputType, resourceId, isStreamMiner)
+      .then((responseObj) => {
+        console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        if(responseObj.status) {
+          resourceId = responseObj.response;
+          updateProcessStatus(processId, "running", resourceId);
+        }
+        else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+        canSend = true;
+      })
+      .catch((error) => {
+        updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
+        console.log(`Error with processId ${processId}: ${error}`);
+        processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
+        // delete processDict[processId];
+      });
+    }
   });
   pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
     console.log("Logging:" + data);

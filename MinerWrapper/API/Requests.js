@@ -73,6 +73,15 @@ export const sendResourceToRepo = async (output, parents, generatedFrom, minerRe
     body: data,
     redirect: "follow",
   };
+
+  // return await fetch(output.Host, requestOptions)
+  // .then(res => {
+  //   return res
+  // })
+  // .catch(error => console.log(error));
+
+
+  // Old
   let responseData = await fetch(output.Host, requestOptions);
   let response = await responseData.json();
   let responseObj = {
