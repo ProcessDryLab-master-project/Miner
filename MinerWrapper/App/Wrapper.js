@@ -61,18 +61,13 @@ export async function getStatusList() {
 
 export async function getProcessStatus(processId) {
   let processStatusObj = processStatusDict[processId];
-  if(processStatusObj == undefined) {
-    return false;
-  }
-  else {
-    if(processStatusObj.ProcessStatus != "running"){
+  // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
+  // console.log(`Status dict send:\n${processStatusObjString}`);
+  if(processStatusObj && processStatusObj.ProcessStatus != "running") { // Get status on a non-running process should remove it from the dict.
       console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
       deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
-    }
-    // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
-    // console.log(`Status dict send:\n${processStatusObjString}`);
-    return processStatusObj;
   }
+  return processStatusObj;
 }
 
 export async function stopProcess(processId) {
@@ -118,7 +113,6 @@ export async function processStart(sendProcessId, req, config) {
   });
   pythonProcess.stdout.on("data", (data) => {
     processOutput = data.toString().trim();
-    // processOutput = processOutput.trim();
     data = null;
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
     if(firstSend && canSend) { // TODO: Consider if booleans like this is the best approach
@@ -193,16 +187,15 @@ async function getFilesToMine(body, parents) {
   for(let key in getAllMetadata(body)) { // Loop through all input resources
     // TODO: MAYBE. Could have a check like: "if(!getMinerResourceInputKeys(minerToRun).includes("key"))". Would ensure that request keys match config. However, if frontend is made correctly, this shouldn't be possible. Also, doesn't break anything if key doesn't match config.
     const metadataObject = getSingleMetadata(body, key);
-    const resourceId = getMetadataResourceId(metadataObject);
     parents.push({
       ResourceId: getMetadataResourceId(metadataObject),
       UsedAs: key,
     });
     if (!metadataIsStream(metadataObject)) { // If it's not a stream, retrieve file from repository
-      const fileURL = new URL(resourceId, getMetadataHost(metadataObject)).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
+      const fileURL = new URL(getMetadataResourceId(metadataObject), getMetadataHost(metadataObject)).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
       console.log("URL to get file: " + fileURL);
-      const inputFilePath = `./Tmp/${resourceId}.${getMetadataFileExtension(metadataObject)}`;
-      body[key] = inputFilePath; // TODO: Maybe this shouldn't be added to body if it ALWAYS saves to same location?
+      const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
+      body[key] = inputFilePath;
       let result = await getResourceFromRepo(fileURL, inputFilePath);
       console.log("Result from fetching file: " + result);
     }
@@ -211,7 +204,10 @@ async function getFilesToMine(body, parents) {
 
 // HELPER FUNCTIONS!
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
+  console.log("processId: " + processId);
+  if(processStatusDict[processId]?.ProcessStatus == "complete" || processStatusDict[processId]?.ProcessStatus == "crash") return; // If status is "complete" or "crash", it shouldn't be able to change.
   if(!processStatusDict[processId]) processStatusDict[processId] = {};
+
   processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
   processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
   processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
