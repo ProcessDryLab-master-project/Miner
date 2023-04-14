@@ -51,9 +51,9 @@ export const getResourceFromRepo = async (url, filePath) => {
   return result;
 }
 
-export const updateMetadata = async (url, overwriteId, isDynamic) => {
+export const updateMetadata = async (body, overwriteId, isDynamic) => {
   console.log("Updating metadata by setting isDynamic to: " + isDynamic);
-  const fileURL = new URL(overwriteId, url).toString()
+  const fileURL = new URL(overwriteId, getBodyOutputHostInit(body)).toString()
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
@@ -71,7 +71,38 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
   return responseObj;
 }
 
-export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, overwriteId) => {
+export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
+  const stats = fs.statSync(minerResult);
+  const fileSizeInBytes = stats.size;
+  const fileStream = fs.createReadStream(minerResult);
+
+  const data = new FormData();
+  data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
+  var requestOptions = {
+    agent: agent,
+    method: "PUT",
+    body: data,
+    redirect: "follow",
+  };
+  
+  const outputUrl = new URL(resourceId, getBodyOutputHost(body)).toString();
+  console.log("outputUrl: " + outputUrl);
+  // return await fetch(outputUrl, requestOptions)
+  // .then(res => {
+  //   return res
+  // })
+  // .catch(error => console.log(error));
+  let responseData = await fetch(outputUrl, requestOptions);
+  let response = await responseData.json();
+  let responseObj = {
+    response: response,
+    status: responseData.ok,
+  }
+  return responseObj;
+};
+
+
+export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, resourceId) => {
   let isDynamic = hasStreamInput(body);
   let generatedFrom = {
     SourceHost: ownUrl,
@@ -95,7 +126,10 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("Description", description);
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
-  if(overwriteId != undefined) data.append("OverwriteId", overwriteId);
+  if(resourceId != undefined) {
+    console.log("SHOULD NO LONGER BE ABLE TO HAPPEN!!");
+    data.append("OverwriteId", resourceId);
+  }
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
     agent: agent,
@@ -103,15 +137,7 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
     body: data,
     redirect: "follow",
   };
-
-  // return await fetch(output.Host, requestOptions)
-  // .then(res => {
-  //   return res
-  // })
-  // .catch(error => console.log(error));
-
-
-  // Old
+  
   let responseData = await fetch(getBodyOutputHost(body), requestOptions);
   let response = await responseData.json();
   let responseObj = {

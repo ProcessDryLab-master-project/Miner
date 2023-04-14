@@ -33,6 +33,7 @@ import {
 } from "./ConfigUnpacker.js";
 import {
   sendResourceToRepo,
+  updateResourceOnRepo,
   getResourceFromRepo,
   updateMetadata,
 } from "../API/Requests.js";
@@ -107,6 +108,7 @@ export async function processStart(sendProcessId, req, config) {
   console.log(`\n\n\nProcess successfully started: ${processId}`);
   console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
+  let firstSend = true;
   let canSend = true;
 
   pythonProcess.stdin.setEncoding = "utf-8";
@@ -118,13 +120,16 @@ export async function processStart(sendProcessId, req, config) {
     processOutput = data.toString();
     data = null;
     processOutput = processOutput.trim();
+    console.log(`firstSend: ${firstSend}, canSend: ${canSend}`)
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
     // TODO: Some "updateResourceOnRepo" function, that makes a PUT request instead of sending OverwriteId. 
-    if(canSend) {
+    if(firstSend && canSend) {
+      firstSend = false;
       canSend = false;
+      console.log("Sending resource");
       sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput, resourceId)
       .then((responseObj) => {
-        console.log(`WRAPPER: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if(responseObj.status) {
           resourceId = responseObj.response;
           updateProcessStatus(processId, "running", resourceId);
@@ -136,7 +141,25 @@ export async function processStart(sendProcessId, req, config) {
         updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
         processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
-        // delete processDict[processId];
+      });
+    }
+    else if(!firstSend && canSend){
+      canSend = false;
+      console.log("Updating resource");
+      updateResourceOnRepo(body, processOutput, resourceId)
+      .then((responseObj) => {
+        console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        if(responseObj.status) {
+          resourceId = responseObj.response;
+          updateProcessStatus(processId, "running", resourceId);
+        }
+        else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+        canSend = true;
+      })
+      .catch((error) => {
+        updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
+        console.log(`Error with processId ${processId}: ${error}`);
+        processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
       });
     }
   });
@@ -158,7 +181,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
     if (processStatusDict[processId].ResourceId) {
       console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(getBodyOutputHostInit(body), processStatusDict[processId].ResourceId, false);
+      updateMetadata(body, processStatusDict[processId].ResourceId, false);
     }
     deleteFromProcessDict(processId);
   }
