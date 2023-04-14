@@ -5,13 +5,15 @@ import FormData from "form-data";
 import os from "os";
 import {
   getBodyInput,
-  getMetadataList,
+  getAllMetadata,
   getSingleMetadata,
   getBodyOutput,
   getBodyOutputHost,
   getBodyOutputHostInit,
   getBodyOutputLabel,
   getBodyMinerId,
+  hasStreamInput,
+  metadataIsStream,
   getMetadataResourceId,
   getMetadataResourceInfo,
   getMetadataResourceType,
@@ -50,7 +52,8 @@ export const getResourceFromRepo = async (url, filePath) => {
 }
 
 export const updateMetadata = async (url, overwriteId, isDynamic) => {
-  const fileURL = new URL(overwriteId, "https://localhost:4000/resources/metadata/").toString()
+  console.log("Updating metadata by setting isDynamic to: " + isDynamic);
+  const fileURL = new URL(overwriteId, url).toString()
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
@@ -59,10 +62,6 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
     body: data,
     redirect: "follow",
   };
-  // let responseData = fetch(fileURL, requestOptions)
-  // .then(res => {
-
-  // });
   let responseData = await fetch(fileURL, requestOptions);
   let response = await responseData.json();
   let responseObj = {
@@ -72,7 +71,8 @@ export const updateMetadata = async (url, overwriteId, isDynamic) => {
   return responseObj;
 }
 
-export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, overwriteId, isDynamic) => {
+export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, overwriteId) => {
+  let isDynamic = hasStreamInput(body);
   let generatedFrom = {
     SourceHost: ownUrl,
     SourceId: getMinerId(minerToRun),

@@ -1,56 +1,67 @@
 // Request body unpackers
-export function getBodyInput(body){
-    return body.Input;
+export function getBodyInput(body) {
+  return body.Input;
 }
 
-export function getMetadataList(body){
-    return getBodyInput(body).Resources;
+export function getAllMetadata(body) {
+  return getBodyInput(body).Resources;
 }
 
-export function getSingleMetadata(body, key){
-    return getMetadataList(body)[key];
+export function getSingleMetadata(body, key) {
+  return getAllMetadata(body)[key];
 }
 
-export function getBodyOutput(body){
-    return body.Output;
+export function getBodyOutput(body) {
+  return body.Output;
 }
 
-export function getBodyOutputHost(body){
-    return getBodyOutput(body).Host;
+export function getBodyOutputHost(body) {
+  return getBodyOutput(body).Host;
 }
 
-export function getBodyOutputHostInit(body){
-    return getBodyOutput(body).HostInit;
+export function getBodyOutputHostInit(body) {
+  return getBodyOutput(body).HostInit;
 }
 
-export function getBodyOutputLabel(body){
-    return getBodyOutput(body).HostInit;
+export function getBodyOutputLabel(body) {
+  return getBodyOutput(body).HostInit;
 }
 
-export function getBodyMinerId(body){
-    return body.MinerId;
+export function getBodyMinerId(body) {
+  return body.MinerId;
+}
+
+export function hasStreamInput(body) {
+  for (let key in getAllMetadata(body)) {
+    if (metadataIsStream(getSingleMetadata(body, key))) return true;
+  }
+  return false;
 }
 
 // Metadata unpackers
-export function getMetadataResourceId(metadataObject){
-    return metadataObject.ResourceId;
-}
-export function getMetadataResourceInfo(metadataObject){
-    return metadataObject.ResourceInfo;
-}
-export function getMetadataResourceType(metadataObject){
-    return getMetadataResourceInfo(metadataObject).ResourceType;
+export function metadataIsStream(metadataObject) {
+  return getMetadataResourceType(metadataObject) == "EventStream";
 }
 
-export function getMetadataFileExtension(metadataObject){
-    return getMetadataResourceInfo(metadataObject).FileExtension;
+export function getMetadataResourceId(metadataObject) {
+  return metadataObject.ResourceId;
+}
+export function getMetadataResourceInfo(metadataObject) {
+  return metadataObject.ResourceInfo;
+}
+export function getMetadataResourceType(metadataObject) {
+  return getMetadataResourceInfo(metadataObject).ResourceType;
 }
 
-export function getMetadataHost(metadataObject){
-    return getMetadataResourceInfo(metadataObject).Host;
+export function getMetadataFileExtension(metadataObject) {
+  return getMetadataResourceInfo(metadataObject).FileExtension;
 }
 
+export function getMetadataHost(metadataObject) {
+  return getMetadataResourceInfo(metadataObject).Host;
+}
 
+// Keys added through wrapper (e.g. save paths)
 
 // From frontend.
 // export function getFileHost(file){

@@ -14,11 +14,13 @@ export function cleanupFiles() {
 }
 
 export function removeFile(filePath) {
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      throw err;
-    }
+  if(filePath) { // Only delete paths that actually exist. This will prevent crashing when streams are stopped.
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        throw err;
+      }
 
-    console.log("Delete File successfully.");
-  });
+      console.log("Delete File successfully.");
+    });
+  }
 }
