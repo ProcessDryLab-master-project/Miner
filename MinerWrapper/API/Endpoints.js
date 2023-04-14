@@ -1,8 +1,8 @@
 const port = 5000;
 import {
   stopProcess,
-  getProcessStatus,
-  getStatusList,
+  getStatusDeleteIfDone,
+  getProcessStatusList,
   processStart,
 } from "../App/Wrapper.js";
 
@@ -20,14 +20,14 @@ export function initEndpoints(app, config) {
 
   app.get(`/status`, async function (req, res) {
     console.log(`Getting a request on /status for status list`);
-    let statusList = await getStatusList();
-    res.status(200).send(statusList);
+    // let statusList = await getProcessStatusList();
+    res.status(200).send(getProcessStatusList());
   });
 
   app.get(`/status/:processId`, async function (req, res) {
     let processId = req.params.processId
     console.log(`Getting a request on /status for id ${processId}`);
-    let statusDict = await getProcessStatus(processId);
+    let statusDict = await getStatusDeleteIfDone(processId);
     if(statusDict) res.status(200).send(statusDict);
     else res.status(400).send(`No process exists with ID: ${processId}`);
   });

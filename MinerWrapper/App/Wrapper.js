@@ -3,6 +3,7 @@ import crypto from "crypto";
 import fs from 'fs';
 import {
   removeFile,
+  isObjEmpty,
 } from "./Utils.js";
 import {
   getBodyInput,
@@ -32,53 +33,77 @@ import {
   getMinerResourceInputKeys,
 } from "./ConfigUnpacker.js";
 import {
+  getProcessStatusObj,
+  setProcessStatusObj,
+  getProcessStatus,
+  getProcessResourceId,
+  getProcessError,
+  setProcessStatus,
+  setProcessResourceId,
+  setProcessError,
+  deleteFromBothDicts,
+  deleteFromProcessDict,
+  deleteFromStatusDict,
+  getProcessList,
+  getProcess,
+  setProcess,
+  killProcess,
+} from "./ProcessHelper.js";
+import {
   sendResourceToRepo,
   updateResourceOnRepo,
   getResourceFromRepo,
   updateMetadata,
 } from "../API/Requests.js";
 
-var processDict = {
-  someId: null, // TODO: Just here for testing, delete when cleaning up
-};
-var processStatusDict = {
-  someId: {                 // TODO: Just here for testing, delete when cleaning up
-    ProcessStatus: "crash", // running, complete, crash,
-    ResourceId: null,       // The id for a resource
-    Error: null,            // If something went wrong, this is where we put the error msg.
-  }
-};
+// var processDict = {
+//   someId: null, // TODO: Just here for testing, delete when cleaning up
+// };
+// var processStatusDict = {
+//   someId: {                 // TODO: Just here for testing, delete when cleaning up
+//     ProcessStatus: "crash", // running, complete, crash,
+//     ResourceId: null,       // The id for a resource
+//     Error: null,            // If something went wrong, this is where we put the error msg.
+//   }
+// };
 
-export async function getStatusList() {
-  let processStatusList = [];
-  for(var processId in processStatusDict){
-    let tmpStatusObj = processStatusDict[processId];
-    tmpStatusObj.ProcessId = processId;
-    processStatusList.push(tmpStatusObj)
-  }
-  return processStatusList;
+export function getProcessStatusList() {
+  return getProcessList();
 }
 
-export async function getProcessStatus(processId) {
-  let processStatusObj = processStatusDict[processId];
-  // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict send:\n${processStatusObjString}`);
-  if(processStatusObj && processStatusObj.ProcessStatus != "running") { // Get status on a non-running process should remove it from the dict.
-      console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
-      deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
+export async function getStatusDeleteIfDone(processId) {
+  let tmpProcessObj = getProcessStatusObj(processId);
+  let status = tmpProcessObj.ProcessStatus;
+  if(status && status != "running") { // if it's defined and it's not "running"
+    console.log(`Removing inactive process with status ${status}`);
+    deleteFromBothDicts(processId);
   }
-  return processStatusObj;
+  return tmpProcessObj;
+  // let processStatusObj = processStatusDict[processId];
+  // // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
+  // // console.log(`Status dict send:\n${processStatusObjString}`);
+  // if(processStatusObj && processStatusObj.ProcessStatus != "running") { // Get status on a non-running process should remove it from the dict.
+  //     console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
+  //     deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
+  // }
+  // return processStatusObj;
 }
 
 export async function stopProcess(processId) {
   console.log(`Attempting to kill process with ID: ${processId}`);
-  if(processDict[processId] == undefined) {
-    return false; // Process does not exist, BadRequest 400.
+  if(getProcess(processId)) {
+    getProcess(processId).kill();
+    return true;   // Process exists and was stopped
   }
-  else {
-    processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
-    return true;  // Process exists and was stopped
-  }
+  return false;  // Process does not exist, BadRequest 400.
+  
+  // if(isObjEmpty(getProcessStatusObj(processId))) {
+  //   return false; // Process does not exist, BadRequest 400.
+  // }
+  // else {
+  //   processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
+  //   return true;  // Process exists and was stopped
+  // }
 }
 
 export async function processStart(sendProcessId, req, config) {
@@ -96,12 +121,12 @@ export async function processStart(sendProcessId, req, config) {
   let processId = pythonProcess.pid;
 
   // Create dictionaries to keep track of processes and their status
-  processDict[processId] = pythonProcess;
+  setProcess(processId, pythonProcess);
+  // processDict[processId] = pythonProcess;
   updateProcessStatus(processId, "running");
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
-  console.log(`Process added to dict: ${Object.keys(processDict)}`);
   
   let firstSend = true;
   let canSend = true;
@@ -131,7 +156,7 @@ export async function processStart(sendProcessId, req, config) {
       .catch((error) => {
         updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
-        processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
+        killProcess(processId);
       });
     }
     else if(!firstSend && canSend){
@@ -149,7 +174,7 @@ export async function processStart(sendProcessId, req, config) {
       .catch((error) => {
         updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
-        processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
+        killProcess(processId);
       });
     }
   });
@@ -161,19 +186,19 @@ export async function processStart(sendProcessId, req, config) {
 
 function onProcessExit(body, code, signal, processId, processOutput) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
-  delete processDict[processId]; // Remove only from this dict
-  if(processStatusDict[processId].ProcessStatus == "crash") return; // Likely means repository crashed.
+  deleteFromProcessDict(processId);// Remove only from this dict
+  if(getProcessStatus(processId) == "crash") return; // Likely means repository crashed.
   if (code == 0)
     updateProcessStatus(processId, "complete");
   else if (code == 1)
     updateProcessStatus(processId, "crash");
   else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
     console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
-    if (processStatusDict[processId].ResourceId) {
+    if (getProcessResourceId(processId)) {
       console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(body, processStatusDict[processId].ResourceId, false);
+      updateMetadata(body, getProcessResourceId(processId), false);
     }
-    deleteFromProcessDict(processId);
+    deleteFromBothDicts(processId);
   }
   else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
@@ -205,16 +230,23 @@ async function getFilesToMine(body, parents) {
 // HELPER FUNCTIONS!
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
   console.log("processId: " + processId);
-  if(processStatusDict[processId]?.ProcessStatus == "complete" || processStatusDict[processId]?.ProcessStatus == "crash") return; // If status is "complete" or "crash", it shouldn't be able to change.
-  if(!processStatusDict[processId]) processStatusDict[processId] = {};
+  if(processStatus) setProcessStatus(processId, processStatus);
+  if(resourceId) setProcessResourceId(processId, resourceId);
+  if(errorMsg) setProcessError(processId, errorMsg);
 
-  processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
-  processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
-  processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
+
+  // getProcessStatusObj(processId);
+  // if(!processStatusDict[processId]) processStatusDict[processId] = {};
+  // if(processStatusDict[processId].ProcessStatus == "complete" || processStatusDict[processId].ProcessStatus == "crash") return; // If status is "complete" or "crash", it shouldn't be able to change.
+  
+  // processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
+  // processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
+  // processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
+  
   // let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
   // console.log(`Status dict update:\n${processStatusObjString}`);
 }
-function deleteFromProcessDict(processId){
-  delete processDict[processId];
-  delete processStatusDict[processId];
-}
+// function deleteFromProcessDict(processId){
+//   delete processDict[processId];
+//   delete processStatusDict[processId];
+// }
