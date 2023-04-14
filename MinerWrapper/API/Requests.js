@@ -51,9 +51,9 @@ export const getResourceFromRepo = async (url, filePath) => {
   return result;
 }
 
-export const updateMetadata = async (body, overwriteId, isDynamic) => {
+export const updateMetadata = async (body, resourceId, isDynamic) => {
   console.log("Updating metadata by setting isDynamic to: " + isDynamic);
-  const fileURL = new URL(overwriteId, getBodyOutputHostInit(body)).toString()
+  const fileURL = new URL(resourceId, getBodyOutputHostInit(body)).toString()
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
@@ -102,7 +102,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
 };
 
 
-export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult, resourceId) => {
+export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, minerResult) => {
   let isDynamic = hasStreamInput(body);
   let generatedFrom = {
     SourceHost: ownUrl,
@@ -126,10 +126,6 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("Description", description);
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
-  if(resourceId != undefined) {
-    console.log("SHOULD NO LONGER BE ABLE TO HAPPEN!!");
-    data.append("OverwriteId", resourceId);
-  }
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
     agent: agent,

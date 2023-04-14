@@ -117,17 +117,14 @@ export async function processStart(sendProcessId, req, config) {
     onProcessExit(body, code, signal, processId, processOutput);
   });
   pythonProcess.stdout.on("data", (data) => {
-    processOutput = data.toString();
+    processOutput = data.toString().trim();
+    // processOutput = processOutput.trim();
     data = null;
-    processOutput = processOutput.trim();
-    console.log(`firstSend: ${firstSend}, canSend: ${canSend}`)
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
-    // TODO: Some "updateResourceOnRepo" function, that makes a PUT request instead of sending OverwriteId. 
-    if(firstSend && canSend) {
+    if(firstSend && canSend) { // TODO: Consider if booleans like this is the best approach
       firstSend = false;
       canSend = false;
-      console.log("Sending resource");
-      sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput, resourceId)
+      sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput)
       .then((responseObj) => {
         console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if(responseObj.status) {
@@ -145,7 +142,6 @@ export async function processStart(sendProcessId, req, config) {
     }
     else if(!firstSend && canSend){
       canSend = false;
-      console.log("Updating resource");
       updateResourceOnRepo(body, processOutput, resourceId)
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
