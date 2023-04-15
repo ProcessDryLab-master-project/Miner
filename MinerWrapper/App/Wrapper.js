@@ -33,6 +33,7 @@ import {
   getMinerResourceInputKeys,
 } from "./ConfigUnpacker.js";
 import {
+  statusEnum,
   getProcessStatusObj,
   setProcessStatusObj,
   getProcessStatus,
@@ -65,15 +66,7 @@ export async function getStatusDeleteIfDone(processId) {
   let status = tmpProcessObj.ProcessStatus;
   // let processStatusObjString = JSON.stringify(tmpProcessObj, null, 4); // TODO: Delete on cleanup
   // console.log(`Status dict send:\n${processStatusObjString}`);
-
-  if(status) {
-    console.log("status: " + status);
-  }
-  if(status != "running") {
-    console.log("status != running: ");
-    console.log(status != "running");
-  }
-  if(status && status != "running") { // if it's defined and it's not "running"
+  if(status && status != statusEnum.Running) { // if it's defined and it's not statusEnum.Running
     console.log(`Removing inactive process with status ${status}`);
     deleteFromBothDicts(processId);
   }
@@ -105,7 +98,8 @@ export async function processStart(sendProcessId, req, config) {
 
   // Create dictionaries to keep track of processes and their status
   setProcess(processId, pythonProcess);
-  updateProcessStatus(processId, "running"); // TODO: Create first. Probably shouldn't create obj in update. Updates should be reserved for existing obj
+  setProcessStatusObj(processId, {}); // Create a new empty status object before updating/setting the values.
+  updateProcessStatus(processId, statusEnum.Running);
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
@@ -130,13 +124,13 @@ export async function processStart(sendProcessId, req, config) {
         console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if(responseObj.status) {
           resourceId = responseObj.response;
-          updateProcessStatus(processId, "running", resourceId);
+          updateProcessStatus(processId, statusEnum.Running, resourceId);
         }
-        else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+        else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
         canSend = true;
       })
       .catch((error) => {
-        updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
+        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
         killProcess(processId);
       });
@@ -147,16 +141,16 @@ export async function processStart(sendProcessId, req, config) {
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if (getProcessStatusObj(processId)) {// Don't update process status if it has been deleted (means exit was called in the meantime)
-          if(responseObj.status) { 
+          if(responseObj.status) {
             resourceId = responseObj.response;
-            updateProcessStatus(processId, "running", resourceId);
+            updateProcessStatus(processId, statusEnum.Running, resourceId);
           }
-          else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+          else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
           canSend = true;
         }
       })
       .catch((error) => {
-        updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
+        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
         killProcess(processId);
       });
@@ -171,11 +165,11 @@ export async function processStart(sendProcessId, req, config) {
 function onProcessExit(body, code, signal, processId, processOutput) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
   deleteFromProcessDict(processId);// Remove only from this dict
-  if(getProcessStatus(processId) == "crash") return; // Likely means repository crashed.
+  if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
   if (code == 0)
-    updateProcessStatus(processId, "complete");
+    updateProcessStatus(processId, statusEnum.Complete);
   else if (code == 1)
-    updateProcessStatus(processId, "crash");
+    updateProcessStatus(processId, statusEnum.Crash);
   else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
     console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
     if (getProcessResourceId(processId)) {
