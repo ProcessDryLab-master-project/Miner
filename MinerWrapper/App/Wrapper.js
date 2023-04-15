@@ -105,7 +105,7 @@ export async function processStart(sendProcessId, req, config) {
   console.log(`\n\n\nProcess successfully started: ${processId}`);
   
   let firstSend = true;
-  let canSend = true;
+  let resend = false;
 
   pythonProcess.stdin.setEncoding = "utf-8";
   let processOutput = "";
@@ -116,9 +116,8 @@ export async function processStart(sendProcessId, req, config) {
     processOutput = data.toString().trim();
     data = null;
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
-    if(firstSend && canSend) { // TODO: Consider if booleans like this is the best approach
+    if(firstSend) { // TODO: Consider if booleans like this is the best approach
       firstSend = false;
-      canSend = false;
       sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput)
       .then((responseObj) => {
         console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
@@ -127,7 +126,7 @@ export async function processStart(sendProcessId, req, config) {
           updateProcessStatus(processId, statusEnum.Running, resourceId);
         }
         else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
-        canSend = true;
+        resend = true;
       })
       .catch((error) => {
         updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
@@ -135,8 +134,8 @@ export async function processStart(sendProcessId, req, config) {
         killProcess(processId);
       });
     }
-    else if(!firstSend && canSend){
-      canSend = false;
+    else if(resend){
+      resend = false;
       updateResourceOnRepo(body, processOutput, resourceId)
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
@@ -146,7 +145,7 @@ export async function processStart(sendProcessId, req, config) {
             updateProcessStatus(processId, statusEnum.Running, resourceId);
           }
           else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
-          canSend = true;
+          resend = true;
         }
       })
       .catch((error) => {
