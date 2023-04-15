@@ -1,4 +1,8 @@
-// Miner config unpackers
+// Miner config list helpers
+// export function addMinerConfig(minerConfig) {
+
+// }
+// Single miner config unpackers
 export function getMinerResourceOutput(minerConfig){
     return minerConfig.ResourceOutput;
 }

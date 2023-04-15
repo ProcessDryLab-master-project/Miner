@@ -1,4 +1,4 @@
-// Request body unpackers
+// Miner request body unpackers
 export function getBodyInput(body) {
   return body.Input;
 }
@@ -24,7 +24,7 @@ export function getBodyOutputHostInit(body) {
 }
 
 export function getBodyOutputLabel(body) {
-  return getBodyOutput(body).HostInit;
+  return getBodyOutput(body).ResourceLabel;
 }
 
 export function getBodyMinerId(body) {
@@ -60,8 +60,6 @@ export function getMetadataFileExtension(metadataObject) {
 export function getMetadataHost(metadataObject) {
   return getMetadataResourceInfo(metadataObject).Host;
 }
-
-// Keys added through wrapper (e.g. save paths)
 
 // From frontend.
 // export function getFileHost(file){

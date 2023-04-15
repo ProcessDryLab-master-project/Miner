@@ -1,8 +1,10 @@
 import fetch from "node-fetch";
 import https from "https";
+import http from "http";
 import fs from "fs";
 import FormData from "form-data";
 import os from "os";
+import crypto from "crypto";
 import {
   getBodyInput,
   getAllMetadata,
@@ -31,12 +33,58 @@ import {
   getMinerResourceInputKeys,
 } from "../App/ConfigUnpacker.js";
 
-const agent = new https.Agent({
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
+const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
+
+// TODO: Save shadowConfig permanently by writing to config. 
+// This will need to change how config is passed around, since we can no longer rely on it being the same. Consider if we really want to save shadowed config in the file or if it should just be removed on restart.
+export const getForeignMiner = async (req, config) => {
+  let body = await req.body;
+  let shadowHost = body.Host;
+  let shadowExtension = body.Extension;
+  let shadowConfig = body.Config;
+  const shadowUrl = new URL(getMinerId(shadowConfig), shadowHost).toString()
+  console.log("Requesting shadow from: " + shadowUrl);
+
+  if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
+    shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
+  }
+  
+  let shadowFileName = `Shadow-${getMinerId(shadowConfig)}.${shadowExtension}`;
+  const shadowFilePath = `./Miners/${shadowFileName}`;
+  shadowConfig.External = shadowFilePath; // TODO: Make setters for config to overwrite it.
+
+  let result = await fetch(shadowUrl, { agent: httpAgent })
+  .then(
+    res => {
+      console.log(res);
+      return new Promise((resolve, reject) => {
+        const fileWriteStream = fs.createWriteStream(getMinerExternal(shadowConfig));
+        console.log("Saving shadow to: " + getMinerExternal(shadowConfig));
+        res.body.pipe(fileWriteStream);
+        res.body.on("end", () => resolve("File saved"));
+        fileWriteStream.on("error", reject);
+      })
+    }
+  )
+  .then(success => {
+    console.log("fetch success: " + success);
+    return success;
+  })
+  .catch(error => {
+    console.log("fetch error: " + error);
+    return error;
+  });
+  return result;
+}
+
 export const getResourceFromRepo = async (url, filePath) => {
-  let result = fetch(url, { agent })
+  let result = fetch(url, { agent: httpsAgent })
   .then(
     res =>
       new Promise((resolve, reject) => {
@@ -57,7 +105,7 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
-    agent: agent,
+    agent: httpsAgent,
     method: "PUT",
     body: data,
     redirect: "follow",
@@ -79,7 +127,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   var requestOptions = {
-    agent: agent,
+    agent: httpsAgent,
     method: "PUT",
     body: data,
     redirect: "follow",
@@ -128,7 +176,7 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("Parents", parents);
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
-    agent: agent,
+    agent: httpsAgent,
     method: "POST",
     body: data,
     redirect: "follow",

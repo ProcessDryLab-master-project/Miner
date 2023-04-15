@@ -5,6 +5,7 @@
     "Type": "Miner",
     "External": "./Miners/MinerAlpha.py",
     "Access": "Public",
+    "Shadow": true,
     "ResourceInput": [
       {
         "Name": "LogToRun",
