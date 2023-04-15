@@ -139,18 +139,16 @@ export async function processStart(sendProcessId, req, config) {
       updateResourceOnRepo(body, processOutput, resourceId)
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        if (getProcessStatusObj(processId)) {// Don't update process status if it has been deleted (means exit was called in the meantime)
-          if(responseObj.status) {
-            resourceId = responseObj.response;
-            updateProcessStatus(processId, statusEnum.Running, resourceId);
-          }
-          else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
-          resend = true;
+        if(responseObj.status) {
+          resourceId = responseObj.response;
+          updateProcessStatus(processId, statusEnum.Running, resourceId);
         }
+        else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
+        resend = true;
       })
       .catch((error) => {
-        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
+        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         killProcess(processId);
       });
     }
@@ -205,6 +203,7 @@ async function getFilesToMine(body, parents) {
 
 // HELPER FUNCTIONS!
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
+  if(!getProcessStatusObj(processId)) return; // If object doesn't exist, it means it's been deleted in another thread. Then we don't do anything.
   if(processStatus) setProcessStatus(processId, processStatus);
   if(resourceId) setProcessResourceId(processId, resourceId);
   if(errorMsg) setProcessError(processId, errorMsg);
