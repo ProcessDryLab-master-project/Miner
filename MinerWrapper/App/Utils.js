@@ -3,6 +3,9 @@ import path from "path";
 
 export function cleanupFiles() {
     let directory = "./Tmp";
+    if (!fs.existsSync(directory)){
+      fs.mkdirSync(directory);
+    }
     fs.readdir(directory, (err, files) => {
         if (err) throw err;
         for (const file of files) {

@@ -33,7 +33,7 @@
     ],
     "ResourceOutput": {
       "FileExtension": "png",
-      "ResourceType": "Image"
+      "ResourceType": "PetriNet"
     },
     "MinerParameters": [
       {

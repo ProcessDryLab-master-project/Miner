@@ -56,17 +56,6 @@ import {
   updateMetadata,
 } from "../API/Requests.js";
 
-// var processDict = {
-//   someId: null, // TODO: Just here for testing, delete when cleaning up
-// };
-// var processStatusDict = {
-//   someId: {                 // TODO: Just here for testing, delete when cleaning up
-//     ProcessStatus: "crash", // running, complete, crash,
-//     ResourceId: null,       // The id for a resource
-//     Error: null,            // If something went wrong, this is where we put the error msg.
-//   }
-// };
-
 export function getProcessStatusList() {
   return getProcessList();
 }
@@ -74,19 +63,21 @@ export function getProcessStatusList() {
 export async function getStatusDeleteIfDone(processId) {
   let tmpProcessObj = getProcessStatusObj(processId);
   let status = tmpProcessObj.ProcessStatus;
+  // let processStatusObjString = JSON.stringify(tmpProcessObj, null, 4); // TODO: Delete on cleanup
+  // console.log(`Status dict send:\n${processStatusObjString}`);
+
+  if(status) {
+    console.log("status: " + status);
+  }
+  if(status != "running") {
+    console.log("status != running: ");
+    console.log(status != "running");
+  }
   if(status && status != "running") { // if it's defined and it's not "running"
     console.log(`Removing inactive process with status ${status}`);
     deleteFromBothDicts(processId);
   }
   return tmpProcessObj;
-  // let processStatusObj = processStatusDict[processId];
-  // // let processStatusObjString = JSON.stringify(processStatusObj, null, 4); // TODO: Delete on cleanup
-  // // console.log(`Status dict send:\n${processStatusObjString}`);
-  // if(processStatusObj && processStatusObj.ProcessStatus != "running") { // Get status on a non-running process should remove it from the dict.
-  //     console.log(`Removing inactive process with status ${processStatusObj.ProcessStatus}`);
-  //     deleteFromProcessDict(processId); // cleanup dictionary if process is no longer running
-  // }
-  // return processStatusObj;
 }
 
 export async function stopProcess(processId) {
@@ -96,14 +87,6 @@ export async function stopProcess(processId) {
     return true;   // Process exists and was stopped
   }
   return false;  // Process does not exist, BadRequest 400.
-  
-  // if(isObjEmpty(getProcessStatusObj(processId))) {
-  //   return false; // Process does not exist, BadRequest 400.
-  // }
-  // else {
-  //   processDict[processId]?.kill(); // TODO: Consider if it's a good idea to fix problem with null check like this
-  //   return true;  // Process exists and was stopped
-  // }
 }
 
 export async function processStart(sendProcessId, req, config) {
@@ -122,8 +105,7 @@ export async function processStart(sendProcessId, req, config) {
 
   // Create dictionaries to keep track of processes and their status
   setProcess(processId, pythonProcess);
-  // processDict[processId] = pythonProcess;
-  updateProcessStatus(processId, "running");
+  updateProcessStatus(processId, "running"); // TODO: Create first. Probably shouldn't create obj in update. Updates should be reserved for existing obj
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
@@ -164,12 +146,14 @@ export async function processStart(sendProcessId, req, config) {
       updateResourceOnRepo(body, processOutput, resourceId)
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        if(responseObj.status) {
-          resourceId = responseObj.response;
-          updateProcessStatus(processId, "running", resourceId);
+        if (getProcessStatusObj(processId)) {// Don't update process status if it has been deleted (means exit was called in the meantime)
+          if(responseObj.status) { 
+            resourceId = responseObj.response;
+            updateProcessStatus(processId, "running", resourceId);
+          }
+          else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
+          canSend = true;
         }
-        else updateProcessStatus(processId, "crash", null, "Repository error response: " + responseObj.response);
-        canSend = true;
       })
       .catch((error) => {
         updateProcessStatus(processId, "crash", null, "Repository error response: " + error);
@@ -210,7 +194,6 @@ function onProcessExit(body, code, signal, processId, processOutput) {
 
 async function getFilesToMine(body, parents) {
   for(let key in getAllMetadata(body)) { // Loop through all input resources
-    // TODO: MAYBE. Could have a check like: "if(!getMinerResourceInputKeys(minerToRun).includes("key"))". Would ensure that request keys match config. However, if frontend is made correctly, this shouldn't be possible. Also, doesn't break anything if key doesn't match config.
     const metadataObject = getSingleMetadata(body, key);
     parents.push({
       ResourceId: getMetadataResourceId(metadataObject),
@@ -229,24 +212,7 @@ async function getFilesToMine(body, parents) {
 
 // HELPER FUNCTIONS!
 function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
-  console.log("processId: " + processId);
   if(processStatus) setProcessStatus(processId, processStatus);
   if(resourceId) setProcessResourceId(processId, resourceId);
   if(errorMsg) setProcessError(processId, errorMsg);
-
-
-  // getProcessStatusObj(processId);
-  // if(!processStatusDict[processId]) processStatusDict[processId] = {};
-  // if(processStatusDict[processId].ProcessStatus == "complete" || processStatusDict[processId].ProcessStatus == "crash") return; // If status is "complete" or "crash", it shouldn't be able to change.
-  
-  // processStatusDict[processId].ProcessStatus = processStatus ? processStatus : processStatusDict[processId].ProcessStatus
-  // processStatusDict[processId].ResourceId = resourceId ? resourceId : processStatusDict[processId].ResourceId
-  // processStatusDict[processId].Error = errorMsg ? errorMsg : processStatusDict[processId].Error
-  
-  // let processStatusObjString = JSON.stringify(processStatusDict[processId], null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict update:\n${processStatusObjString}`);
 }
-// function deleteFromProcessDict(processId){
-//   delete processDict[processId];
-//   delete processStatusDict[processId];
-// }

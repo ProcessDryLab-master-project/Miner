@@ -10,7 +10,7 @@ var processStatusDict = {
 };
 
 export function getProcessStatusObj(processId) {
-    if(!processStatusDict[processId]) processStatusDict[processId] = {};
+    // if(!processStatusDict[processId]) processStatusDict[processId] = {};
     return processStatusDict[processId];
 }
 export function setProcessStatusObj(processId, processObj) {
@@ -28,20 +28,20 @@ export function getProcessError(processId) {
 }
 
 export function setProcessStatus(processId, status) {
-    let tmpProcessObj = getProcessStatusObj(processId);
-    if(tmpProcessObj.Status == "complete" || tmpProcessObj.Status == "crash") return; // Shouldn't change status once they're finished
-    // tmpProcessObj.Status = status ? status : tmpProcessObj.Status;
-    tmpProcessObj.Status = status;
+    let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
+    if(tmpProcessObj.ProcessStatus == "complete" || tmpProcessObj.ProcessStatus == "crash") return; // Shouldn't change status once they're finished
+    // tmpProcessObj.ProcessStatus = status ? status : tmpProcessObj.ProcessStatus;
+    tmpProcessObj.ProcessStatus = status;
     setProcessStatusObj(processId, tmpProcessObj);
 }
 export function setProcessResourceId(processId, resourceId) {
-    let tmpProcessObj = getProcessStatusObj(processId);
+    let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
     // tmpProcessObj.ResourceId = resourceId ? resourceId : tmpProcessObj.ResourceId;
     tmpProcessObj.ResourceId = resourceId;
     setProcessStatusObj(processId, tmpProcessObj);
 }
 export function setProcessError(processId, error) {
-    let tmpProcessObj = getProcessStatusObj(processId);
+    let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
     // tmpProcessObj.Error = error ? error : tmpProcessObj.Error;
     tmpProcessObj.Error = error;
     setProcessStatusObj(processId, tmpProcessObj);
