@@ -3,7 +3,27 @@
     "MinerId": "1",
     "MinerLabel": "Alpha Miner",
     "Type": "Miner",
-    "External": "./Miners/MinerAlpha.py",
+    "External": "./Miners/minerAlpha.py",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "pnml",
+      "ResourceType": "PetriNet"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6",
+    "MinerLabel": "Alpha Miner Executable",
+    "Type": "Miner",
+    "External": ".\\Miners\\minerAlpha.exe",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [

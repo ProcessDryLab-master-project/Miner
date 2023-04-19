@@ -10,13 +10,17 @@ from pm4py.objects.petri_net.importer import importer as pnml_importer
 # from pm4py.visualization.common.save import save as saver
 import graphviz  # https://pypi.org/project/graphviz/
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 # Run this script with this command:
 # python ./PythonMiner/main.py ./PythonMiner/test.png ./PythonMiner/test.pnml ./PythonMiner/example-log.xes
 result_folder = './Tmp'
 if __name__ == "__main__":
     if len(sys.argv) > 1:
+        eprint("Started alpha miner")
         wrapperArgsString = sys.argv[1]
         body = json.loads(wrapperArgsString)
+        eprint("Body: \n", body)
         resultFileId = body["ResultFileId"]
         fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
         output = body["Output"]

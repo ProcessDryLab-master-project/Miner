@@ -95,8 +95,19 @@ export async function processStart(sendProcessId, req, config) {
   await getFilesToMine(body, parents);
   let wrapperArgs = JSON.stringify(body);
 
+  let pythonProcess;
   
-  let pythonProcess = spawn.spawn("python", [getMinerExternal(minerToRun), wrapperArgs]);
+  let minerExternal = getMinerExternal(minerToRun);
+  let minerExtension = minerExternal.split('.').pop();
+  console.log("miner external: " + minerExternal);
+  if(minerExtension == "py") {
+    console.log("running as python");
+    pythonProcess = spawn.spawn("python", [minerExternal, wrapperArgs]);
+  }
+  if(minerExtension == "exe") {
+    console.log("running as exe");
+    pythonProcess = spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
+  }
   let processId = pythonProcess.pid;
 
   // Creating dictionaries to keep track of processes and their status
