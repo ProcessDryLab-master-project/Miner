@@ -123,9 +123,15 @@ export async function processStart(sendProcessId, req, config) {
         console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         if(responseObj.status) {
           resourceId = responseObj.response;
-          updateProcessStatus(processId, statusEnum.Running, resourceId);
+          if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
+            updateProcessStatus(processId, statusEnum.Running, resourceId);
+          }
+          else { // If it's a normal miner, a response means it is complete.
+            updateProcessStatus(processId, statusEnum.Complete, resourceId);
+          }
         }
-        else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
+        else 
+          updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
         resend = true;
       })
       .catch((error) => {
@@ -163,9 +169,11 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
   deleteFromProcessDict(processId);// Remove only from this dict
   if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
-  if (code == 0)
-    updateProcessStatus(processId, statusEnum.Complete);
-  else if (code == 1)
+  if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
+    console.log("Process completed successfully");
+    // updateProcessStatus(processId, statusEnum.Complete); // No longer needed, since we stop the process
+  }
+  else if (code == 1) // Means the miner process crashed
     updateProcessStatus(processId, statusEnum.Crash);
   else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
     console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
