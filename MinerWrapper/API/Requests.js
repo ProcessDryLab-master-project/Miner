@@ -43,8 +43,9 @@ const httpAgent = new http.Agent({
 export const getForeignMiner = async (req, config) => {
   let body = await req.body;
   let shadowHost = body.Host;
-  let shadowExtension = body.Extension;
+  // let shadowExtension = body.Extension;
   let shadowConfig = body.Config;
+  let shadowExtension = getMinerExternal(shadowConfig).split('.').pop();
   const shadowUrl = new URL(getMinerId(shadowConfig), shadowHost).toString(); // Set URL before changing the shadow config id.
 
   if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {

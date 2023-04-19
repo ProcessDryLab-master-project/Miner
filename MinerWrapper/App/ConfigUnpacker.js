@@ -10,7 +10,6 @@ const configName = "../config.json";
 const configPath = path.join(__dirname, configName);
 
 export function writeConfig(config) {
-    console.log("Writing to config");
     var configString = JSON.stringify(config, null, 2);
     fs.writeFileSync(configPath, configString, 'utf8', function(err) {
         if(err) throw err;
