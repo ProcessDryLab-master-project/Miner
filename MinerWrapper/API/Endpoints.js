@@ -54,18 +54,21 @@ export function initEndpoints(app, config) {
   app.post(`/shadow`, async function (req, res) {
     console.log(`Getting a request on /shadow`);
     await getForeignMiner(req, config)
-    .then(result => {
-      console.log("Promise success");
-      config = result; // Overwrite config so the other functions can use it.
-      writeConfig(config); // Write the new config to file.
-      // Send status success
-      res.status(200).send("Success"); // Or send result?
+    .then(promiseRes => {
+        console.log("Promise success");
+        config = promiseRes; // Overwrite config so the other functions can use it.
+        writeConfig(config); // Write the new config to file.
+        // Send status success
+        res.status(200).send("Success"); // Or send result?
+      // }
     })
     .catch(error => {
-      console.log("Promise error: " + error);
-      res.status(400).send(error);
+      console.log("CATCH: Promise error: " + error);
+      res.status(400).send("Invalid request: " + error);
     });
   });
+
+
 
   app.get(`/status`, async function (req, res) {
     console.log(`Getting a request on /status for status list`);

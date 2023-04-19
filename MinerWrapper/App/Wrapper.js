@@ -94,6 +94,8 @@ export async function processStart(sendProcessId, req, config) {
   let parents = [];
   await getFilesToMine(body, parents);
   let wrapperArgs = JSON.stringify(body);
+
+  
   let pythonProcess = spawn.spawn("python", [getMinerExternal(minerToRun), wrapperArgs]);
   let processId = pythonProcess.pid;
 

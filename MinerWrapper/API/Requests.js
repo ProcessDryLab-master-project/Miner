@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch, { FetchError } from "node-fetch";
 import https from "https";
 import http from "http";
 import fs from "fs";
@@ -45,8 +45,7 @@ export const getForeignMiner = async (req, config) => {
   let shadowHost = body.Host;
   let shadowExtension = body.Extension;
   let shadowConfig = body.Config;
-  const shadowUrl = new URL(getMinerId(shadowConfig), shadowHost).toString()
-  console.log("Requesting shadow from: " + shadowUrl);
+  const shadowUrl = new URL(getMinerId(shadowConfig), shadowHost).toString(); // Set URL before changing the shadow config id.
 
   if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
@@ -55,26 +54,31 @@ export const getForeignMiner = async (req, config) => {
   let shadowFileName = `Shadow-${getMinerId(shadowConfig)}.${shadowExtension}`;
   const shadowFilePath = `./Miners/${shadowFileName}`;
   shadowConfig.External = shadowFilePath;
-  config.push(shadowConfig);
 
+  console.log("Requesting shadow from: " + shadowUrl);
   let result = await fetch(shadowUrl, { agent: httpAgent })
-  .then(
-    res => {
-      // console.log(res);
-      return new Promise((resolve, reject) => {
+  .then(res => {
+    return new Promise((resolve, reject) => {
+      if(!res.ok) {
+        reject(res.text().then(text => { throw new Error(text)}));
+      }
+      else {
         const fileWriteStream = fs.createWriteStream(getMinerExternal(shadowConfig));
         console.log("Saving shadow to: " + getMinerExternal(shadowConfig));
         res.body.pipe(fileWriteStream);
+        config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
         res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
         fileWriteStream.on("error", reject);
-      })
-    }
-  )
-  .then(success => {
-    return success;
+      }
+    })
   })
+  // .then(success => {
+  //   console.log("fetch success");
+  //   return success;
+  // })
   .catch(error => {
-    console.log("fetch error: " + error);
+    console.log("CATCH: fetch error: ");
+    console.log(error);
     return error;
   });
   return result; // Returns result, which is the promise with "config"

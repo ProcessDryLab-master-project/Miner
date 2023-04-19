@@ -10,8 +10,7 @@ const configName = "../config.json";
 const configPath = path.join(__dirname, configName);
 
 export function writeConfig(config) {
-    console.log("dirname write: " + __dirname);
-    console.log("configPath write: " + configPath);
+    console.log("Writing to config");
     var configString = JSON.stringify(config, null, 2);
     fs.writeFileSync(configPath, configString, 'utf8', function(err) {
         if(err) throw err;
@@ -20,8 +19,6 @@ export function writeConfig(config) {
 }
 
 export function getConfig(){
-    console.log("dirname read: " + __dirname);
-    console.log("configPath read: " + configPath);
     const loadJSON = () => JSON.parse(fs.readFileSync(configPath));
     return loadJSON();
 }
