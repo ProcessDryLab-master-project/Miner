@@ -3,14 +3,13 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import fs from "fs";
 import {
+  getConfig,
+} from "./App/ConfigUnpacker.js";
+import {
   cleanupFiles,
 } from "./App/Utils.js";
-
 // import config from "./config.json" assert { type: "json" };
-
-const loadJSON = (path) => JSON.parse(fs.readFileSync(new URL(path, import.meta.url)));
-
-const config = loadJSON('./config.json');
+const config = getConfig();
 
 const app = express()
 // Allow cors
@@ -31,7 +30,6 @@ app.use(bodyParser.urlencoded({ extended: true })); // other example said false
 import {
   initEndpoints,
 } from "./API/Endpoints.js";
-// import Endpoints from './Endpoints.js';
 function startEndPoints() {
   cleanupFiles();
   if(verifyConfig())

@@ -1,6 +1,9 @@
 const port = 5000;
 import fs from 'fs';
 import {
+  writeConfig,
+} from "../App/ConfigUnpacker.js";
+import {
   stopProcess,
   getStatusDeleteIfDone,
   getProcessStatusList,
@@ -31,13 +34,12 @@ export function initEndpoints(app, config) {
       res.send(requestedConfig);
     }
   });
-  // Return file that needs to be shadowed.
+  // Endpoint to return file that needs to be shadowed.
   app.get(`/shadow/:minerId`, function (req, res) {
     console.log(`Getting a request on /shadow/${req.params.minerId}`);
     let requestedConfig = config.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
     else {
-      //filename is the name which client will see. Don't put full path here.
       res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
 
       // TODO: Consider if these are necessary? Leave them out for now, since we're testing with a .py script.
@@ -49,12 +51,15 @@ export function initEndpoints(app, config) {
     }
   });
   // Initiate shadow process - request foreign miner on "shadow/:minerId" to get the foreign miner .exe/script
-  app.post(`/shadow`, function (req, res) {
-    console.log(`Getting a request on /shadow`); 
-    getForeignMiner(req, config)
+  app.post(`/shadow`, async function (req, res) {
+    console.log(`Getting a request on /shadow`);
+    await getForeignMiner(req, config)
     .then(result => {
-      console.log("Promise success: " + result);
-      res.status(200).send(result);
+      console.log("Promise success");
+      config = result; // Overwrite config so the other functions can use it.
+      writeConfig(config); // Write the new config to file.
+      // Send status success
+      res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
       console.log("Promise error: " + error);
@@ -64,7 +69,6 @@ export function initEndpoints(app, config) {
 
   app.get(`/status`, async function (req, res) {
     console.log(`Getting a request on /status for status list`);
-    // let statusList = await getProcessStatusList();
     res.status(200).send(getProcessStatusList());
   });
 

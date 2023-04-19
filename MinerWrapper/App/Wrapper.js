@@ -23,6 +23,7 @@ import {
   getMetadataHost,
 } from "./BodyUnpacker.js";
 import {
+  getConfig,
   getMinerResourceOutput,
   getMinerId,
   getMinerLabel,
@@ -96,7 +97,7 @@ export async function processStart(sendProcessId, req, config) {
   let pythonProcess = spawn.spawn("python", [getMinerExternal(minerToRun), wrapperArgs]);
   let processId = pythonProcess.pid;
 
-  // Create dictionaries to keep track of processes and their status
+  // Creating dictionaries to keep track of processes and their status
   setProcess(processId, pythonProcess);
   setProcessStatusObj(processId, {}); // Create a new empty status object before updating/setting the values.
   updateProcessStatus(processId, statusEnum.Running);

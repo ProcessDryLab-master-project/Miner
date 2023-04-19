@@ -40,9 +40,6 @@ const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
-
-// TODO: Save shadowConfig permanently by writing to config. 
-// This will need to change how config is passed around, since we can no longer rely on it being the same. Consider if we really want to save shadowed config in the file or if it should just be removed on restart.
 export const getForeignMiner = async (req, config) => {
   let body = await req.body;
   let shadowHost = body.Host;
@@ -57,30 +54,30 @@ export const getForeignMiner = async (req, config) => {
   
   let shadowFileName = `Shadow-${getMinerId(shadowConfig)}.${shadowExtension}`;
   const shadowFilePath = `./Miners/${shadowFileName}`;
-  shadowConfig.External = shadowFilePath; // TODO: Make setters for config to overwrite it.
+  shadowConfig.External = shadowFilePath;
+  config.push(shadowConfig);
 
   let result = await fetch(shadowUrl, { agent: httpAgent })
   .then(
     res => {
-      console.log(res);
+      // console.log(res);
       return new Promise((resolve, reject) => {
         const fileWriteStream = fs.createWriteStream(getMinerExternal(shadowConfig));
         console.log("Saving shadow to: " + getMinerExternal(shadowConfig));
         res.body.pipe(fileWriteStream);
-        res.body.on("end", () => resolve("File saved"));
+        res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
         fileWriteStream.on("error", reject);
       })
     }
   )
   .then(success => {
-    console.log("fetch success: " + success);
     return success;
   })
   .catch(error => {
     console.log("fetch error: " + error);
     return error;
   });
-  return result;
+  return result; // Returns result, which is the promise with "config"
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
