@@ -53,7 +53,7 @@ export const getForeignMiner = async (req, config) => {
   }
   
   let shadowFileName = `Shadow-${getMinerId(shadowConfig)}.${shadowExtension}`;
-  const shadowFilePath = `./Miners/${shadowFileName}`;
+  const shadowFilePath = `.\\Miners\\${shadowFileName}`;
   shadowConfig.External = shadowFilePath;
 
   console.log("Requesting shadow from: " + shadowUrl);
