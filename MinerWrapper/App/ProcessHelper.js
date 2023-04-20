@@ -23,13 +23,13 @@ export function setProcessStatusObj(processId, processObj) {
 }
 
 export function getProcessStatus(processId) {
-    return getProcessStatusObj(processId).ProcessStatus;
+    return getProcessStatusObj(processId)?.ProcessStatus;
 }
 export function getProcessResourceId(processId) {
-    return getProcessStatusObj(processId).ProcessStatus;
+    return getProcessStatusObj(processId)?.ProcessStatus;
 }
 export function getProcessError(processId) {
-    return getProcessStatusObj(processId).ProcessStatus;
+    return getProcessStatusObj(processId)?.ProcessStatus;
 }
 
 export function setProcessStatus(processId, status) {

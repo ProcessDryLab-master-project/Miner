@@ -45,6 +45,7 @@
     "Type": "Miner",
     "External": "./Miners/MinerHeuristic.py",
     "Access": "Public",
+    "Shadow": false,
     "ResourceInput": [
       {
         "Name": "LogToRun",
@@ -113,6 +114,7 @@
     "Type": "Miner",
     "External": "./Miners/MqttMinerHistogram.py",
     "Access": "Public",
+    "Shadow": false,
     "ResourceInput": [
       {
         "Name": "InputStream",
@@ -131,6 +133,27 @@
     "Type": "Miner",
     "External": "./Miners/MinerInductiveBpmn.py",
     "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "bpmn",
+      "ResourceType": "ProcessModel"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "7",
+    "MinerLabel": "Inductive Miner EXE",
+    "Type": "Miner",
+    "External": ".\\Miners\\MinerInductiveBpmn.exe",
+    "Access": "Public",
+    "Shadow": true,
     "ResourceInput": [
       {
         "Name": "LogToRun",
