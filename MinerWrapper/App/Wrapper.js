@@ -4,6 +4,7 @@ import fs from 'fs';
 import {
   removeFile,
   isObjEmpty,
+  appendUrl,
 } from "./Utils.js";
 import {
   getBodyInput,
@@ -213,7 +214,7 @@ async function getFilesToMine(body, parents) {
       UsedAs: key,
     });
     if (!metadataIsStream(metadataObject)) { // If it's not a stream, retrieve file from repository
-      const fileURL = new URL(getMetadataResourceId(metadataObject), getMetadataHost(metadataObject)).toString(); // TODO: Maybe don't use new URL as it won't read /resources/ if there is no "/" at the end.
+      const fileURL = appendUrl(getMetadataHost(metadataObject), getMetadataResourceId(metadataObject)).toString();
       console.log("URL to get file: " + fileURL);
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;

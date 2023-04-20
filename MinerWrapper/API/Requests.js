@@ -42,11 +42,9 @@ const httpAgent = new http.Agent({
 
 export const getForeignMiner = async (req, config) => {
   let body = await req.body;
-  let shadowHost = body.Host;
-  // let shadowExtension = body.Extension;
   let shadowConfig = body.Config;
   let shadowExtension = getMinerExternal(shadowConfig).split('.').pop();
-  const shadowUrl = new URL(getMinerId(shadowConfig), shadowHost).toString(); // Set URL before changing the shadow config id.
+  const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig)).toString();
 
   if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
@@ -103,7 +101,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
   console.log("Updating metadata by setting isDynamic to: " + isDynamic);
-  const fileURL = new URL(resourceId, getBodyOutputHostInit(body)).toString()
+  const fileURL = appendUrl(getBodyOutputHostInit(body), resourceId).toString();
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
@@ -135,7 +133,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
     redirect: "follow",
   };
   
-  const outputUrl = new URL(resourceId, getBodyOutputHost(body)).toString();
+  const outputUrl = appendUrl(getBodyOutputHost(body), resourceId).toString();
   console.log("outputUrl: " + outputUrl);
   // return await fetch(outputUrl, requestOptions)
   // .then(res => {
