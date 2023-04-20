@@ -130,6 +130,15 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
   const fileSizeInBytes = stats.size;
   const fileStream = fs.createReadStream(minerResult);
 
+  if(fileSizeInBytes < 100) { // TODO: This may be an error, printing to identify it. Remove when problem is identified.
+    console.log("fileSizeInBytes: " + fileSizeInBytes); 
+    console.log("minerResult: " + minerResult);
+    console.log("file exists: " + fs.existsSync(minerResult));
+    fileStream.on('data', function (chunk) {
+      console.log("file content: " + chunk.toString());
+    });
+  } 
+
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   var requestOptions = {

@@ -65,6 +65,7 @@ export function getProcessStatusList() {
 
 export async function getStatusDeleteIfDone(processId) {
   let tmpProcessObj = getProcessStatusObj(processId);
+  if(!tmpProcessObj) return null;
   let status = tmpProcessObj.ProcessStatus;
   // let processStatusObjString = JSON.stringify(tmpProcessObj, null, 4); // TODO: Delete on cleanup
   // console.log(`Status dict send:\n${processStatusObjString}`);
@@ -128,7 +129,7 @@ export async function processStart(sendProcessId, req, config) {
     onProcessExit(body, code, signal, processId, processOutput);
   });
   pythonProcess.stdout.on("data", (data) => {
-    processOutput = data.toString().trim();
+    processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
     data = null;
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
     if(firstSend) { // TODO: Consider if booleans like this is the best approach
