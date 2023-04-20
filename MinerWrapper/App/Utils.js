@@ -35,6 +35,5 @@ export function isObjEmpty (obj) {
 
 export function appendUrl(baseUrl, urlPath) {
   let concatPath = path.join(baseUrl.toString(), urlPath);
-  console.log("concatPath: " + concatPath);
   return new URL(concatPath);
 }
