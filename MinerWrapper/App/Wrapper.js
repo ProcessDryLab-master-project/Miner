@@ -97,23 +97,28 @@ export async function processStart(sendProcessId, req, config) {
   await getFilesToMine(body, parents);
   let wrapperArgs = JSON.stringify(body);
 
-  let pythonProcess;
+  let childProcess;
   
   let minerExternal = getMinerExternal(minerToRun);
   let minerExtension = minerExternal.split('.').pop();
   console.log("miner external: " + minerExternal);
   if(minerExtension == "py") {
     console.log("running as python");
-    pythonProcess = spawn.spawn("python", [minerExternal, wrapperArgs]);
+    childProcess = spawn.spawn("python", [minerExternal, wrapperArgs]);
   }
   if(minerExtension == "exe") {
     console.log("running as exe");
-    pythonProcess = spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
+    childProcess = spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
   }
-  let processId = pythonProcess.pid;
+  if(minerExtension == "jar") { // https://stackoverflow.com/questions/32464487/nodejs-terminate-spawned-child-process
+    console.log("running as jar");
+    childProcess = spawn.spawn('java', ['-jar', minerExternal, wrapperArgs]);
+    // childProcess = spawn.spawn('java',  ['-jar', '-Xmx512M', '-Dfile.encoding=utf8', 'script/importlistings.jar']);
+  }
+  let processId = childProcess.pid;
 
   // Creating dictionaries to keep track of processes and their status
-  setProcess(processId, pythonProcess);
+  setProcess(processId, childProcess);
   setProcessStatusObj(processId, {}); // Create a new empty status object before updating/setting the values.
   updateProcessStatus(processId, statusEnum.Running);
   
@@ -123,12 +128,13 @@ export async function processStart(sendProcessId, req, config) {
   let firstSend = true;
   let resend = false;
 
-  pythonProcess.stdin.setEncoding = "utf-8";
+  childProcess.stdin.setEncoding = "utf-8";
+  // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
   let processOutput = "";
-  pythonProcess.on('exit', function (code, signal) {
+  childProcess.on('exit', function (code, signal) {
     onProcessExit(body, code, signal, processId, processOutput);
   });
-  pythonProcess.stdout.on("data", (data) => {
+  childProcess.stdout.on("data", (data) => {
     processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
     data = null;
     // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
@@ -175,7 +181,7 @@ export async function processStart(sendProcessId, req, config) {
       });
     }
   });
-  pythonProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
+  childProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
     console.log("Logging:" + data);
   });
 }
