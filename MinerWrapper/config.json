@@ -128,6 +128,25 @@
     "MinerParameters":[]
   },
   {
+    "MinerId": "8",
+    "MinerLabel": "Alphabet Stream Miner",
+    "Type": "Miner",
+    "External": ".\\Miners\\MqttMinerHistogram.exe",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
+  },
+  {
     "MinerId": "4",
     "MinerLabel": "Inductive Miner",
     "Type": "Miner",
