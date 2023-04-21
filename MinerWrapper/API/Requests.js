@@ -106,8 +106,8 @@ export const getResourceFromRepo = async (url, filePath) => {
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
-  console.log("Updating metadata by setting isDynamic to: " + isDynamic);
-  const fileURL = appendUrl(getBodyOutputHostInit(body), resourceId).toString();
+  const repoUrl = appendUrl(getBodyOutputHostInit(body), resourceId).toString();
+  console.log(`Updating metadata on url: ${repoUrl} to set Dynamic to: ${isDynamic}`);
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
@@ -116,13 +116,22 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
     body: data,
     redirect: "follow",
   };
-  let responseData = await fetch(fileURL, requestOptions);
-  let response = await responseData.json();
-  let responseObj = {
-    response: response,
-    status: responseData.ok,
-  }
-  return responseObj;
+  let responseData = await fetch(repoUrl, requestOptions)
+  .then((success) => {
+    console.log(success);
+    return success;
+  })
+  .catch((error) => {
+    console.log(error);
+    return error;
+  });
+  return responseData;
+  // let response = await responseData.json();
+  // let responseObj = {
+  //   response: response,
+  //   status: responseData.ok,
+  // }
+  // return responseObj;
 }
 
 export const updateResourceOnRepo = async (body, minerResult, resourceId) => {

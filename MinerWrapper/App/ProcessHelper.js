@@ -26,10 +26,10 @@ export function getProcessStatus(processId) {
     return getProcessStatusObj(processId)?.ProcessStatus;
 }
 export function getProcessResourceId(processId) {
-    return getProcessStatusObj(processId)?.ProcessStatus;
+    return getProcessStatusObj(processId)?.ResourceId;
 }
 export function getProcessError(processId) {
-    return getProcessStatusObj(processId)?.ProcessStatus;
+    return getProcessStatusObj(processId)?.Error;
 }
 
 export function setProcessStatus(processId, status) {
