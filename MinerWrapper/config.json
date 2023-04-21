@@ -129,7 +129,7 @@
   },
   {
     "MinerId": "8",
-    "MinerLabel": "Alphabet Stream Miner",
+    "MinerLabel": "Alphabet Stream Miner EXE",
     "Type": "Miner",
     "External": ".\\Miners\\MqttMinerHistogram.exe",
     "Access": "Public",
