@@ -86,35 +86,24 @@ export async function stopProcess(processId) {
 }
 
 export async function processStart(sendProcessId, req, config) {
-  let ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-  let body = await req.body;
+  const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+  const body = await req.body;
   const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
-  let resourceId; // Streams will need this to overwrite their output on repository.
-  let resultFileId = crypto.randomUUID(); // Unique name the miner should save its result as.
-  body["ResultFileId"] = resultFileId;
-
-  let parents = [];
-  await getFilesToMine(body, parents);
-  let wrapperArgs = JSON.stringify(body);
-
-  let childProcess;
   
-  let minerExternal = getMinerExternal(minerToRun);
-  let minerExtension = minerExternal.split('.').pop();
+  let resourceId; // Streams will need this to overwrite their output on repository.
+  function setResouceId(id) { resourceId = id; } // used in the response handler
+
+  body["ResultFileId"] = crypto.randomUUID(); // Unique name the miner should save its result as.
+
+  const parents = [];
+  await getFilesToMine(body, parents);
+  const wrapperArgs = JSON.stringify(body);
+  const minerExternal = getMinerExternal(minerToRun);
+  const minerExtension = minerExternal.split('.').pop();
   console.log("miner external: " + minerExternal);
-  if(minerExtension == "py") {
-    console.log("running as python");
-    childProcess = spawn.spawn("python", [minerExternal, wrapperArgs]);
-  }
-  if(minerExtension == "exe") {
-    console.log("running as exe");
-    childProcess = spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
-  }
-  if(minerExtension == "jar") { // https://stackoverflow.com/questions/32464487/nodejs-terminate-spawned-child-process
-    console.log("running as jar");
-    childProcess = spawn.spawn('java', ['-jar', minerExternal, wrapperArgs]);
-    // childProcess = spawn.spawn('java',  ['-jar', '-Xmx512M', '-Dfile.encoding=utf8', 'script/importlistings.jar']);
-  }
+
+  const childProcess = startAndGetProcess(minerExtension, minerExternal, wrapperArgs);
+  
   let processId = childProcess.pid;
 
   // Creating dictionaries to keep track of processes and their status
@@ -143,22 +132,12 @@ export async function processStart(sendProcessId, req, config) {
       sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput)
       .then((responseObj) => {
         console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        if(responseObj.status) {
-          resourceId = responseObj.response;
-          if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
-            updateProcessStatus(processId, statusEnum.Running, resourceId);
-          }
-          else { // If it's a normal miner, a response means it is complete.
-            updateProcessStatus(processId, statusEnum.Complete, resourceId);
-          }
-        }
-        else 
-          updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
+        sendOrUpdateResponseHandler(responseObj, setResouceId);
         resend = true;
       })
       .catch((error) => {
-        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         console.log(`Error with processId ${processId}: ${error}`);
+        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
         killProcess(processId);
       });
     }
@@ -167,11 +146,7 @@ export async function processStart(sendProcessId, req, config) {
       updateResourceOnRepo(body, processOutput, resourceId)
       .then((responseObj) => {
         console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        if(responseObj.status) {
-          resourceId = responseObj.response;
-          updateProcessStatus(processId, statusEnum.Running, resourceId);
-        }
-        else updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
+        sendOrUpdateResponseHandler(responseObj, setResouceId);
         resend = true;
       })
       .catch((error) => {
@@ -186,6 +161,37 @@ export async function processStart(sendProcessId, req, config) {
   });
 }
 
+function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){
+  switch(minerExtension){
+    case "py":
+      console.log("running as python");
+      return spawn.spawn("python", [minerExternal, wrapperArgs]);
+    case "exe":
+      console.log("running as exe");
+      return spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
+    case "jar":
+      console.log("running as jar");
+      return spawn.spawn('java', ['-jar', minerExternal, wrapperArgs]);
+    default: 
+      console.log("Unsupported file extension: " + minerExtension);
+      return null;
+  }
+}
+
+function sendOrUpdateResponseHandler(responseObj, setResouceId){
+  if(responseObj.status) {
+    setResouceId(responseObj.response);
+    if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
+      updateProcessStatus(processId, statusEnum.Running, resourceId);
+    }
+    else { // If it's a normal miner, a response means it is complete.
+      updateProcessStatus(processId, statusEnum.Complete, resourceId);
+    }
+  }
+  else {
+    updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + responseObj.response);
+  }
+}
 
 function onProcessExit(body, code, signal, processId, processOutput) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
