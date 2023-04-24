@@ -79,7 +79,18 @@ export async function getStatusDeleteIfDone(processId) {
 export async function stopProcess(processId) {
   console.log(`Attempting to kill process with ID: ${processId}`);
   if(getProcess(processId)) {
-    getProcess(processId).kill();
+    // getProcess(processId).kill(); // Only works for .py, need the code below to stop any process. Likely only works on Windows
+    spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
+      if(error) {
+        console.log(error);
+      }
+      if(stdout) {
+        console.log(stdout);
+      }
+      if(stderr) {
+        console.log(stderr);
+      }
+    });
     return true;   // Process exists and was stopped
   }
   return false;  // Process does not exist, BadRequest 400.
@@ -125,6 +136,7 @@ export async function processStart(sendProcessId, req, config) {
   });
   childProcess.stdout.on("data", (data) => {
     processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
+    console.log("data: " + data);
     data = null;
 
     let responsePromise;
@@ -200,7 +212,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   else if (code == 1) // Means the miner process crashed
     updateProcessStatus(processId, statusEnum.Crash);
   else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
-    console.log("MANUALLY STOPPED PROCESS WITH KILL REQUEST");
+    console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
     if (getProcessResourceId(processId)) {
       console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
       updateMetadata(body, getProcessResourceId(processId), false);

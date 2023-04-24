@@ -32,7 +32,6 @@ import {
   getMinerResourceInput,
   getMinerResourceInputKeys,
 } from "../App/ConfigUnpacker.js";
-
 import {
   removeFile,
   isObjEmpty,
@@ -118,7 +117,7 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   };
   let responseData = await fetch(repoUrl, requestOptions)
   .then((success) => {
-    console.log(success);
+    // console.log(success);
     return success;
   })
   .catch((error) => {
