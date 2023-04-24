@@ -215,14 +215,15 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     updateProcessStatus(processId, statusEnum.Crash);
   else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
     console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
-    if (getProcessResourceId(processId)) {
-      console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-      updateMetadata(body, getProcessResourceId(processId), false);
-    }
     deleteFromBothDicts(processId);
   }
   else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
+  if (getProcessResourceId(processId)) { // Only stream miners should have a resourceId at this point
+    console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
+    updateMetadata(body, getProcessResourceId(processId), false);
+  }
+
   removeFile(processOutput);            // Deletes miner result file
   for(let key in getAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
