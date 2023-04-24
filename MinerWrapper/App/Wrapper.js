@@ -22,6 +22,7 @@ import {
   getMetadataResourceType,
   getMetadataFileExtension,
   getMetadataHost,
+  getBodyOutputTopic,
 } from "./BodyUnpacker.js";
 import {
   getConfig,
@@ -57,6 +58,7 @@ import {
   updateResourceOnRepo,
   getResourceFromRepo,
   updateMetadata,
+  sendMetadata,
 } from "../API/Requests.js";
 
 export function getProcessStatusList() {
@@ -147,10 +149,19 @@ export async function processStart(sendProcessId, req, config) {
 
     let responsePromise;
     if(firstSend) {
+      console.log("FirstSend");
       firstSend = false;
-      responsePromise = sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput);
+      if(processOutput == "STREAM") { // TODO: Consider if this is the best way to see the type of output.
+        console.log("IS A STREAM");
+        body["StreamTopic"] = getBodyOutputTopic(body);
+        responsePromise = sendMetadata(body, minerToRun, ownUrl, parents)
+      }
+      else {
+        responsePromise = sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput);
+      }
     }
     else if(resend) {
+      console.log("Resend");
       resend = false;
       responsePromise = updateResourceOnRepo(body, processOutput, resourceId);
     }
@@ -191,7 +202,7 @@ function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){ //TODO:
   }
 }
 
-function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ //TODO: could be moved to a helper file
+function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ // TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
     if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
@@ -228,7 +239,9 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     updateMetadata(body, getProcessResourceId(processId), false);
   }
 
-  removeFile(processOutput);            // Deletes miner result file
+  if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
+    removeFile(processOutput);            // Deletes miner result file
+  }
   for(let key in getAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
   }

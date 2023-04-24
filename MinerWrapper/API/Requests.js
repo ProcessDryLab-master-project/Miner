@@ -21,6 +21,7 @@ import {
   getMetadataResourceType,
   getMetadataFileExtension,
   getMetadataHost,
+  getBodyOutputTopic,
 } from "../App/BodyUnpacker.js";
 import {
   getMinerResourceOutput,
@@ -131,7 +132,46 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   //   status: responseData.ok,
   // }
   // return responseObj;
-}
+};
+
+export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
+  let generatedFrom = {
+    SourceHost: ownUrl,
+    SourceId: getMinerId(minerToRun),
+    SourceLabel: getMinerLabel(minerToRun),
+  }
+
+  console.log("Trying to send metadata");
+
+  let description = `Filtered stream`;
+
+  parents = JSON.stringify(parents);
+  generatedFrom = JSON.stringify(generatedFrom);
+
+  const data = new FormData();
+  data.append("Host", getBodyOutputHost(body));                   // mqtt.eclipseprojects.io
+  data.append("StreamTopic", getBodyOutputTopic(body));           // FilteredAlphabetStream
+  data.append("ResourceLabel", getBodyOutputLabel(body));               // Filtered Alphabet Stream
+  data.append("ResourceType", getMinerResourceOutputType(minerToRun));  // EventStream
+  data.append("Description", description);
+  data.append("GeneratedFrom", generatedFrom);
+  data.append("Parents", parents);
+  var requestOptions = {
+    agent: httpsAgent,
+    method: "POST",
+    body: data,
+    redirect: "follow",
+  };
+  
+  let responseData = await fetch(getBodyOutputHostInit(body), requestOptions);
+  let response = await responseData.json();
+  console.log("Response: ", response);
+  let responseObj = {
+    response: response,
+    status: responseData.ok,
+  }
+  return responseObj;
+};
 
 export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
   const stats = fs.statSync(minerResult);

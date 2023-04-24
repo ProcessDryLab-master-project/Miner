@@ -110,44 +110,6 @@
   },
   {
     "MinerId": "3",
-    "MinerLabel": "Alphabet Stream Miner",
-    "Type": "Miner",
-    "External": ".\\Miners\\MqttMinerHistogram.py",
-    "Access": "Public",
-    "Shadow": false,
-    "ResourceInput": [
-      {
-        "Name": "InputStream",
-        "ResourceType": "EventStream"
-      }
-    ],
-    "ResourceOutput": {
-      "FileExtension": "json",
-      "ResourceType": "Histogram"
-    },
-    "MinerParameters":[]
-  },
-  {
-    "MinerId": "3exe",
-    "MinerLabel": "Alphabet Stream Miner EXE",
-    "Type": "Miner",
-    "External": ".\\Miners\\MqttMinerHistogram.exe",
-    "Access": "Public",
-    "Shadow": false,
-    "ResourceInput": [
-      {
-        "Name": "InputStream",
-        "ResourceType": "EventStream"
-      }
-    ],
-    "ResourceOutput": {
-      "FileExtension": "json",
-      "ResourceType": "Histogram"
-    },
-    "MinerParameters":[]
-  },
-  {
-    "MinerId": "4",
     "MinerLabel": "Inductive Miner",
     "Type": "Miner",
     "External": ".\\Miners\\minerInductiveBpmn.py",
@@ -167,7 +129,7 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "4exe",
+    "MinerId": "3exe",
     "MinerLabel": "Inductive Miner EXE",
     "Type": "Miner",
     "External": ".\\Miners\\minerInductiveBpmn.exe",
@@ -187,7 +149,7 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "5",
+    "MinerId": "4",
     "MinerLabel": "TBR Conformance",
     "Type": "Miner",
     "External": ".\\Miners\\minerConformanceTBR.py",
@@ -211,7 +173,7 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "6",
+    "MinerId": "5",
     "MinerLabel": "Alignment Conformance",
     "Type": "Miner",
     "External": ".\\Miners\\minerConformanceAlignment.py",
@@ -231,6 +193,62 @@
     "ResourceOutput": {
       "FileExtension": "json",
       "ResourceType": "Alignment"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6",
+    "MinerLabel": "Alphabet Stream Miner",
+    "Type": "Miner",
+    "External": ".\\Miners\\MqttMinerHistogram.py",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6exe",
+    "MinerLabel": "Alphabet Stream Miner EXE",
+    "Type": "Miner",
+    "External": ".\\Miners\\MqttMinerHistogram.exe",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "7",
+    "MinerLabel": "Alphabet Stream Miner",
+    "Type": "Miner",
+    "External": ".\\Miners\\MqttFilter.py",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "ResourceType": "EventStream"
     },
     "MinerParameters":[]
   }

@@ -27,6 +27,10 @@ export function getBodyOutputLabel(body) {
   return getBodyOutput(body).ResourceLabel;
 }
 
+export function getBodyOutputTopic(body) {
+  return getBodyOutput(body).StreamTopic;
+}
+
 export function getBodyMinerId(body) {
   return body.MinerId;
 }
