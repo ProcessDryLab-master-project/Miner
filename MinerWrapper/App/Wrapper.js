@@ -141,7 +141,7 @@ export async function processStart(sendProcessId, req, config) {
       responsePromise
       .then((responseObj) => {
         console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        sendOrUpdateResponseHandler(responseObj, setResouceId);
+        sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         resend = true;
       })
       .catch((error) => {
@@ -173,14 +173,14 @@ function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){ //TODO:
   }
 }
 
-function sendOrUpdateResponseHandler(responseObj, setResouceId){ //TODO: could be moved to a helper file
+function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ //TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
     if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
-      updateProcessStatus(processId, statusEnum.Running, resourceId);
+      updateProcessStatus(processId, statusEnum.Running, responseObj.response);
     }
     else { // If it's a normal miner, a response means it is complete.
-      updateProcessStatus(processId, statusEnum.Complete, resourceId);
+      updateProcessStatus(processId, statusEnum.Complete, responseObj.response);
     }
   }
   else {
