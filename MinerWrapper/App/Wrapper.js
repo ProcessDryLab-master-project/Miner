@@ -83,12 +83,15 @@ export async function stopProcess(processId) {
     spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
       if(error) {
         console.log(error);
+        updateProcessStatus(processId, statusEnum.Crash, null, error);
       }
       if(stdout) {
         console.log(stdout);
+        updateProcessStatus(processId, statusEnum.Complete);
       }
       if(stderr) {
         console.log(stderr);
+        updateProcessStatus(processId, statusEnum.Crash, null, stderr);
       }
     });
     return true;   // Process exists and was stopped
@@ -136,7 +139,6 @@ export async function processStart(sendProcessId, req, config) {
   });
   childProcess.stdout.on("data", (data) => {
     processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
-    console.log("data: " + data);
     data = null;
 
     let responsePromise;
