@@ -110,7 +110,7 @@ export async function processStart(sendProcessId, req, config) {
   body["ResultFileId"] = crypto.randomUUID(); // Unique name the miner should save its result as.
 
   const parents = [];
-  await getFilesToMine(body, parents);
+  await getFilesToMine(body, parents); // TODO: Handle if errors occur during fetching of files.
   const wrapperArgs = JSON.stringify(body);
   const minerExternal = getMinerExternal(minerToRun);
   const minerExtension = minerExternal.split('.').pop();

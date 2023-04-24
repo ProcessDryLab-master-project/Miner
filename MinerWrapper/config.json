@@ -3,7 +3,7 @@
     "MinerId": "1",
     "MinerLabel": "Alpha Miner",
     "Type": "Miner",
-    "External": "./Miners/minerAlpha.py",
+    "External": ".\\Miners\\minerAlpha.py",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [
@@ -20,7 +20,7 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "6",
+    "MinerId": "1exe",
     "MinerLabel": "Alpha Miner Executable",
     "Type": "Miner",
     "External": ".\\Miners\\minerAlpha.exe",
@@ -43,7 +43,7 @@
     "MinerId": "2",
     "MinerLabel": "Heuristic Miner",
     "Type": "Miner",
-    "External": "./Miners/MinerHeuristic.py",
+    "External": ".\\Miners\\minerHeuristic.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -112,7 +112,7 @@
     "MinerId": "3",
     "MinerLabel": "Alphabet Stream Miner",
     "Type": "Miner",
-    "External": "./Miners/MqttMinerHistogram.py",
+    "External": ".\\Miners\\MqttMinerHistogram.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -128,7 +128,7 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "8",
+    "MinerId": "3exe",
     "MinerLabel": "Alphabet Stream Miner EXE",
     "Type": "Miner",
     "External": ".\\Miners\\MqttMinerHistogram.exe",
@@ -150,7 +150,7 @@
     "MinerId": "4",
     "MinerLabel": "Inductive Miner",
     "Type": "Miner",
-    "External": "./Miners/MinerInductiveBpmn.py",
+    "External": ".\\Miners\\minerInductiveBpmn.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -167,10 +167,10 @@
     "MinerParameters":[]
   },
   {
-    "MinerId": "7",
+    "MinerId": "4exe",
     "MinerLabel": "Inductive Miner EXE",
     "Type": "Miner",
-    "External": ".\\Miners\\MinerInductiveBpmn.exe",
+    "External": ".\\Miners\\minerInductiveBpmn.exe",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [
@@ -188,16 +188,35 @@
   },
   {
     "MinerId": "5",
-    "MinerLabel": "Conformance Checker",
+    "MinerLabel": "TBC Conformance",
     "Type": "Miner",
-    "External": "./Miners/MinerConformance.py",
+    "External": ".\\Miners\\minerConformanceTBR.py",
     "Access": "Public",
     "ResourceInput": [
       {
-        "Name": "LogToFilter",
+        "Name": "LogToCheck",
         "FileExtension": "xes",
         "ResourceType": "EventLog"
       },
+      {
+        "Name": "ReferenceModel",
+        "FileExtension": "pnml",
+        "ResourceType": "ProcessModel"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Alignment"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6",
+    "MinerLabel": "Alignment Conformance",
+    "Type": "Miner",
+    "External": ".\\Miners\\minerConformanceAlignment.py",
+    "Access": "Public",
+    "ResourceInput": [
       {
         "Name": "LogToCheck",
         "FileExtension": "xes",

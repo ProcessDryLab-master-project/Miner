@@ -17,7 +17,6 @@ if __name__ == "__main__":
         fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
         input = body["Input"]
         output = body["Output"]
-        resourceLabel = output["ResourceLabel"]
         fileExtension = output["FileExtension"]
 
         log = xes_importer.apply(fileSavePath)
