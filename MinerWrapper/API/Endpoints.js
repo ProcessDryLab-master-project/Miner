@@ -92,9 +92,14 @@ export function initEndpoints(app, config) {
   });
 
   app.post(`/miner`, async function (req, res) {
-    function sendProcessId(processId) {
-      console.log(`Sending processId ${processId}`);
-      res.send(processId.toString());
+    function sendProcessId(processId, error) {
+      if(error) {
+        res.status(400).send(error);
+      }
+      else {
+        // console.log(`Sending processId ${processId}`);
+        res.send(processId.toString());
+      }
     } 
     
     processStart(sendProcessId, req, config);

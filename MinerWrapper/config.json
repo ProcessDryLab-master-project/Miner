@@ -188,7 +188,7 @@
   },
   {
     "MinerId": "5",
-    "MinerLabel": "TBC Conformance",
+    "MinerLabel": "TBR Conformance",
     "Type": "Miner",
     "External": ".\\Miners\\minerConformanceTBR.py",
     "Access": "Public",
@@ -201,7 +201,7 @@
       {
         "Name": "ReferenceModel",
         "FileExtension": "pnml",
-        "ResourceType": "ProcessModel"
+        "ResourceType": "PetriNet"
       }
     ],
     "ResourceOutput": {
@@ -225,7 +225,7 @@
       {
         "Name": "ReferenceModel",
         "FileExtension": "pnml",
-        "ResourceType": "ProcessModel"
+        "ResourceType": "PetriNet"
       }
     ],
     "ResourceOutput": {

@@ -103,6 +103,10 @@ export async function processStart(sendProcessId, req, config) {
   const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
   const body = await req.body;
   const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
+  if(!minerToRun) {
+    sendProcessId(null, "Invalid request. No miner with that ID. Config may be out of date, consider refreshing the frontend.");
+    return;
+  }
   
   let resourceId; // Streams will need this to overwrite their output on repository.
   function setResouceId(id) { resourceId = id; } // used in the response handler
