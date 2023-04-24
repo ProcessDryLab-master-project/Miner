@@ -126,26 +126,21 @@ export async function processStart(sendProcessId, req, config) {
   childProcess.stdout.on("data", (data) => {
     processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
     data = null;
-    // console.log("Process output: " + processOutput + " and resourceId: " + resourceId);
-    if(firstSend) { // TODO: Consider if booleans like this is the best approach
+
+    let responsePromise;
+    if(firstSend) {
       firstSend = false;
-      sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput)
-      .then((responseObj) => {
-        console.log(`FIRST SEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        sendOrUpdateResponseHandler(responseObj, setResouceId);
-        resend = true;
-      })
-      .catch((error) => {
-        console.log(`Error with processId ${processId}: ${error}`);
-        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
-        killProcess(processId);
-      });
+      responsePromise = sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput);
     }
-    else if(resend){
+    else if(resend) {
       resend = false;
-      updateResourceOnRepo(body, processOutput, resourceId)
+      responsePromise = updateResourceOnRepo(body, processOutput, resourceId);
+    }
+
+    if(responsePromise) {
+      responsePromise
       .then((responseObj) => {
-        console.log(`RESEND: Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         sendOrUpdateResponseHandler(responseObj, setResouceId);
         resend = true;
       })
@@ -161,7 +156,7 @@ export async function processStart(sendProcessId, req, config) {
   });
 }
 
-function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){
+function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){ //TODO: could be moved to a helper file
   switch(minerExtension){
     case "py":
       console.log("running as python");
@@ -178,7 +173,7 @@ function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){
   }
 }
 
-function sendOrUpdateResponseHandler(responseObj, setResouceId){
+function sendOrUpdateResponseHandler(responseObj, setResouceId){ //TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
     if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
@@ -197,6 +192,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
   deleteFromProcessDict(processId);// Remove only from this dict
   if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
+  
   if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
     console.log("Process completed successfully");
     // updateProcessStatus(processId, statusEnum.Complete); // No longer needed, since we stop the process
@@ -231,7 +227,7 @@ async function getFilesToMine(body, parents) {
       console.log("URL to get file: " + fileURL);
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
-      let result = await getResourceFromRepo(fileURL, inputFilePath);
+      const result = await getResourceFromRepo(fileURL, inputFilePath);
       console.log("Result from fetching file: " + result);
     }
   }
