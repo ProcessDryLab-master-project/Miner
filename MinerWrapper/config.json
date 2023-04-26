@@ -236,7 +236,7 @@
   },
   {
     "MinerId": "7",
-    "MinerLabel": "Alphabet Stream Miner",
+    "MinerLabel": "Alphabet Filter Stream",
     "Type": "Miner",
     "External": ".\\Miners\\MqttFilter.py",
     "Access": "Public",
