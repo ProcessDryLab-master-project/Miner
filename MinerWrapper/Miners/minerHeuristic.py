@@ -13,6 +13,8 @@ from pm4py.algo.discovery.heuristics import algorithm as hminer
 import graphviz  # https://pypi.org/project/graphviz/
 
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 # Run this script with this command:
 # python ./PythonMiner/main.py ./PythonMiner/test.png ./PythonMiner/test.pnml ./PythonMiner/example-log.xes
 # dir_path = os.path.dirname(os.path.realpath(__file__))

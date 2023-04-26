@@ -21,7 +21,7 @@ export function initEndpoints(app, config) {
     res.send("pong");
   });
   app.get(`/configurations`, function (req, res) {
-    console.log("Getting a request on /configurations");
+    // console.log("Getting a request on /configurations");
     res.send(config);
   });
   // TODO: Consider if we need this endpoint. Leave it for now.
@@ -77,7 +77,7 @@ export function initEndpoints(app, config) {
 
   app.get(`/status/:processId`, async function (req, res) {
     let processId = req.params.processId;
-    console.log(`Getting a request on /status for id ${processId}`);
+    // console.log(`Getting a request on /status for id ${processId}`);
     let statusDict = await getStatusDeleteIfDone(processId);
     if(statusDict) res.status(200).send(statusDict);
     else res.status(400).send(`No process exists with ID: ${processId}`);
