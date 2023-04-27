@@ -179,8 +179,10 @@ export async function processStart(sendProcessId, req, config) {
       })
       .catch((error) => {
         console.log(`Error with processId ${processId}: ${error}`);
-        updateProcessStatus(processId, statusEnum.Crash, null, "Repository error response: " + error);
-        killProcess(processId);
+        console.log(error);
+        updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
+        if(getProcess(processId)) 
+          getProcess(processId).kill();
       });
     }
   });
