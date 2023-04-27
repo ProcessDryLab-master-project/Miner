@@ -1,3 +1,16 @@
+## Docker
+This project supports docker runtime environment.
+
+To build the docker image run, download docker from https://www.docker.com/products/docker-desktop/. 
+Run the following commands from the project root to build an image and run it. 
+
+For this project, be aware that express listens on a specfic port (can be found in /API/Endpoints), which must be the same port that is used in the docker file. 
+
+```
+docker build -t dockerminer .
+docker run -d -p 5000:5000 --name Miner dockerminer:latest
+```
+
 ## Adding a new Miner action
 Write the algorithm.
 If it's a script, it can be added directly to the ./MinerWrapper/Miners folder.
