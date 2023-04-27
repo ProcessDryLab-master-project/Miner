@@ -31,6 +31,10 @@ export function getBodyOutputTopic(body) {
   return getBodyOutput(body).StreamTopic;
 }
 
+export function getBodyOutputOverwrite(body) {
+  return getBodyOutput(body).Overwrite;
+}
+
 export function getBodyMinerId(body) {
   return body.MinerId;
 }
