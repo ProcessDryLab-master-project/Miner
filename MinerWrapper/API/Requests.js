@@ -152,7 +152,7 @@ export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
   const data = new FormData();
   data.append("Host", getBodyOutputHost(body));                         // mqtt.eclipseprojects.io
   data.append("StreamTopic", getBodyOutputTopic(body));                 // FilteredAlphabetStream 
-  data.append("Overwrite", getBodyOutputOverwrite(body));               // true/false 
+  data.append("Overwrite", getBodyOutputOverwrite(body).toString());    // true/false 
   data.append("ResourceLabel", getBodyOutputLabel(body));               // Filtered Alphabet Stream
   data.append("ResourceType", getMinerResourceOutputType(minerToRun));  // EventStream
   data.append("Description", description);
