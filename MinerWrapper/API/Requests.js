@@ -91,18 +91,39 @@ export const getForeignMiner = async (req, config) => {
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
-  let result = fetch(url, { agent: httpsAgent })
-  .then(
-    res =>
-      new Promise((resolve, reject) => {
-        const fileWriteStream = fs.createWriteStream(filePath);
-        res.body.pipe(fileWriteStream);
-        res.body.on("end", () => resolve("File saved"));
-        fileWriteStream.on("error", reject);
-      })
-  )
-  .then(success => success)
-  .catch(error => error);
+  var requestOptions = {
+    agent: httpsAgent,
+    method: "GET",
+    redirect: "follow",
+  };
+
+  let responseObj = {};
+  let result = fetch(url, requestOptions)
+  .then(response => {
+    if(!response.ok) {
+      return response.text();
+    }
+    return new Promise((resolve, reject) => {
+      const fileWriteStream = fs.createWriteStream(filePath);
+      response.body.pipe(fileWriteStream);
+      response.body.on("end", () => {
+        resolve("File saved");
+      });
+      fileWriteStream.on("error", () => {
+        reject("Exception when writing downloaded file to Tmp folder.");
+      });
+    });
+  })
+  .then(result => {
+    responseObj.response = result;
+    responseObj.status = (result == "File saved"); // True if promise resolved, false if not.
+    return responseObj;
+  })
+  .catch(error => {
+      responseObj.response = error;
+      responseObj.status = false;
+    return responseObj;
+  });
   return result;
 }
 

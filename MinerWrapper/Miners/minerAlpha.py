@@ -17,10 +17,10 @@ def eprint(*args, **kwargs):
 result_folder = './Tmp'
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        eprint("Started alpha miner")
+        # eprint("Started alpha miner")
         wrapperArgsString = sys.argv[1]
         body = json.loads(wrapperArgsString)
-        eprint("Body: \n", body)
+        # eprint("Body: \n", body)
         resultFileId = body["ResultFileId"]
         fileSavePath = body["LogToRun"] # Location of incoming xes file that wrapper saved on the key from config file
         output = body["Output"]
