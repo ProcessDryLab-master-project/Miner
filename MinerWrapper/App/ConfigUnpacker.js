@@ -41,8 +41,12 @@ export function getMinerResourceOutputExtension(minerConfig){
     return getMinerResourceOutput(minerConfig).FileExtension;
 }
 
-export function getMinerExternal(minerConfig){
-    return minerConfig.External;
+export function getMinerPath(minerConfig){
+    return minerConfig.MinerPath;
+}
+
+export function getMinerFile(minerConfig){
+    return minerConfig.MinerFile;
 }
 
 export function getMinerResourceInput(minerConfig){

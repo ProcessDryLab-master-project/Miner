@@ -46,18 +46,29 @@ export function createVirtualEnvironmentString() {
   };
 }
 
-export function startVitualEnvironmentString() {
+// export function startVitualEnvironmentString() {
+//   switch(os.type()) {
+//     case "Windows_NT":
+//       return {
+//         command: "Scripts\\activate.bat",
+//         args: ""
+//       };
+//     case "Linux":
+//       return {
+//         command: "source env/bin/activate", // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
+//         args: ""
+//       };
+//     default:
+//       throw new Error("Unsupported OS");
+//   }
+// }
+
+export function pythonVenvPath() {
   switch(os.type()) {
     case "Windows_NT":
-      return {
-        command: "env\\Scripts\\activate.bat",
-        args: ""
-      };
+      return "env\\Scripts\\python.exe";
     case "Linux":
-      return {
-        command: "source env/bin/activate", // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
-        args: ""
-      };
+      return "env\\bin\\python"; // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
     default:
       throw new Error("Unsupported OS");
   }

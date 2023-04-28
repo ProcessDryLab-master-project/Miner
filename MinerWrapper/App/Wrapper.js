@@ -1,10 +1,12 @@
 import spawn from "child_process";
 import crypto from "crypto";
 import fs from 'fs';
+import path from "path";
 import {
   removeFile,
   isObjEmpty,
   appendUrl,
+  pythonVenvPath,
 } from "./Utils.js";
 import {
   getBodyInput,
@@ -31,7 +33,8 @@ import {
   getMinerLabel,
   getMinerResourceOutputType,
   getMinerResourceOutputExtension,
-  getMinerExternal,
+  getMinerPath,
+  getMinerFile,
   getMinerResourceInput,
   getMinerResourceInputKeys,
 } from "./ConfigUnpacker.js";
@@ -122,11 +125,7 @@ export async function processStart(sendProcessId, req, config) {
     return;
   }
   const wrapperArgs = JSON.stringify(body);
-  const minerExternal = getMinerExternal(minerToRun);
-  const minerExtension = minerExternal.split('.').pop();
-  console.log("miner external: " + minerExternal);
-
-  const childProcess = startAndGetProcess(minerExtension, minerExternal, wrapperArgs);
+  const childProcess = startAndGetProcess(minerToRun, wrapperArgs);
   
   let processId = childProcess.pid;
 
@@ -196,17 +195,26 @@ export async function processStart(sendProcessId, req, config) {
   });
 }
 
-function startAndGetProcess(minerExtension, minerExternal, wrapperArgs){ //TODO: could be moved to a helper file
+function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to a helper file
+  const minerPath = getMinerPath(minerConfig);
+  const minerFile = getMinerFile(minerConfig);
+  let minerFullPath = path.join(minerPath, minerFile);
+  console.log("minerFullPath: " + minerFullPath);
+  const minerExtension = minerFile.split('.').pop();
+  // console.log("miner external: " + minerExternal);
+
   switch(minerExtension){
     case "py":
-      console.log("running as python");
-      return spawn.spawn("python", [minerExternal, wrapperArgs]);
+      const pythonPath = path.join(minerPath, pythonVenvPath()); // ".\\Miners\\MinerAlphaPy\\env\\Scripts\\python.exe"
+      console.log("running as python from path: " + pythonPath);
+      return spawn.spawn(pythonPath, [minerFullPath, wrapperArgs]);
+      // return spawn.spawn("python", [minerExternal, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      return spawn.spawn("cmd.exe", ['/c', minerExternal, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
+      return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
     case "jar":
       console.log("running as jar");
-      return spawn.spawn('java', ['-jar', minerExternal, wrapperArgs]);
+      return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);
     default: 
       console.log("Unsupported file extension: " + minerExtension);
       return null;
@@ -245,7 +253,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   }
   else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
-  if (getProcessResourceId(processId)) { // Only stream miners should have a resourceId at this point
+  if (getProcessResourceId(processId)) { // TODO: Enters here on normal miners as well. Only stream miners should have a resourceId at this point
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
     updateMetadata(body, getProcessResourceId(processId), false);
   }

@@ -30,7 +30,7 @@ import {
   getMinerLabel,
   getMinerResourceOutputType,
   getMinerResourceOutputExtension,
-  getMinerExternal,
+  getMinerPath,
   getMinerResourceInput,
   getMinerResourceInputKeys,
 } from "../App/ConfigUnpacker.js";
@@ -50,7 +50,7 @@ const httpAgent = new http.Agent({
 export const getForeignMiner = async (req, config) => {
   let body = await req.body;
   let shadowConfig = body.Config;
-  let shadowExtension = getMinerExternal(shadowConfig).split('.').pop();
+  let shadowExtension = getMinerPath(shadowConfig).split('.').pop();
   const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig)).toString();
 
   if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
@@ -69,8 +69,8 @@ export const getForeignMiner = async (req, config) => {
         reject(res.text().then(text => { throw new Error(text)}));
       }
       else {
-        const fileWriteStream = fs.createWriteStream(getMinerExternal(shadowConfig));
-        console.log("Saving shadow to: " + getMinerExternal(shadowConfig));
+        const fileWriteStream = fs.createWriteStream(getMinerPath(shadowConfig));
+        console.log("Saving shadow to: " + getMinerPath(shadowConfig));
         res.body.pipe(fileWriteStream);
         config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
         res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
