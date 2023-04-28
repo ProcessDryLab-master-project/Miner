@@ -47,6 +47,7 @@ Instead of:
 Consider reading the following: https://python.land/virtual-environments/virtualenv
 Create and/or navigate to the folder where you python miner is/should be located. If we use MinerAlpha.py as an example, navigate to
 ### `cd ./MinerWrapper/Miners/MinerAlphaPy`
+
 Create the virtual environment with the following command. Note that "env" is the name of the virtual environment and will create a folder called "env"
 ### `python -m venv env`
 #### Activate the virtual environment.

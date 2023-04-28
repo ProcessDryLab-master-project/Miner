@@ -46,7 +46,7 @@ export function createVirtualEnvironmentString() {
   };
 }
 
-// export function startVitualEnvironmentString() {
+// export function activateVitualEnvironmentString() {
 //   switch(os.type()) {
 //     case "Windows_NT":
 //       return {
@@ -62,6 +62,14 @@ export function createVirtualEnvironmentString() {
 //       throw new Error("Unsupported OS");
 //   }
 // }
+// 
+// 
+// export function deactivateVirtualEnvironmentString() {
+//   return {
+//     command: "deactivate",
+//     args: ""
+//   }
+// }
 
 export function pythonVenvPath() {
   switch(os.type()) {
@@ -74,10 +82,14 @@ export function pythonVenvPath() {
   }
 }
 
-export function stopVirtualEnvironment() {
-  return {
-    command: "deactivate",
-    args: ""
+export function pipVenvPath() {
+  switch(os.type()) {
+    case "Windows_NT":
+      return "env\\Scripts\\pip.exe";
+    case "Linux":
+      return "env\\bin\\pip"; // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
+    default:
+      throw new Error("Unsupported OS");
   }
 }
 
