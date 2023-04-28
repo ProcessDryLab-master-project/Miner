@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export function cleanupFiles() {
     let directory = "./Tmp";
@@ -36,4 +37,49 @@ export function isObjEmpty (obj) {
 export function appendUrl(baseUrl, urlPath) {
   let concatPath = path.join(baseUrl.toString(), urlPath);
   return new URL(concatPath);
+}
+
+export function createVirtualEnvironmentString() {
+  return {
+    command: "python",
+    args: "-m venv env"
+  };
+}
+
+export function startVitualEnvironmentString() {
+  switch(os.type()) {
+    case "Windows_NT":
+      return {
+        command: "env\\Scripts\\activate.bat",
+        args: ""
+      };
+    case "Linux":
+      return {
+        command: "source env/bin/activate", // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
+        args: ""
+      };
+    default:
+      throw new Error("Unsupported OS");
+  }
+}
+
+export function stopVirtualEnvironment() {
+  return {
+    command: "deactivate",
+    args: ""
+  }
+}
+
+export function installDependenciesString() {
+  return {
+    command: "pip",
+    args: "install -r requirements.txt"
+  };
+}
+
+export function createDependenciesFileForVenv() {
+  return {
+    command: "pip",
+    args: "freeze > requirements.txt"
+  };
 }
