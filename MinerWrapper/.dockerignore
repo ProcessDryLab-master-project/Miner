@@ -8,5 +8,6 @@ docker*.yml
 .npm
 .vscode
 node_modules
+env
 
 README.md
