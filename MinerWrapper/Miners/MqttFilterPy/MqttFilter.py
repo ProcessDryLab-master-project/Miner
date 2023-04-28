@@ -36,7 +36,7 @@ def on_message(client, userdata, message): # Maybe this always needs (client, us
     # global clientPublisher, streamOutputTopic
     received = str(message.payload.decode("utf-8"))
     if(received.isupper()):
-        eprint("Publishing: ", received)
+        # eprint("Publishing: ", received)
         clientPublisher.publish(streamOutputTopic, received)
     
     printOutput()

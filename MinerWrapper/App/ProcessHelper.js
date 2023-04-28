@@ -79,7 +79,7 @@ export function getProcess(processId){
 }
 export function setProcess(processId, process) {
     processDict[processId] = process;
-    console.log(`Process added to dict: ${Object.keys(processDict)}`);
+    console.log(`Process added to dict. All current process IDs: ${Object.keys(processDict)}`);
 }
 export function killProcess(processId) {
     if(getProcess(processId)) {

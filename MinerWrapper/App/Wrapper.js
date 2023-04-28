@@ -140,6 +140,7 @@ export async function processStart(sendProcessId, req, config) {
   
   let firstSend = true;
   let resend = false;
+  let tmpInt = 0; // TODO: Delete! Only for print limiting.
 
   childProcess.stdin.setEncoding = "utf-8";
   // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
@@ -173,7 +174,11 @@ export async function processStart(sendProcessId, req, config) {
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        // TODO: Delete this if-statement before hand-in
+        if(tmpInt == 0) {
+          tmpInt = 1;
+          console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        }
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         resend = true;
       })
