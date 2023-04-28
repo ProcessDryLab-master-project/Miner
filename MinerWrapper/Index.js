@@ -83,14 +83,27 @@ function initVenv() {
     const installDepStr = installDependenciesString();
     const minerPath = getMinerPath(config);
     const venvPath = path.join(minerPath, venvName);
+    const pipPath = path.join(minerPath, pipVenvPath());
+
     const requirementsPath = path.join(minerPath, "requirements.txt");
     const minerFile = getMinerFile(config);
     const minerExtension = minerFile.split('.').pop();
     if(minerExtension == "py" && !getDirectories(minerPath).includes(venvName)){
       console.log(`Config for ${minerFile} references .py file with no venv`);
+      spawn.spawnSync("python", ["-m", "venv", venvPath]);
+      
+      console.log(`Installing dependencies via ${pipPath} from requirements file ${requirementsPath}`);
+      spawn.spawnSync(pipPath, ["install", "-r", requirementsPath]);
       // spawn.spawnSync("python", ["-m", "venv", venvPath]);
     }
   });
+  
+    // if(minerExtension == "py" && getDirectories(minerPath).includes(venvName)){
+    //   console.log(`Create requirements.txt for ${minerFile} at ${requirementsPath}`);
+    //   const pipPath = path.join(minerPath, pipVenvPath());
+    //   console.log("Running venv pip from " + pipPath);
+    //   spawn.spawnSync(pipPath, ["freeze", ">", requirementsPath]);
+    // }
 
   
   // let minerDir = "./Miners";
