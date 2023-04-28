@@ -3,7 +3,7 @@
     "MinerId": "1",
     "MinerLabel": "Alpha Miner",
     "Type": "Miner",
-    "External": ".\\Miners\\minerAlpha.py",
+    "External": ".\\Miners\\MinerAlphaPy\\MinerAlpha.py",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [
@@ -23,7 +23,7 @@
     "MinerId": "1exe",
     "MinerLabel": "Alpha Miner Executable",
     "Type": "Miner",
-    "External": ".\\Miners\\minerAlpha.exe",
+    "External": ".\\Miners\\MinerAlphaExe\\MinerAlpha.exe",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [
@@ -43,7 +43,7 @@
     "MinerId": "2",
     "MinerLabel": "Heuristic Miner",
     "Type": "Miner",
-    "External": ".\\Miners\\minerHeuristic.py",
+    "External": ".\\Miners\\MinerHeuristicPy\\MinerHeuristic.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -112,7 +112,7 @@
     "MinerId": "3",
     "MinerLabel": "Inductive Miner",
     "Type": "Miner",
-    "External": ".\\Miners\\minerInductiveBpmn.py",
+    "External": ".\\Miners\\MinerInductiveBpmnPy\\MinerInductiveBpmn.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -132,7 +132,7 @@
     "MinerId": "3exe",
     "MinerLabel": "Inductive Miner EXE",
     "Type": "Miner",
-    "External": ".\\Miners\\minerInductiveBpmn.exe",
+    "External": ".\\Miners\\MinerInductiveBpmnExe\\MinerInductiveBpmn.exe",
     "Access": "Public",
     "Shadow": true,
     "ResourceInput": [
@@ -152,7 +152,7 @@
     "MinerId": "4",
     "MinerLabel": "TBR Conformance",
     "Type": "Miner",
-    "External": ".\\Miners\\minerConformanceTBR.py",
+    "External": ".\\Miners\\MinerConformanceTBRPy\\MinerConformanceTBR.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -176,7 +176,7 @@
     "MinerId": "5",
     "MinerLabel": "Alignment Conformance",
     "Type": "Miner",
-    "External": ".\\Miners\\minerConformanceAlignment.py",
+    "External": ".\\Miners\\MinerConformanceAlignmentPy\\MinerConformanceAlignment.py",
     "Access": "Public",
     "ResourceInput": [
       {
@@ -200,7 +200,7 @@
     "MinerId": "6",
     "MinerLabel": "Alphabet Stream Miner",
     "Type": "Miner",
-    "External": ".\\Miners\\MqttMinerHistogram.py",
+    "External": ".\\Miners\\MqttMinerHistogramPy\\MqttMinerHistogram.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -219,7 +219,7 @@
     "MinerId": "6exe",
     "MinerLabel": "Alphabet Stream Miner EXE",
     "Type": "Miner",
-    "External": ".\\Miners\\MqttMinerHistogram.exe",
+    "External": ".\\Miners\\MqttMinerHistogramExe\\MqttMinerHistogram.exe",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
@@ -238,7 +238,7 @@
     "MinerId": "7",
     "MinerLabel": "Alphabet Filter Stream",
     "Type": "Miner",
-    "External": ".\\Miners\\MqttFilter.py",
+    "External": ".\\Miners\\MqttFilterPy\\MqttFilter.py",
     "Access": "Public",
     "Shadow": false,
     "ResourceInput": [
