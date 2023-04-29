@@ -253,7 +253,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   }
   else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
-  if (getProcessResourceId(processId)) { // TODO: Enters here on normal miners as well. Only stream miners should have a resourceId at this point
+  if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
     updateMetadata(body, getProcessResourceId(processId), false);
   }

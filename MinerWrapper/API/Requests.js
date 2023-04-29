@@ -4,6 +4,7 @@ import http from "http";
 import fs from "fs";
 import FormData from "form-data";
 import os from "os";
+import path from "path";
 import crypto from "crypto";
 import {
   getBodyInput,
@@ -31,6 +32,7 @@ import {
   getMinerResourceOutputType,
   getMinerResourceOutputExtension,
   getMinerPath,
+  getMinerFile,
   getMinerResourceInput,
   getMinerResourceInputKeys,
 } from "../App/ConfigUnpacker.js";
@@ -47,19 +49,24 @@ const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
-export const getForeignMiner = async (req, config) => {
-  let body = await req.body;
+export const getForeignMiner = async (body, config) => {
   let shadowConfig = body.Config;
-  let shadowExtension = getMinerPath(shadowConfig).split('.').pop();
+  let shadowExtension = getMinerFile(shadowConfig).split('.').pop();
   const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig)).toString();
+  let requirementsUrl = appendUrl(body.Host, "requirements");
+  requirementsUrl = appendUrl(requirementsUrl, getMinerId(shadowConfig)).toString();
 
   if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
   }
   
-  let shadowFileName = `Shadow-${getMinerId(shadowConfig)}.${shadowExtension}`;
-  const shadowFilePath = `.\\Miners\\${shadowFileName}`;
-  shadowConfig.External = shadowFilePath;
+  let shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
+  let shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
+  // const shadowFolderPath = path.join("./Miners", shadowFileName); // TODO: Should "Miners" just be hardcoded in here? 
+  const shadowFolderPath = `.\\Miners\\${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
+  const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
+  shadowConfig.MinerPath = shadowFolderPath;
+  shadowConfig.MinerFile = shadowNameWithExt;
 
   console.log("Requesting shadow from: " + shadowUrl);
   let result = await fetch(shadowUrl, { agent: httpAgent })
@@ -69,8 +76,11 @@ export const getForeignMiner = async (req, config) => {
         reject(res.text().then(text => { throw new Error(text)}));
       }
       else {
-        const fileWriteStream = fs.createWriteStream(getMinerPath(shadowConfig));
-        console.log("Saving shadow to: " + getMinerPath(shadowConfig));
+        fs.mkdir(shadowFolderPath, { recursive: true }, (err) => {
+          if (err) reject(err.text().then(text => {throw new Error(text)}));
+        });
+        const fileWriteStream = fs.createWriteStream(shadowFilePath);
+        console.log("Saving shadow to: " + shadowFilePath);
         res.body.pipe(fileWriteStream);
         config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
         res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
@@ -78,15 +88,42 @@ export const getForeignMiner = async (req, config) => {
       }
     })
   })
-  // .then(success => {
-  //   console.log("fetch success");
-  //   return success;
-  // })
   .catch(error => {
     console.log("CATCH: fetch error: ");
     console.log(error);
     return error;
   });
+
+  // TODO: This will fetch and save requirements if needed. Consider a way to move this out. 
+  if(shadowExtension != "py"){
+    return new Promise(resolve => {
+      resolve("No requirements needed");
+    })
+  }
+
+  const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
+  console.log("requirementsUrl: " + requirementsUrl);
+  let requirementsResult = await fetch(requirementsUrl, { agent: httpAgent })
+  .then(res => {
+    return new Promise((resolve, reject) => {
+      if(!res.ok) {
+        reject(res.text().then(text => { throw new Error(text)}));
+      }
+      else {
+        const fileWriteStream = fs.createWriteStream(requirementsPath);
+        console.log("Saving requirements to: " + requirementsPath);
+        res.body.pipe(fileWriteStream);
+        res.body.on("end", () => resolve("Saved requirements.txt"));
+        fileWriteStream.on("error", reject);
+      }
+    })
+  })
+  .catch(error => {
+    console.log("CATCH: fetch error: ");
+    console.log(error);
+    return error;
+  });
+
   return result; // Returns result, which is the promise with "config"
 }
 
