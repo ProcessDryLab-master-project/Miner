@@ -14,7 +14,6 @@ import {
 } from "../App/Wrapper.js";
 import {
   getForeignMiner,
-  getForeignMinerRequirements,
 } from "./Requests.js";
 
 export function initEndpoints(app, config) {
@@ -58,7 +57,7 @@ export function initEndpoints(app, config) {
     }
   });
   // Endpoint to return requirements file that needs to be shadowed.
-  app.get(`/shadow/requirements:minerId`, function (req, res) {
+  app.get(`/shadow/requirements/:minerId`, function (req, res) {
     console.log(`Getting a request on /shadow/requirements/${req.params.minerId}`);
     let requestedConfig = config.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
@@ -69,7 +68,7 @@ export function initEndpoints(app, config) {
       // res.setHeader('Content-type', 'application/x-msdownload');      //for exe file
       // res.setHeader('Content-type', 'application/x-rar-compressed');  //for rar file
       const pathToFile = path.join(getMinerPath(requestedConfig), "requirements.txt"); // TODO: Name of the file shouldn't just be hardcoded in here.
-      if(!fs.pathToFile(filePath)) res.status(404).send(`Unable to find requirements file for requested miner.`);
+      if(!fs.existsSync(pathToFile)) res.status(404).send(`Unable to find requirements file for requested miner.`);
       else {
         var file = fs.createReadStream(pathToFile);
         file.pipe(res); //send file
@@ -94,11 +93,6 @@ export function initEndpoints(app, config) {
       console.log("CATCH: Promise error: " + error);
       res.status(400).send("Invalid request: " + error);
     });
-
-    await getForeignMinerRequirements(body)
-    .then(response => {
-      
-    })
   });
 
 
