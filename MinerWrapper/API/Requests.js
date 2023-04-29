@@ -94,7 +94,7 @@ export const getForeignMiner = async (body, config) => {
     return error;
   });
 
-  // TODO: We need to get requirements.txt and place it in the correct folder
+  // TODO: This will fetch and save requirements if needed. Consider a way to move this out. 
   if(shadowExtension != "py"){
     return new Promise(resolve => {
       resolve("No requirements needed");
@@ -111,65 +111,21 @@ export const getForeignMiner = async (body, config) => {
       }
       else {
         const fileWriteStream = fs.createWriteStream(requirementsPath);
-        console.log("Saving shadow to: " + requirementsPath);
+        console.log("Saving requirements to: " + requirementsPath);
         res.body.pipe(fileWriteStream);
-        config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
-        res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
+        res.body.on("end", () => resolve("Saved requirements.txt"));
         fileWriteStream.on("error", reject);
       }
     })
   })
-  // .catch(error => {
-  //   console.log("CATCH: fetch error: ");
-  //   console.log(error);
-  //   return error;
-  // });
-  
-
+  .catch(error => {
+    console.log("CATCH: fetch error: ");
+    console.log(error);
+    return error;
+  });
 
   return result; // Returns result, which is the promise with "config"
 }
-
-// export const getForeignMinerRequirements = async (body) => {
-//   let shadowConfig = body.Config;
-//   let shadowExtension = getMinerPath(shadowConfig).split('.').pop();
-//   if(shadowExtension != "py"){
-//     return new Promise(resolve => {
-//       resolve("No requirements needed");
-//     })
-//   }
-  
-//   const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig));
-//   shadowUrl = appendUrl(shadowUrl, "requirements").toString(); // TODO: Consider if "requirements" should be part of the request body.
-  
-//   let shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
-//   const shadowFolderPath = path.join("./Miners", shadowFileName); // TODO: Should "Miners" just be hardcoded in here? 
-//   const shadowFilePath = path.join(shadowFolderPath, `${shadowFileName}.${shadowExtension}`);
-
-//   console.log("Requesting shadow from: " + shadowUrl);
-//   let result = await fetch(shadowUrl, { agent: httpAgent })
-//   .then(res => {
-//     return new Promise((resolve, reject) => {
-//       if(!res.ok) {
-//         reject(res.text().then(text => { throw new Error(text)}));
-//       }
-//       else {
-//         const fileWriteStream = fs.createWriteStream(shadowFilePath);
-//         console.log("Saving shadow to: " + shadowFilePath);
-//         res.body.pipe(fileWriteStream);
-//         config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
-//         res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
-//         fileWriteStream.on("error", reject);
-//       }
-//     })
-//   })
-//   .catch(error => {
-//     console.log("CATCH: fetch error: ");
-//     console.log(error);
-//     return error;
-//   });
-//   return result; // Returns result, which is the promise with "config"
-// }
 
 export const getResourceFromRepo = async (url, filePath) => {
   var requestOptions = {

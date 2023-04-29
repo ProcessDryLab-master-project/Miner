@@ -15,6 +15,9 @@ import {
 import {
   getForeignMiner,
 } from "./Requests.js";
+import {
+  initVenv,
+} from "../App/Utils.js";
 
 export function initEndpoints(app, config) {
   app.get("/", function (req, res) {
@@ -85,9 +88,11 @@ export function initEndpoints(app, config) {
         console.log("Promise success");
         config = promiseRes; // Overwrite config so the other functions can use it.
         writeConfig(config); // Write the new config to file.
-        // Send status success
         res.status(200).send("Success"); // Or send result?
-      // }
+    })
+    .then(result => {
+      console.log("Initalizing venv if any exists for result: " + result);
+      initVenv(config); // TODO: We need to figure out a way to wait for shadowed miner to be initialized before it can be called.
     })
     .catch(error => {
       console.log("CATCH: Promise error: " + error);
