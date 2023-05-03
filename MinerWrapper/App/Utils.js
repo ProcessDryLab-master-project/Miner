@@ -119,13 +119,9 @@ export function createVirtualEnvironmentString() {
 }
 
 export function initAllVenv(configList) {
-  console.log("\n\nconfigList BEFORE: ");
-  console.log(configList);
   configList.forEach(config => {
     initSingleVenv(config, configList);
   });
-  console.log("\n\nconfigList AFTER: ");
-  console.log(configList);
 }
 
 export function initSingleVenv(config, configList) {
