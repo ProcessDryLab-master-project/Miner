@@ -103,43 +103,47 @@ export function createVirtualEnvironmentString() {
   };
 }
 
-export function initVenv(configList) {
-  const getDirectories = minerDir =>
-  fs.readdirSync(minerDir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+const getDirectories = minerDir => fs.readdirSync(minerDir, { withFileTypes: true })
+  .filter(dirent => dirent.isDirectory())
+  .map(dirent => dirent.name);
 
-
+export function initAllVenv(configList) {
+  // const getDirectories = getDirectories;
 
   configList.forEach(config => {
-    // TODO: Move all of this into its own function so it can be called from Endpoints, without looping through all of it.
-    const venvName = "env";
-    const createVenvStr = createVirtualEnvironmentString();
-    const installDepStr = installDependenciesString();
-    const minerPath = getMinerPath(config);
-    const venvPath = path.join(minerPath, venvName);
-    const pipPath = path.join(minerPath, pipVenvPath());
-
-    const requirementsPath = path.join(minerPath, "requirements.txt");
-    const minerFile = getMinerFile(config);
-    const minerExtension = minerFile.split('.').pop();
-    if(minerExtension == "py" && !getDirectories(minerPath).includes(venvName)){
-      console.log(`Config for ${minerFile} references .py file with no venv`);
-      let venvProcess = spawn.spawn("python", ["-m", "venv", venvPath]);
-      console.log(`Started creating venv for: ${minerFile} with pid: ${venvProcess.pid}`);
-      venvProcess.on('exit', function (code, signal) {
-        console.log(`Installing dependencies via ${pipPath} from requirements file ${requirementsPath}`);
-        let requirementsProcess = spawn.spawn(pipPath, ["install", "-r", requirementsPath]);
-        console.log(`Finished venv process with id ${venvProcess.pid}. Started installing requirements for: ${minerFile} with pid: ${requirementsProcess.pid}`);
-        requirementsProcess.on('exit', function (code, signal) {
-          console.log(`Finished requirements process with id ${requirementsProcess.pid}. Program is ready to run.`); // TODO: Do something to wait for all requirements to be finished before they can be called
-        });
-      });
-      
-      // console.log(`Installing dependencies via ${pipPath} from requirements file ${requirementsPath}`);
-      // spawn.spawnSync(pipPath, ["install", "-r", requirementsPath]);
-    }
+    initSingleVenv(config);
   });
+}
+
+// export function getDirectories() {
+//   return minerDir => fs.readdirSync(minerDir, { withFileTypes: true })
+//     .filter(dirent => dirent.isDirectory())
+//     .map(dirent => dirent.name);
+// }
+
+export function initSingleVenv(config) {
+  const venvName = "env";
+  const minerPath = getMinerPath(config);
+  const venvPath = path.join(minerPath, venvName);
+  const pipPath = path.join(minerPath, pipVenvPath());
+
+  const requirementsPath = path.join(minerPath, "requirements.txt");
+  const minerFile = getMinerFile(config);
+
+  const minerExtension = minerFile.split('.').pop();
+  if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
+    let venvProcess = spawn.spawn("python", ["-m", "venv", venvPath]);
+    console.log(`Started creating venv for \"${minerFile}\" with pid: \"${venvProcess.pid}\"`);
+
+    venvProcess.on('exit', function (code, signal) {
+      let requirementsProcess = spawn.spawn(pipPath, ["install", "-r", requirementsPath]);
+      console.log(`Finished venv process with id \"${venvProcess.pid}\" for \"${minerFile}\". Installing requirements with pid \"${requirementsProcess.pid}\"`); //  via \"${pipPath}\" from file \"${requirementsPath}\"
+
+      requirementsProcess.on('exit', function (code, signal) {
+        console.log(`Finished requirements process with id \"${requirementsProcess.pid}\" for \"${minerFile}\". Program is ready to run.`);
+      });
+    });
+  }
 }
 
 export function pythonVenvPath() {

@@ -35,6 +35,7 @@ import {
   getMinerFile,
   getMinerResourceInput,
   getMinerResourceInputKeys,
+  writeConfig,
 } from "../App/ConfigUnpacker.js";
 import {
   removeFile,
@@ -83,7 +84,8 @@ export const getForeignMiner = async (body, config) => {
         console.log("Saving shadow to: " + shadowFilePath);
         res.body.pipe(fileWriteStream);
         config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
-        res.body.on("end", () => resolve(config));  // Will return config so the var is overwritten when used next.
+        writeConfig(config);
+        res.body.on("end", () => resolve(shadowConfig));  // Return the modified shadowConfig
         fileWriteStream.on("error", reject);
       }
     })

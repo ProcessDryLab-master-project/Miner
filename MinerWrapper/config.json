@@ -210,7 +210,7 @@
     "MinerPath": "Miners/MqttMinerHistogramPy",
     "MinerFile": "MqttMinerHistogram.py",
     "Access": "Public",
-    "Shadow": false,
+    "Shadow": true,
     "ResourceInput": [
       {
         "Name": "InputStream",

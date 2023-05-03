@@ -15,7 +15,7 @@ import {
   createVirtualEnvironmentString,
   installDependenciesString,
   pipVenvPath,
-  initVenv,
+  initAllVenv,
 } from "./App/Utils.js";
 // import config from "./config.json" assert { type: "json" };
 const configList = getConfig();
@@ -41,7 +41,7 @@ import {
 } from "./API/Endpoints.js";
 function startEndPoints() {
   cleanupFiles();
-  initVenv(configList);
+  initAllVenv(configList);
   if(verifyConfig())
     initEndpoints(app, configList);
 }
