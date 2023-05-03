@@ -22,6 +22,7 @@ import {
   getBodyOutputTopic,
 } from "./BodyUnpacker.js";
 import {
+  writeConfig,
   getConfig,
   getMinerResourceOutput,
   getMinerId,
@@ -96,6 +97,20 @@ export function appendUrl(baseUrl, urlPath) {
   return new URL(concatPath);
 }
 
+export function removeObjectWithId(arr, id) {
+  const objWithIdIndex = arr.findIndex((obj) => obj.MinerId === id);
+
+  if (objWithIdIndex > -1) {
+    arr.splice(objWithIdIndex, 1);
+  }
+
+  return arr;
+}
+
+export const getDirectories = directory => fs.readdirSync(directory, { withFileTypes: true })
+  .filter(dirent => dirent.isDirectory())
+  .map(dirent => dirent.name);
+
 export function createVirtualEnvironmentString() {
   return {
     command: "python",
@@ -103,25 +118,17 @@ export function createVirtualEnvironmentString() {
   };
 }
 
-const getDirectories = minerDir => fs.readdirSync(minerDir, { withFileTypes: true })
-  .filter(dirent => dirent.isDirectory())
-  .map(dirent => dirent.name);
-
 export function initAllVenv(configList) {
-  // const getDirectories = getDirectories;
-
+  console.log("\n\nconfigList BEFORE: ");
+  console.log(configList);
   configList.forEach(config => {
-    initSingleVenv(config);
+    initSingleVenv(config, configList);
   });
+  console.log("\n\nconfigList AFTER: ");
+  console.log(configList);
 }
 
-// export function getDirectories() {
-//   return minerDir => fs.readdirSync(minerDir, { withFileTypes: true })
-//     .filter(dirent => dirent.isDirectory())
-//     .map(dirent => dirent.name);
-// }
-
-export function initSingleVenv(config) {
+export function initSingleVenv(config, configList) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
   const venvPath = path.join(minerPath, venvName);
@@ -132,17 +139,38 @@ export function initSingleVenv(config) {
 
   const minerExtension = minerFile.split('.').pop();
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
+    console.log("Miner is missing venv. Temporarily removing from config if exist. ConfigList before: ");
+    removeObjectWithId(configList, config.MinerId);
+
     let venvProcess = spawn.spawn("python", ["-m", "venv", venvPath]);
     console.log(`Started creating venv for \"${minerFile}\" with pid: \"${venvProcess.pid}\"`);
 
     venvProcess.on('exit', function (code, signal) {
+      processExitError(code, signal, venvProcess.pid);
       let requirementsProcess = spawn.spawn(pipPath, ["install", "-r", requirementsPath]);
       console.log(`Finished venv process with id \"${venvProcess.pid}\" for \"${minerFile}\". Installing requirements with pid \"${requirementsProcess.pid}\"`); //  via \"${pipPath}\" from file \"${requirementsPath}\"
 
       requirementsProcess.on('exit', function (code, signal) {
-        console.log(`Finished requirements process with id \"${requirementsProcess.pid}\" for \"${minerFile}\". Program is ready to run.`);
+        processExitError(code, signal, requirementsProcess.pid);
+        if(code == 0) {
+          console.log(`Finished requirements process with id \"${requirementsProcess.pid}\" for \"${minerFile}\". Program is ready to run.`);
+          configList.push(config);
+          writeConfig(configList); // TODO: Consider. We're writing to config when starting up, despite no changes to the actual file. However, we need to write to the file when shadowing and it's best to do here, since it's the only way to be sure that the initialization was successful.
+        }
       });
     });
+  }
+}
+
+function processExitError(code, signal, pid) {
+  if(code == 0) {
+    console.log(`Requirements process ${pid} exited with code: ${code} and signal ${signal}`);
+  }
+  if(code == 1) {
+    console.log(`Requirements process ${pid} crashed with code ${code}`);
+  }
+  if(signal == "SIGTERM") {
+    console.log(`Requirements process ${pid} was stopped with signal ${signal}`);
   }
 }
 

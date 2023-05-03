@@ -9,9 +9,14 @@ const __dirname = path.dirname(__filename);
 const configName = "../config.json";
 const configPath = path.join(__dirname, configName);
 
-export function writeConfig(config) {
-    var configString = JSON.stringify(config, null, 2);
-    fs.writeFileSync(configPath, configString, 'utf8', function(err) {
+export function writeConfig(configList) {
+    // var configList = getConfig();
+    // if (configList.filter(e => e.MinerId === config.MinerId).length > 0) {
+    //     console.log("Config with that ID already exist. Leaving it as is. Overwriting shouldn't be done through here.");
+    //     return;
+    // }
+    var configListString = JSON.stringify(configList, null, 2);
+    fs.writeFileSync(configPath, configListString, 'utf8', function(err) {
         if(err) throw err;
         console.log("Config updated");
     });

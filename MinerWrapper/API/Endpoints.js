@@ -19,7 +19,7 @@ import {
   initSingleVenv,
 } from "../App/Utils.js";
 
-export function initEndpoints(app, config) {
+export function initEndpoints(app, configList) {
   app.get("/", function (req, res) {
     res.send("Default page");
   });
@@ -28,12 +28,12 @@ export function initEndpoints(app, config) {
   });
   app.get(`/configurations`, function (req, res) {
     // console.log("Getting a request on /configurations");
-    res.send(config);
+    res.send(configList);
   });
   // TODO: Consider if we need this endpoint. Leave it for now.
   app.get(`/configurations/:minerId`, function (req, res) {
     console.log(`Getting a request on /configurations/${req.params.minerId}`);
-    let requestedConfig = config.find(miner => miner.MinerId == req.params.minerId);
+    let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, miner with label: \"${requestedConfig.MinerLabel}\" and id: \"${requestedConfig.MinerId}\" cannot be shadowed.`);
     else {
       requestedConfig.External = null;
@@ -43,7 +43,7 @@ export function initEndpoints(app, config) {
   // Endpoint to return algorithm file that needs to be shadowed.
   app.get(`/shadow/:minerId`, function (req, res) {
     console.log(`Getting a request on /shadow/${req.params.minerId}`);
-    let requestedConfig = config.find(miner => miner.MinerId == req.params.minerId);
+    let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
     else {
       res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
@@ -62,7 +62,7 @@ export function initEndpoints(app, config) {
   // Endpoint to return requirements file that needs to be shadowed.
   app.get(`/shadow/requirements/:minerId`, function (req, res) {
     console.log(`Getting a request on /shadow/requirements/${req.params.minerId}`);
-    let requestedConfig = config.find(miner => miner.MinerId == req.params.minerId);
+    let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
     else {
       res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
@@ -83,10 +83,10 @@ export function initEndpoints(app, config) {
     console.log(`Getting a request on /shadow`);
     
     let body = await req.body;
-    await getForeignMiner(body, config)
-    .then(promiseRes => {
+    await getForeignMiner(body, configList)
+    .then(shadowConfig => {
         console.log("Promise success");
-        initSingleVenv(promiseRes); // TODO: We need to figure out a way to wait for shadowed miner to be initialized before it can be called.
+        initSingleVenv(shadowConfig, configList); // TODO: We need to figure out a way to wait for shadowed miner to be initialized before it can be called.
         res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
@@ -129,7 +129,7 @@ export function initEndpoints(app, config) {
       }
     } 
     
-    processStart(sendProcessId, req, config);
+    processStart(sendProcessId, req, configList);
   });
 
   app.listen(port, () => {
