@@ -1,9 +1,11 @@
 # This image contains node and npm
 FROM node:16
-RUN apt-get update && apt-get install -y \
+RUN apt-get update \
+    && apt-get install -y \
     && apt install python3 -y \
     && apt install python3-pip -y \
     && apt install python3-venv -y
+
 # Create app directory in the image
 WORKDIR /usr/src/app
 
