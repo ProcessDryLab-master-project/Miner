@@ -1,0 +1,265 @@
+[
+  {
+    "MinerId": "1",
+    "MinerLabel": "Alpha Miner",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerAlphaPy",
+    "MinerFile": "MinerAlpha.py",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "pnml",
+      "ResourceType": "PetriNet"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "1exe",
+    "MinerLabel": "Alpha Miner Executable",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerAlphaExe",
+    "MinerFile": "MinerAlpha.exe",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "pnml",
+      "ResourceType": "PetriNet"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "2",
+    "MinerLabel": "Heuristic Miner",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerHeuristicPy",
+    "MinerFile": "MinerHeuristic.py",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "png",
+      "ResourceType": "PetriNet"
+    },
+    "MinerParameters": [
+      {
+        "Name": "DEPENDENCY_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.5,
+        "Description": ""
+      },
+      {
+        "Name": "AND_MEASURE_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.65,
+        "Description": ""
+      },
+      {
+        "Name": "MIN_ACT_COUNT",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 1,
+        "Description": ""
+      },
+      {
+        "Name": "MIN_DFG_OCCURRENCES",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 1,
+        "Description": ""
+      },
+      {
+        "Name": "DFG_PRE_CLEANING_NOISE_THRESH",
+        "Type": "double",
+        "Min": 0,
+        "Max": 1,
+        "Default": 0.05,
+        "Description": ""
+      },
+      {
+        "Name": "LOOP_LENGTH_TWO_THRESH",
+        "Type": "int",
+        "Min": 0,
+        "Max": 20,
+        "Default": 2,
+        "Description": ""
+      }
+    ]
+  },
+  {
+    "MinerId": "3",
+    "MinerLabel": "Inductive Miner",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerInductiveBpmnPy",
+    "MinerFile": "MinerInductiveBpmn.py",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "bpmn",
+      "ResourceType": "ProcessModel"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "3exe",
+    "MinerLabel": "Inductive Miner EXE",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerInductiveBpmnExe",
+    "MinerFile": "MinerInductiveBpmn.exe",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [
+      {
+        "Name": "LogToRun",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "bpmn",
+      "ResourceType": "ProcessModel"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "4",
+    "MinerLabel": "TBR Conformance",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerConformanceTBRPy",
+    "MinerFile": "MinerConformanceTBR.py",
+    "Access": "Public",
+    "ResourceInput": [
+      {
+        "Name": "LogToCheck",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      },
+      {
+        "Name": "ReferenceModel",
+        "FileExtension": "pnml",
+        "ResourceType": "PetriNet"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Alignment"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "5",
+    "MinerLabel": "Alignment Conformance",
+    "Type": "Miner",
+    "MinerPath": "Miners/MinerConformanceAlignmentPy",
+    "MinerFile": "MinerConformanceAlignment.py",
+    "Access": "Public",
+    "ResourceInput": [
+      {
+        "Name": "LogToCheck",
+        "FileExtension": "xes",
+        "ResourceType": "EventLog"
+      },
+      {
+        "Name": "ReferenceModel",
+        "FileExtension": "pnml",
+        "ResourceType": "PetriNet"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Alignment"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6",
+    "MinerLabel": "Alphabet Stream Miner",
+    "Type": "Miner",
+    "MinerPath": "Miners/MqttMinerHistogramPy",
+    "MinerFile": "MqttMinerHistogram.py",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "6exe",
+    "MinerLabel": "Alphabet Stream Miner EXE",
+    "Type": "Miner",
+    "MinerPath": "Miners/MqttMinerHistogramExe",
+    "MinerFile": "MqttMinerHistogram.exe",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "FileExtension": "json",
+      "ResourceType": "Histogram"
+    },
+    "MinerParameters":[]
+  },
+  {
+    "MinerId": "7",
+    "MinerLabel": "Alphabet Filter Stream",
+    "Type": "Miner",
+    "MinerPath": "Miners/MqttFilterPy",
+    "MinerFile": "MqttFilter.py",
+    "Access": "Public",
+    "Shadow": false,
+    "ResourceInput": [
+      {
+        "Name": "InputStream",
+        "ResourceType": "EventStream"
+      }
+    ],
+    "ResourceOutput": {
+      "ResourceType": "EventStream"
+    },
+    "MinerParameters":[]
+  }
+]

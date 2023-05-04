@@ -50,14 +50,14 @@ const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
-export const getForeignMiner = async (body, config) => {
+export const getForeignMiner = async (body, configList) => {
   let shadowConfig = body.Config;
   let shadowExtension = getMinerFile(shadowConfig).split('.').pop();
   const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig)).toString();
   let requirementsUrl = appendUrl(body.Host, "requirements");
   requirementsUrl = appendUrl(requirementsUrl, getMinerId(shadowConfig)).toString();
 
-  if(config.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
+  if(configList.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
   }
   
@@ -82,9 +82,11 @@ export const getForeignMiner = async (body, config) => {
         });
         const fileWriteStream = fs.createWriteStream(shadowFilePath);
         console.log("Saving shadow to: " + shadowFilePath);
-        res.body.pipe(fileWriteStream);
-        config.push(shadowConfig); // TODO: Consider if config should just be updated in here only, not in "Endpoints". Since it's a var, it seems to be updated everywhere from this line anyway.
-        writeConfig(config);
+        res.body.pipe(fileWriteStream); // Saving shadow miner file
+
+        // configList.push(shadowConfig);
+        // writeConfig(configList);
+
         res.body.on("end", () => resolve(shadowConfig));  // Return the modified shadowConfig
         fileWriteStream.on("error", reject);
       }
@@ -126,7 +128,7 @@ export const getForeignMiner = async (body, config) => {
     return error;
   });
 
-  return result; // Returns result, which is the promise with "config"
+  return result; // Returns result, which is the promise with the shadow config
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
