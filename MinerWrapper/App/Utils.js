@@ -3,6 +3,7 @@ import path from "path";
 import os from "os";
 import spawn from "child_process";
 import crypto from "crypto";
+import { fileURLToPath } from 'url';
 import {
   getBodyInput,
   getAllMetadata,
@@ -59,6 +60,16 @@ import {
   updateMetadata,
   sendMetadata,
 } from "../API/Requests.js";
+import {
+  python,
+  pip,
+  upgradePip,
+  pythonVenvPath,
+  pipVenvPath,
+} from "./DockerHelpers.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function cleanupFiles() {
     let directory = "./Tmp";
@@ -111,97 +122,170 @@ export const getDirectories = directory => fs.readdirSync(directory, { withFileT
   .filter(dirent => dirent.isDirectory())
   .map(dirent => dirent.name);
 
-export function createVirtualEnvironmentString() {
-  return {
-    command: "python",
-    args: "-m venv env"
-  };
-}
 
 export function initAllVenv(configList) {
+  console.log("__filename: " + __filename);
+  console.log("__dirname: " + __dirname);
   configList.forEach(config => {
     initSingleVenv(config, configList);
   });
 }
 
-export function initSingleVenv(config, configList) {
+// export function initSingleVenv(config, configList) {
+//   const venvName = "env";
+//   const minerPath = getMinerPath(config);
+//   const venvPath = path.join(minerPath, venvName);
+//   const pipPath = path.join(minerPath, pipVenvPath());
+
+//   const requirementsPath = path.join(minerPath, "requirements.txt");
+//   const minerFile = getMinerFile(config);
+
+//   const minerExtension = minerFile.split('.').pop();
+//   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
+//     // console.log("Miner is missing venv. Temporarily removing from config if exist.");
+//     removeObjectWithId(configList, config.MinerId);
+
+//     let venvProcess = spawn.spawn("python3", ["-m", "venv", venvPath]);
+//     console.log(`Creating venv for \"${minerFile}\" with pid: \"${venvProcess.pid}\" at \"${venvPath}\"`);
+
+//     venvProcess.on('exit', function (code, signal) {
+//       let venvFailure = processExitError(code, signal, venvProcess.pid, minerFile, "venv");
+//       if(venvFailure) return;
+//       // console.log(`Installing via \"${pipPath}\" from file \"${requirementsPath}\"`);
+//       let requirementsProcess = spawn.spawn(pipPath, ["install", "--no-cache-dir", "-r", requirementsPath]);
+//       console.log(`Installing requirements with pid \"${requirementsProcess.pid}\" for \"${minerFile}`);
+//       requirementsProcess.on('exit', function (code, signal) {
+//         let reqFailure = processExitError(code, signal, requirementsProcess.pid, minerFile, "requirements");
+//         if(reqFailure) return;
+//         if(code == 0) {
+//           configList.push(config);
+//           writeConfig(configList); // TODO: Consider. We're writing to config when starting up, despite no changes to the actual file. However, we need to write to the file when shadowing and it's best to do here, since it's the only way to be sure that the initialization was successful.
+//         }
+//       });
+//       requirementsProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
+//         console.log("Req Stderr:" + data);
+//       });
+//     });
+//     venvProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
+//       console.log("Venv Stderr:" + data);
+//     });
+//   }
+// }
+//
+// function processExitError(code, signal, pid, minerFile, processType) {
+//   if(code == 0) {
+//     console.log(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
+//     return false;
+//   }
+//   if(code == 1) {
+//     console.log(`${processType} process ${pid} crashed with code ${code}`);
+//   }
+//   if(signal == "SIGTERM") {
+//     console.log(`${processType} process ${pid} was stopped with signal ${signal}`);
+//   }
+//   if(code != 1 && code != 0 && signal != "SIGTERM"){
+//     console.log(`${processType} process ${pid} exited with code: ${code} and signal ${signal}`);
+//   }
+//   return true;
+// }
+
+export async function initSingleVenv(config, configList) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
   const venvPath = path.join(minerPath, venvName);
+  const pyPath = path.join(minerPath, pythonVenvPath());
   const pipPath = path.join(minerPath, pipVenvPath());
-
   const requirementsPath = path.join(minerPath, "requirements.txt");
   const minerFile = getMinerFile(config);
-
   const minerExtension = minerFile.split('.').pop();
-  if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
-    console.log("Miner is missing venv. Temporarily removing from config if exist. ConfigList before: ");
+
+  if (minerFile == "MinerAlpha.py" && minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
     removeObjectWithId(configList, config.MinerId);
 
-    let venvProcess = spawn.spawn("python", ["-m", "venv", venvPath]);
-    console.log(`Started creating venv for \"${minerFile}\" with pid: \"${venvProcess.pid}\"`);
 
-    venvProcess.on('exit', function (code, signal) {
-      processExitError(code, signal, venvProcess.pid);
-      let requirementsProcess = spawn.spawn(pipPath, ["install", "-r", requirementsPath]);
-      console.log(`Finished venv process with id \"${venvProcess.pid}\" for \"${minerFile}\". Installing requirements with pid \"${requirementsProcess.pid}\"`); //  via \"${pipPath}\" from file \"${requirementsPath}\"
+    // Create venv
+    cmd(python(), "-m", "venv", venvPath)
+    .then(venvRes => {
+      if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
+      // Upgrade pip in venv
+      // cmd(pyPath, upgradePip())
+      cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this.
+      .then(pipRes => {
+        if(processExitError(pipRes.code, pipRes.signal, pipRes.pid, minerFile, "pip")) return;
+        // Install wheel before requirements.
+        cmd(pipPath, "install", "wheel")
+        .then(wheelRes => {
+          if(processExitError(wheelRes.code, wheelRes.signal, wheelRes.pid, minerFile, "wheel")) return;
+          // Install requirements in venv
+          cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
+          .then(reqRes => {
+            if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
+            configList.push(config);
+            writeConfig(configList);
+          });
+        });
 
-      requirementsProcess.on('exit', function (code, signal) {
-        processExitError(code, signal, requirementsProcess.pid);
-        if(code == 0) {
-          console.log(`Finished requirements process with id \"${requirementsProcess.pid}\" for \"${minerFile}\". Program is ready to run.`);
-          configList.push(config);
-          writeConfig(configList); // TODO: Consider. We're writing to config when starting up, despite no changes to the actual file. However, we need to write to the file when shadowing and it's best to do here, since it's the only way to be sure that the initialization was successful.
-        }
       });
     });
+
+    
+    // await cmd("python", "-m", "venv", venvPath);
+    // await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
   }
 }
 
-function processExitError(code, signal, pid) {
+function cmd(...command) {
+// function cmd(command, args) {
+  // let p = spawn.spawn(command, args);
+  let p = spawn.spawn(command[0], command.slice(1));
+  return new Promise((resolveFunc, rejectFunc) => {
+    p.stdout.on("data", (x) => {
+      process.stdout.write("stdout: " + x.toString());
+    });
+    p.stderr.on("data", (x) => {
+      process.stderr.write("stderr: " + x.toString());
+    });
+    p.on("exit", (code, signal) => {
+      let resolveObj = {
+        code: code,
+        signal: signal,
+        pid: p.pid,
+      };
+      resolveFunc(resolveObj);
+      // let reqFailure = processExitError(code, signal, p.pid, minerFile, processType);
+      // if(reqFailure) rejectFunc(code);
+      // else resolveFunc(code);
+    });
+  });
+}
+
+function processExitError(code, signal, pid, minerFile, processType) {
   if(code == 0) {
-    console.log(`Requirements process ${pid} exited with code: ${code} and signal ${signal}`);
+    console.log(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
+    return false;
   }
   if(code == 1) {
-    console.log(`Requirements process ${pid} crashed with code ${code}`);
+    console.log(`${processType} process ${pid} crashed with code ${code}`);
   }
   if(signal == "SIGTERM") {
-    console.log(`Requirements process ${pid} was stopped with signal ${signal}`);
+    console.log(`${processType} process ${pid} was stopped with signal ${signal}`);
   }
-}
-
-export function pythonVenvPath() {
-  switch(os.type()) {
-    case "Windows_NT":
-      return "env\\Scripts\\python.exe";
-    case "Linux":
-      return "env\\bin\\python"; // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
-    default:
-      throw new Error("Unsupported OS");
+  if(code != 1 && code != 0 && signal != "SIGTERM"){
+    console.log(`${processType} process ${pid} exited with code: ${code} and signal ${signal}`);
   }
+  return true;
 }
 
-export function pipVenvPath() {
-  switch(os.type()) {
-    case "Windows_NT":
-      return "env\\Scripts\\pip.exe";
-    case "Linux":
-      return "env\\bin\\pip"; // Don't know if child_process wants source as a command and the rest as args. If it doesn't work, try splitting it up.
-    default:
-      throw new Error("Unsupported OS");
-  }
-}
+// export function installDependenciesString() {
+//   return {
+//     command: "pip",
+//     args: "install -r requirements.txt"
+//   };
+// }
 
-export function installDependenciesString() {
-  return {
-    command: "pip",
-    args: "install -r requirements.txt"
-  };
-}
-
-export function createDependenciesFileForVenv() {
-  return {
-    command: "pip",
-    args: "freeze > requirements.txt"
-  };
-}
+// export function createDependenciesFileForVenv() {
+//   return {
+//     command: "pip",
+//     args: "freeze > requirements.txt"
+//   };
+// }

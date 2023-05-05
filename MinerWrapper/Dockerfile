@@ -1,11 +1,44 @@
 # This image contains node and npm
 FROM node:16
-RUN apt-get update && apt-get install -y \
-    && apt install python3 -y \
-    && apt install python3-pip -y \
-    && apt install python3-venv -y
-# Create app directory in the image
 WORKDIR /usr/src/app
+# RUN apt-get update && apt-get -y install cmake protobuf-compiler
+RUN apt-get update && apt-get install -y
+RUN apt-get install -y python3 python3-pip
+RUN apt-get install -y python3-venv
+
+# Not sure this does anything.
+# RUN pip3 install --upgrade pip
+
+# Installing venv like this cause the venv creation to fail.
+# RUN pip3 install virtualenv
+
+# The following pip things may have to be called for each venv, not in the container itself.
+# Attempts to fix "Failed building wheel for <X>" errors:
+RUN pip3 install setuptools-scm && pip3 install --upgrade setuptools
+# RUN pip3 install wheel
+RUN pip3 install -U pip wheel setuptools
+# RUN python -m pip install -U pip wheel setuptools
+
+# To fix the error "Cache entry deserialization failed, entry ignored"
+RUN rm -rf ~/.cache/pip
+
+
+
+# RUN apt-get install python-setuptools
+# RUN pip3 install setuptools
+
+
+# RUN python3 -m pip3 install --user --upgrade pip3
+# RUN apt-get install -y python3-pip
+# RUN apt-get install -y python3-venv
+
+
+# RUN apt-get update && apt-get install -y \
+#     && apt install python3 -y \
+#     && apt install python3-pip -y \
+#     && apt install python3-venv -y
+
+# Create app directory in the image
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied

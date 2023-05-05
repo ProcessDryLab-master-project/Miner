@@ -6,8 +6,10 @@ import {
   removeFile,
   isObjEmpty,
   appendUrl,
-  pythonVenvPath,
 } from "./Utils.js";
+import {
+  pythonVenvPath,
+} from "./DockerHelpers.js";
 import {
   getBodyInput,
   getAllMetadata,
@@ -205,13 +207,13 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
 
   switch(minerExtension){
     case "py":
-      const pythonPath = path.join(minerPath, pythonVenvPath()); // ".\\Miners\\MinerAlphaPy\\env\\Scripts\\python.exe"
+      const pythonPath = path.join(minerPath, pythonVenvPath()); // "./Miners/MinerAlphaPy/env/Scripts/python.exe"
       console.log("running as python from path: " + pythonPath);
       return spawn.spawn(pythonPath, [minerFullPath, wrapperArgs]);
       // return spawn.spawn("python", [minerExternal, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths have to be "\\" instead of "/" for cmd??
+      return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
     case "jar":
       console.log("running as jar");
       return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);

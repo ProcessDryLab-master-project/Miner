@@ -1,4 +1,4 @@
-const port = 5000;
+const port = 5002;
 import fs from 'fs';
 import path from "path";
 import {
@@ -119,8 +119,10 @@ export function initEndpoints(app, configList) {
   });
 
   app.post(`/miner`, async function (req, res) {
+    console.log("Received POST request on /miner");
     function sendProcessId(processId, error) {
       if(error) {
+        console.log("Error: " + error);
         res.status(400).send(error);
       }
       else {

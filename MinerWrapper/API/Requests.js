@@ -64,7 +64,7 @@ export const getForeignMiner = async (body, configList) => {
   let shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
   let shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
   // const shadowFolderPath = path.join("./Miners", shadowFileName); // TODO: Should "Miners" just be hardcoded in here? 
-  const shadowFolderPath = `.\\Miners\\${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
+  const shadowFolderPath = `./Miners/${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
   const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
   shadowConfig.MinerPath = shadowFolderPath;
   shadowConfig.MinerFile = shadowNameWithExt;

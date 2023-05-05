@@ -10,7 +10,15 @@ For this project, be aware that express listens on a specfic port (can be found 
 docker build -t dockerminer .
 docker run -d -p 5000:5000 --name Miner dockerminer:latest
 ```
+When running in docker, localhost and 127.0.0.1 will resolve to the container. If you want to access the outside host (e.g. your machine), you can add an entry to the container's /etc/hosts file. You can read more details on this here: https://www.howtogeek.com/devops/how-to-connect-to-localhost-within-a-docker-container/
+or just run the following command
 
+```
+docker run -d -p 5000:5000 --add-host host.docker.internal:host-gateway --name Miner dockerminer:latest
+```
+Here the value "host.docker.internal" maps to the container's host gateway, which matches the real localhost value. This name can be replaced with your own string.
+
+If you want to be able to access the localhost of your machine
 ## Adding a new Miner action
 Write the algorithm.
 If it's a script, it can be added directly to the ./MinerWrapper/Miners folder.
