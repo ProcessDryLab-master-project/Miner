@@ -63,7 +63,6 @@ import {
 import {
   python,
   pip,
-  upgradePip,
   pythonVenvPath,
   pipVenvPath,
 } from "./DockerHelpers.js";
@@ -131,64 +130,6 @@ export function initAllVenv(configList) {
   });
 }
 
-// export function initSingleVenv(config, configList) {
-//   const venvName = "env";
-//   const minerPath = getMinerPath(config);
-//   const venvPath = path.join(minerPath, venvName);
-//   const pipPath = path.join(minerPath, pipVenvPath());
-
-//   const requirementsPath = path.join(minerPath, "requirements.txt");
-//   const minerFile = getMinerFile(config);
-
-//   const minerExtension = minerFile.split('.').pop();
-//   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
-//     // console.log("Miner is missing venv. Temporarily removing from config if exist.");
-//     removeObjectWithId(configList, config.MinerId);
-
-//     let venvProcess = spawn.spawn("python3", ["-m", "venv", venvPath]);
-//     console.log(`Creating venv for \"${minerFile}\" with pid: \"${venvProcess.pid}\" at \"${venvPath}\"`);
-
-//     venvProcess.on('exit', function (code, signal) {
-//       let venvFailure = processExitError(code, signal, venvProcess.pid, minerFile, "venv");
-//       if(venvFailure) return;
-//       // console.log(`Installing via \"${pipPath}\" from file \"${requirementsPath}\"`);
-//       let requirementsProcess = spawn.spawn(pipPath, ["install", "--no-cache-dir", "-r", requirementsPath]);
-//       console.log(`Installing requirements with pid \"${requirementsProcess.pid}\" for \"${minerFile}`);
-//       requirementsProcess.on('exit', function (code, signal) {
-//         let reqFailure = processExitError(code, signal, requirementsProcess.pid, minerFile, "requirements");
-//         if(reqFailure) return;
-//         if(code == 0) {
-//           configList.push(config);
-//           writeConfig(configList); // TODO: Consider. We're writing to config when starting up, despite no changes to the actual file. However, we need to write to the file when shadowing and it's best to do here, since it's the only way to be sure that the initialization was successful.
-//         }
-//       });
-//       requirementsProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
-//         console.log("Req Stderr:" + data);
-//       });
-//     });
-//     venvProcess.stderr.on("data", (data) => { // Write error output (will always write output from pm4py here.)
-//       console.log("Venv Stderr:" + data);
-//     });
-//   }
-// }
-//
-// function processExitError(code, signal, pid, minerFile, processType) {
-//   if(code == 0) {
-//     console.log(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
-//     return false;
-//   }
-//   if(code == 1) {
-//     console.log(`${processType} process ${pid} crashed with code ${code}`);
-//   }
-//   if(signal == "SIGTERM") {
-//     console.log(`${processType} process ${pid} was stopped with signal ${signal}`);
-//   }
-//   if(code != 1 && code != 0 && signal != "SIGTERM"){
-//     console.log(`${processType} process ${pid} exited with code: ${code} and signal ${signal}`);
-//   }
-//   return true;
-// }
-
 export async function initSingleVenv(config, configList) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
@@ -223,21 +164,20 @@ export async function initSingleVenv(config, configList) {
             console.log(`Setup for ${minerFile} is complete.`);
           });
         });
-
       });
     });
 
-    
-    // await cmd("python", "-m", "venv", venvPath);
+    // Cleaner version of the sequence of commands above, however, with less prints.
+    // await cmd(python(), "-m", "venv", venvPath);
+    // await cmd(pipPath, "install", "wheel");
     // await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
   }
 }
 
 function cmd(...command) {
-// function cmd(command, args) {
-  // let p = spawn.spawn(command, args);
   let p = spawn.spawn(command[0], command.slice(1));
-  return new Promise((resolveFunc, rejectFunc) => {
+  return new Promise((resolveFunc) => {
+    // This will print a lot. May be useful but has been commented to avoid spam.
     // p.stdout.on("data", (x) => {
     //   process.stdout.write("stdout: " + x.toString());
     // });
@@ -251,9 +191,6 @@ function cmd(...command) {
         pid: p.pid,
       };
       resolveFunc(resolveObj);
-      // let reqFailure = processExitError(code, signal, p.pid, minerFile, processType);
-      // if(reqFailure) rejectFunc(code);
-      // else resolveFunc(code);
     });
   });
 }
@@ -274,17 +211,3 @@ function processExitError(code, signal, pid, minerFile, processType) {
   }
   return true;
 }
-
-// export function installDependenciesString() {
-//   return {
-//     command: "pip",
-//     args: "install -r requirements.txt"
-//   };
-// }
-
-// export function createDependenciesFileForVenv() {
-//   return {
-//     command: "pip",
-//     args: "freeze > requirements.txt"
-//   };
-// }

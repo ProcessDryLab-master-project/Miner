@@ -25,17 +25,6 @@ export function pip() {
   }
 }
 
-export function upgradePip() {
-  switch (os.type()) {
-    case "Windows_NT":
-      return "-m", "pip", "install", "--upgrade", "pip";
-    case "Linux":
-      return "-m", "pip", "install", "--user", "--upgrade", "pip";
-    default:
-      throw new Error("Unsupported OS");
-  }
-}
-
 export function pythonVenvPath() {
   switch (os.type()) {
     case "Windows_NT":
@@ -52,16 +41,31 @@ export function pipVenvPath() {
     case "Windows_NT":
       return "env/Scripts/pip.exe";
     case "Linux":
-      return "env/bin/pip3"; 
+      return "env/bin/pip3";
     default:
       throw new Error("Unsupported OS");
   }
 }
 
-
 export function createVirtualEnvironmentString() {
-    return {
-      command: "python",
-      args: "-m venv env"
-    };
-  }
+  return {
+    command: "python",
+    args: "-m venv env",
+  };
+}
+
+
+
+// export function installDependenciesString() {
+//   return {
+//     command: "pip",
+//     args: "install -r requirements.txt"
+//   };
+// }
+
+// export function createDependenciesFileForVenv() {
+//   return {
+//     command: "pip",
+//     args: "freeze > requirements.txt"
+//   };
+// }
