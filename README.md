@@ -1,24 +1,38 @@
-## Docker
-This project supports docker runtime environment.
-
-To build the docker image run, download docker from https://www.docker.com/products/docker-desktop/. 
-Run the following commands from the project root to build an image and run it. 
+# Docker
+This project supports docker runtime environment, for which you will need to download docker from here: https://www.docker.com/products/docker-desktop/.
 
 For this project, be aware that express listens on a specfic port (can be found in /API/Endpoints), which must be the same port that is used in the docker file. 
+
+Open a terminal and navigate to the root of the project.
+## Docker Compose
+You can run through docker compose by running the following commands from the root of the project:
+This will build the docker image
+```
+docker-compose build
+```
+This will create a docker container and run it:
+```
+docker-compose up
+```
+This will take the docker container down:
+```
+docker-compose down
+```
+## Dockerfile
+Alternatively you can build the image directly from the Dockerfile by running the following commands from the root of the project:
 
 ```
 docker build -t dockerminer .
 docker run -d -p 5000:5000 --name Miner dockerminer:latest
 ```
 When running in docker, localhost and 127.0.0.1 will resolve to the container. If you want to access the outside host (e.g. your machine), you can add an entry to the container's /etc/hosts file. You can read more details on this here: https://www.howtogeek.com/devops/how-to-connect-to-localhost-within-a-docker-container/
-or just run the following command
 
+To access the outside host, write the following docker run command instead of the one written above:
 ```
 docker run -d -p 5000:5000 --add-host host.docker.internal:host-gateway --name Miner dockerminer:latest
 ```
 Here the value "host.docker.internal" maps to the container's host gateway, which matches the real localhost value. This name can be replaced with your own string.
 
-If you want to be able to access the localhost of your machine
 ## Adding a new Miner action
 Write the algorithm.
 If it's a script, it can be added directly to the ./MinerWrapper/Miners folder.
