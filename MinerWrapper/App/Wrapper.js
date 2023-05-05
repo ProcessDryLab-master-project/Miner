@@ -9,6 +9,7 @@ import {
 } from "./Utils.js";
 import {
   pythonVenvPath,
+  cmdExe,
 } from "./DockerHelpers.js";
 import {
   getBodyInput,
@@ -213,7 +214,8 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
       // return spawn.spawn("python", [minerExternal, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
+      // return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
+      return spawn.spawn(cmdExe(), ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
     case "jar":
       console.log("running as jar");
       return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);

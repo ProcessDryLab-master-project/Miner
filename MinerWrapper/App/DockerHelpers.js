@@ -25,6 +25,18 @@ export function pip() {
   }
 }
 
+export function cmdExe() {
+  switch (os.type()) {
+    case "Windows_NT":
+      return "cmd.exe";
+    case "Linux":
+      return "wine";
+    default:
+      throw new Error("Unsupported OS");
+  }
+}
+
+
 export function pythonVenvPath() {
   switch (os.type()) {
     case "Windows_NT":
