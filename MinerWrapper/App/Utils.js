@@ -125,7 +125,8 @@ export const getDirectories = directory => fs.readdirSync(directory, { withFileT
 export function initAllVenv(configList) {
   console.log("__filename: " + __filename);
   console.log("__dirname: " + __dirname);
-  configList.forEach(config => {
+  const tmpConfigList = getConfig();
+  tmpConfigList.forEach(config => {
     initSingleVenv(config, configList);
   });
 }
@@ -139,11 +140,12 @@ export async function initSingleVenv(config, configList, write) {
   const requirementsPath = path.join(minerPath, "requirements.txt");
   const minerFile = getMinerFile(config);
   const minerExtension = minerFile.split('.').pop();
+  // console.log(`\n\nminerFile: ${minerFile}, ${minerExtension == "py"}, ${!getDirectories(minerPath).includes(venvName)}`)
 
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
+    console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
     removeObjectWithId(configList, config.MinerId);
 
-    console.log(`Create venv for ${minerFile}`);
     cmd(python(), "-m", "venv", venvPath)
     .then(venvRes => {
       if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
