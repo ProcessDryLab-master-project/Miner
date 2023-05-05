@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  Miner:
+    image: dockerminer:latest
+    build: .
+    ports:
+      - "5000:5000"
