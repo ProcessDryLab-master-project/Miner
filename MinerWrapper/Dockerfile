@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y python3-venv
+RUN apt-get install -y graphviz
 
 # Not sure this does anything.
 # RUN pip3 install --upgrade pip
