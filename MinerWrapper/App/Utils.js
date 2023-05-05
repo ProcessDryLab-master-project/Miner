@@ -222,6 +222,7 @@ export async function initSingleVenv(config, configList) {
             if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
             configList.push(config);
             writeConfig(configList);
+            console.log(`Setup for ${minerFile} is complete.`);
           });
         });
 
