@@ -23,11 +23,6 @@ RUN pip3 install -U pip wheel setuptools
 RUN rm -rf ~/.cache/pip
 
 
-
-# RUN apt-get install python-setuptools
-# RUN pip3 install setuptools
-
-
 # RUN python3 -m pip3 install --user --upgrade pip3
 # RUN apt-get install -y python3-pip
 # RUN apt-get install -y python3-venv
