@@ -130,7 +130,7 @@ export function initAllVenv(configList) {
   });
 }
 
-export async function initSingleVenv(config, configList) {
+export async function initSingleVenv(config, configList, write) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
   const venvPath = path.join(minerPath, venvName);
@@ -160,7 +160,7 @@ export async function initSingleVenv(config, configList) {
           .then(reqRes => {
             if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
             configList.push(config);
-            writeConfig(configList);
+            if(write) writeConfig(configList); // Only write to config if shadow.
             console.log(`Setup for ${minerFile} is complete.`);
           });
         });

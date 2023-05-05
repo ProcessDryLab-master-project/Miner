@@ -86,7 +86,7 @@ export function initEndpoints(app, configList) {
     await getForeignMiner(body, configList)
     .then(shadowConfig => {
         console.log("Promise success");
-        initSingleVenv(shadowConfig, configList); // TODO: We need to figure out a way to wait for shadowed miner to be initialized before it can be called.
+        initSingleVenv(shadowConfig, configList, true);
         res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
