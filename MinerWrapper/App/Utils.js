@@ -199,24 +199,22 @@ export async function initSingleVenv(config, configList) {
   const minerFile = getMinerFile(config);
   const minerExtension = minerFile.split('.').pop();
 
-  if (minerFile == "MinerAlpha.py" && minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
+  if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
     removeObjectWithId(configList, config.MinerId);
 
-
-    // Create venv
+    console.log(`Create venv for ${minerFile}`);
     cmd(python(), "-m", "venv", venvPath)
     .then(venvRes => {
       if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
-      // Upgrade pip in venv
-      // cmd(pyPath, upgradePip())
-      cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this.
+      console.log(`Upgrade pip in venv for ${minerFile}`);
+      cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this subprocess. It's just to ensure newest version of pip.
       .then(pipRes => {
         if(processExitError(pipRes.code, pipRes.signal, pipRes.pid, minerFile, "pip")) return;
-        // Install wheel before requirements.
+        console.log(`Install wheel before requirements for ${minerFile}`);
         cmd(pipPath, "install", "wheel")
         .then(wheelRes => {
           if(processExitError(wheelRes.code, wheelRes.signal, wheelRes.pid, minerFile, "wheel")) return;
-          // Install requirements in venv
+          console.log(`Install requirements in venv for ${minerFile}`);
           cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
           .then(reqRes => {
             if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
@@ -240,9 +238,9 @@ function cmd(...command) {
   // let p = spawn.spawn(command, args);
   let p = spawn.spawn(command[0], command.slice(1));
   return new Promise((resolveFunc, rejectFunc) => {
-    p.stdout.on("data", (x) => {
-      process.stdout.write("stdout: " + x.toString());
-    });
+    // p.stdout.on("data", (x) => {
+    //   process.stdout.write("stdout: " + x.toString());
+    // });
     p.stderr.on("data", (x) => {
       process.stderr.write("stderr: " + x.toString());
     });
