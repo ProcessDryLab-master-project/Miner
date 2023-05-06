@@ -143,36 +143,36 @@ export async function initSingleVenv(config, configList, write) {
   // console.log(`\n\nminerFile: ${minerFile}, ${minerExtension == "py"}, ${!getDirectories(minerPath).includes(venvName)}`)
 
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
-    console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
+    // console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
     removeObjectWithId(configList, config.MinerId);
 
-    cmd(python(), "-m", "venv", venvPath)
-    .then(venvRes => {
-      if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
-      console.log(`Upgrade pip in venv for ${minerFile}`);
-      cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this subprocess. It's just to ensure newest version of pip.
-      .then(pipRes => {
-        if(processExitError(pipRes.code, pipRes.signal, pipRes.pid, minerFile, "pip")) return;
-        console.log(`Install wheel before requirements for ${minerFile}`);
-        cmd(pipPath, "install", "wheel")
-        .then(wheelRes => {
-          if(processExitError(wheelRes.code, wheelRes.signal, wheelRes.pid, minerFile, "wheel")) return;
-          console.log(`Install requirements in venv for ${minerFile}`);
-          cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
-          .then(reqRes => {
-            if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
-            configList.push(config);
-            if(write) writeConfig(configList); // Only write to config if shadow.
-            console.log(`Setup for ${minerFile} is complete.`);
-          });
-        });
-      });
-    });
+    // cmd(python(), "-m", "venv", venvPath)
+    // .then(venvRes => {
+    //   if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
+    //   console.log(`Upgrade pip in venv for ${minerFile}`);
+    //   cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this subprocess. It's just to ensure newest version of pip.
+    //   .then(pipRes => {
+    //     if(processExitError(pipRes.code, pipRes.signal, pipRes.pid, minerFile, "pip")) return;
+    //     console.log(`Install wheel before requirements for ${minerFile}`);
+    //     cmd(pipPath, "install", "wheel")
+    //     .then(wheelRes => {
+    //       if(processExitError(wheelRes.code, wheelRes.signal, wheelRes.pid, minerFile, "wheel")) return;
+    //       console.log(`Install requirements in venv for ${minerFile}`);
+    //       cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
+    //       .then(reqRes => {
+    //         if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
+    //         configList.push(config);
+    //         if(write) writeConfig(configList); // Only write to config if shadow.
+    //         console.log(`Setup for ${minerFile} is complete.`);
+    //       });
+    //     });
+    //   });
+    // });
 
     // Cleaner version of the sequence of commands above, however, with less prints.
-    // await cmd(python(), "-m", "venv", venvPath);
-    // await cmd(pipPath, "install", "wheel");
-    // await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
+    await cmd(python(), "-m", "venv", venvPath);
+    await cmd(pipPath, "install", "wheel");
+    await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
   }
 }
 
