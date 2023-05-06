@@ -6,3 +6,7 @@ services:
     build: .
     ports:
       - "5000:5000"
+    extra_hosts:
+      - "127.0.0.1:host-gateway"
+      - "localhost:host-gateway"
+      - "host.docker.internal:host-gateway"

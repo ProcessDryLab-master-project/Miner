@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y python3-venv
+RUN apt-get install -y graphviz
 
 # Not sure this does anything.
 # RUN pip3 install --upgrade pip
@@ -15,8 +16,8 @@ RUN apt-get install -y python3-venv
 # The following pip things may have to be called for each venv, not in the container itself.
 # Attempts to fix "Failed building wheel for <X>" errors:
 RUN pip3 install setuptools-scm && pip3 install --upgrade setuptools
-# RUN pip3 install wheel
 RUN pip3 install -U pip wheel setuptools
+# RUN pip3 install wheel
 # RUN python -m pip install -U pip wheel setuptools
 
 # To fix the error "Cache entry deserialization failed, entry ignored"
