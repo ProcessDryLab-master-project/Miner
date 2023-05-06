@@ -1,4 +1,5 @@
 import fetch, { FetchError } from "node-fetch";
+import axios from "axios";
 import https from "https";
 import http from "http";
 import fs from "fs";
@@ -49,6 +50,11 @@ const httpsAgent = new https.Agent({
 const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
+
+export const getFile = async (hostname, dist) => {
+    const path = hostname + dist;
+    return axios.get(path);
+}
 
 export const getForeignMiner = async (body, configList) => {
   let shadowConfig = body.Config;
@@ -133,7 +139,7 @@ export const getForeignMiner = async (body, configList) => {
 
 export const getResourceFromRepo = async (url, filePath) => {
   var requestOptions = {
-    agent: httpsAgent,
+    agent: httpAgent,
     method: "GET",
     redirect: "follow",
   };
@@ -174,7 +180,7 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
-    agent: httpsAgent,
+    agent: httpAgent,
     method: "PUT",
     body: data,
     redirect: "follow",
@@ -221,7 +227,7 @@ export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
   var requestOptions = {
-    agent: httpsAgent,
+    agent: httpAgent,
     method: "POST",
     body: data,
     redirect: "follow",
@@ -254,7 +260,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   var requestOptions = {
-    agent: httpsAgent,
+    agent: httpAgent,
     method: "PUT",
     body: data,
     redirect: "follow",
@@ -303,7 +309,7 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("Parents", parents);
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
-    agent: httpsAgent,
+    agent: httpAgent,
     method: "POST",
     body: data,
     redirect: "follow",
