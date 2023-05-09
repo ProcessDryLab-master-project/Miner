@@ -35,6 +35,8 @@ app.use(bodyParser.text({ type: "text/plain" }));
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true })); // other example said false
 
+app.enable('trust proxy');
+
 import {
   initEndpoints,
 } from "./API/Endpoints.js";

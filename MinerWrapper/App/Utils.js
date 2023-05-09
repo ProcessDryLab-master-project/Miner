@@ -144,7 +144,7 @@ export async function initSingleVenv(config, configList, write) {
 
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
     // console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
-    removeObjectWithId(configList, config.MinerId);
+    // removeObjectWithId(configList, config.MinerId);
 
     // cmd(python(), "-m", "venv", venvPath)
     // .then(venvRes => {
@@ -170,9 +170,9 @@ export async function initSingleVenv(config, configList, write) {
     // });
 
     // Cleaner version of the sequence of commands above, however, with less prints.
-    await cmd(python(), "-m", "venv", venvPath);
-    await cmd(pipPath, "install", "wheel");
-    await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
+    // await cmd(python(), "-m", "venv", venvPath);
+    // await cmd(pipPath, "install", "wheel");
+    // await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
   }
 }
 

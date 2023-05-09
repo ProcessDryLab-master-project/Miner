@@ -1,40 +1,31 @@
 # This image contains node and npm
 FROM node:16
+# FROM node:latest AS node_base
+# FROM scratch
 WORKDIR /usr/src/app
 # RUN apt-get update && apt-get -y install cmake protobuf-compiler
 RUN apt-get update && apt-get install -y
+
+# Node stuff
+# RUN echo "NODE Version:" && node --version
+# RUN echo "NPM Version:" && npm --version
+# RUN apt-get update -yq \
+#     && apt-get install curl gnupg -yq \
+#     && curl -sL https://deb.nodesource.com/setup_10.x | bash \
+#     && apt-get install nodejs -yq
+
+# Python stuff
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y python3-venv
 RUN apt-get install -y graphviz
-
-# Not sure this does anything.
-# RUN pip3 install --upgrade pip
-
-# Installing venv like this cause the venv creation to fail.
-# RUN pip3 install virtualenv
 
 # The following pip things may have to be called for each venv, not in the container itself.
 # Attempts to fix "Failed building wheel for <X>" errors:
 RUN pip3 install setuptools-scm && pip3 install --upgrade setuptools
 RUN pip3 install -U pip wheel setuptools
-# RUN pip3 install wheel
-# RUN python -m pip install -U pip wheel setuptools
 
 # To fix the error "Cache entry deserialization failed, entry ignored"
 RUN rm -rf ~/.cache/pip
-
-
-# RUN python3 -m pip3 install --user --upgrade pip3
-# RUN apt-get install -y python3-pip
-# RUN apt-get install -y python3-venv
-
-
-# RUN apt-get update && apt-get install -y \
-#     && apt install python3 -y \
-#     && apt install python3-pip -y \
-#     && apt install python3-venv -y
-
-# Create app directory in the image
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied

@@ -51,8 +51,11 @@ const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
-export const getFile = async (hostname, dist) => {
-    const path = hostname + dist;
+export const getFile = async (body) => {
+    // const path = hostname + dist;
+    const path = appendUrl(body.host, body.url).toString();
+    // const path = "http://localhost:4001/resources/ee72a5ef-4156-4e7c-9ce7-e3a65291f6c8";
+    console.log("Requesting on path: " + path);
     return axios.get(path);
 }
 
@@ -139,13 +142,15 @@ export const getForeignMiner = async (body, configList) => {
 
 export const getResourceFromRepo = async (url, filePath) => {
   var requestOptions = {
+    uri: url,
+    // uri: "http://[::1]:4001",
     agent: httpAgent,
     method: "GET",
     redirect: "follow",
   };
 
   let responseObj = {};
-  let result = fetch(url, requestOptions)
+  let result = fetch(requestOptions)
   .then(response => {
     if(!response.ok) {
       return response.text();
@@ -180,6 +185,7 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
+    // uri: "http://[::1]:4001",
     agent: httpAgent,
     method: "PUT",
     body: data,
@@ -227,6 +233,7 @@ export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
   var requestOptions = {
+    // uri: "http://[::1]:4001",
     agent: httpAgent,
     method: "POST",
     body: data,
@@ -260,6 +267,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
   var requestOptions = {
+    // uri: "http://[::1]:4001",
     agent: httpAgent,
     method: "PUT",
     body: data,
@@ -309,6 +317,7 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("Parents", parents);
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
   var requestOptions = {
+    // uri: "http://[::1]:4001",
     agent: httpAgent,
     method: "POST",
     body: data,
