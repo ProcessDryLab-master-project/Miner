@@ -1,12 +1,13 @@
 version: "3.7"
 
 services:
-  Miner:
+  miner:
+    container_name: miner
     image: dockerminer:latest
     build: .
     ports:
       - "5000:5000"
+    networks:
+      - data
     extra_hosts:
-      - "127.0.0.1:host-gateway"
       - "localhost:host-gateway"
-      - "host.docker.internal:host-gateway"

@@ -140,7 +140,7 @@ export function initEndpoints(app, configList) {
   });
 
   app.get("/test", async function (req, res) {
-    let body = await req.body;
+    const body = await req.body;
     console.log(`Getting a request on /test ---- Making request for ${body.host}${body.url}`)
     getFile(body)
       .then((result) => {
