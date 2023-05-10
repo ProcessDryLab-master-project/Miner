@@ -54,7 +54,8 @@ const httpAgent = new http.Agent({
 export const getFile = async (body) => {
     // const path = body.host + body.url;
     const path = appendUrl(body.host, body.url).toString();
-    return axios.get(path);
+    const res = await axios.get(path);
+    return res.data;
 }
 
 export const getForeignMiner = async (body, configList) => {
