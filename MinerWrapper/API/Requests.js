@@ -51,8 +51,9 @@ const httpAgent = new http.Agent({
   rejectUnauthorized: false,
 });
 
-export const getFile = async (hostname, dist) => {
-    const path = hostname + dist;
+export const getFile = async (body) => {
+    // const path = body.host + body.url;
+    const path = appendUrl(body.host, body.url).toString();
     return axios.get(path);
 }
 
