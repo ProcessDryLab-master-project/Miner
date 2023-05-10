@@ -171,6 +171,7 @@ export async function initSingleVenv(config, configList, write) {
 
     // Cleaner version of the sequence of commands above, however, with less prints.
     // await cmd(python(), "-m", "venv", venvPath);
+    // await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip");
     // await cmd(pipPath, "install", "wheel");
     // await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
   }
