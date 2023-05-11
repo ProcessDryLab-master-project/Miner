@@ -139,29 +139,26 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
   console.log(`Updating metadata on url: ${repoUrl} to set Dynamic to: ${isDynamic}`);
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
+  return await UpdateMetadataInRepository(repoUrl, data);
+};
+
+const UpdateMetadataInRepository = async (repoUrl, data) => {
   var requestOptions = {
     agent: httpAgent,
     method: "PUT",
     body: data,
     redirect: "follow",
   };
-  let responseData = await fetch(repoUrl, requestOptions)
+
+  return await fetch(repoUrl, requestOptions)
   .then((success) => {
-    // console.log(success);
     return success;
   })
   .catch((error) => {
     console.log(error);
     return error;
   });
-  return responseData;
-  // let response = await responseData.json();
-  // let responseObj = {
-  //   response: response,
-  //   status: responseData.ok,
-  // }
-  // return responseObj;
-};
+}
 
 export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
   let generatedFrom = {
