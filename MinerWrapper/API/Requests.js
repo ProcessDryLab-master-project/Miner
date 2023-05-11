@@ -58,11 +58,74 @@ export const getFile = async (body) => {
     return res.data;
 }
 
+export const GetMetadata = async (path, resourceId) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.get(url);
+  return res.data;
+}
+
+export const UpdateMetadata = async (path, resourceId) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.put(url);
+  return res.data;
+}
+
+export const PostMetadata = async (path, resourceId, data) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.post(url, data);
+  return res.data;
+}
+
+export const GetResource = async (path, resourceId) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.get(url);
+  return res.data;
+}
+
+export const UpdateResource = async (path, resourceId) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.put(url);
+  return res.data;
+}
+
+export const PostResource = async (path, resourceId) => {
+  const url = appendUrl([path, resourceId]).toString();
+  const res = await axios.post(url);
+  return res.data;
+}
+
+export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => {
+  return await axios({
+    method: 'get',
+    url: url,
+    responseType: 'stream',
+  }).then((response) => {
+      if(folderPath)
+        fs.mkdir(folderPath, { recursive: true }, (err) => {
+          if (err) reject(err.text().then(text => {throw new Error(text)}));
+        });
+      response.data.pipe(fs.createWriteStream(filePath));
+      return true;
+      
+    })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
+}
+
 export const getForeignMiner = async (body, configList) => {
-  let shadowConfig = body.Config;
-  let shadowExtension = getMinerFile(shadowConfig).split('.').pop();
+  const shadowConfig = body.Config;
+  const shadowExtension = getMinerFile(shadowConfig).split('.').pop();
   const shadowUrl = appendUrl([body.Host, getMinerId(shadowConfig)]).toString();
-  let requirementsUrl = appendUrl([body.Host, "requirements", getMinerId(shadowConfig)]).toString();
+  const requirementsUrl = appendUrl([body.Host, "requirements", getMinerId(shadowConfig)]).toString();
+  const shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
+  const shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
+  const shadowFolderPath = `./Miners/${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
+  const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
+  shadowConfig.MinerPath = shadowFolderPath;
+  shadowConfig.MinerFile = shadowNameWithExt;
 
   console.log(shadowUrl, requirementsUrl);
 
@@ -70,70 +133,25 @@ export const getForeignMiner = async (body, configList) => {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
   }
   
-  let shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
-  let shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
-  // const shadowFolderPath = path.join("./Miners", shadowFileName); // TODO: Should "Miners" just be hardcoded in here? 
-  const shadowFolderPath = `./Miners/${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
-  const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
-  shadowConfig.MinerPath = shadowFolderPath;
-  shadowConfig.MinerFile = shadowNameWithExt;
-
   console.log("Requesting shadow from: " + shadowUrl);
-  let result = await fetch(shadowUrl, { agent: httpAgent })
-  .then(res => {
-    return new Promise((resolve, reject) => {
-      if(!res.ok) {
-        reject(res.text().then(text => { throw new Error(text)}));
-      }
-      else {
-        fs.mkdir(shadowFolderPath, { recursive: true }, (err) => {
-          if (err) reject(err.text().then(text => {throw new Error(text)}));
-        });
-        const fileWriteStream = fs.createWriteStream(shadowFilePath);
-        console.log("Saving shadow to: " + shadowFilePath);
-        res.body.pipe(fileWriteStream); // Saving shadow miner file
 
-        // configList.push(shadowConfig);
-        // writeConfig(configList);
+  const successGetShadowMiner = await GetAndSaveWithStream(shadowUrl, shadowFilePath, shadowFolderPath)
+  if(!successGetShadowMiner){ // TODO: Handle this better
+    console.log("Unsuccessful in getting shadow miner");
+  }
+  const result = shadowConfig;
 
-        res.body.on("end", () => resolve(shadowConfig));  // Return the modified shadowConfig
-        fileWriteStream.on("error", reject);
-      }
-    })
-  })
-  .catch(error => {
-    console.log("CATCH: fetch error: ");
-    console.log(error);
-    return error;
-  });
-
-  // TODO: This will fetch and save requirements if needed. Consider a way to move this out. 
   if(shadowExtension != "py"){
       resolve(result);
   }
 
   const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
   console.log("requirementsUrl: " + requirementsUrl);
-  let requirementsResult = await fetch(requirementsUrl, { agent: httpAgent })
-  .then(res => {
-    return new Promise((resolve, reject) => {
-      if(!res.ok) {
-        reject(res.text().then(text => { throw new Error(text)}));
-      }
-      else {
-        const fileWriteStream = fs.createWriteStream(requirementsPath);
-        console.log("Saving requirements to: " + requirementsPath);
-        res.body.pipe(fileWriteStream);
-        res.body.on("end", () => resolve("Saved requirements.txt"));
-        fileWriteStream.on("error", reject);
-      }
-    })
-  })
-  .catch(error => {
-    console.log("CATCH: fetch error: ");
-    console.log(error);
-    return error;
-  });
+
+  const successGetRequirements = await GetAndSaveWithStream(requirementsUrl, requirementsPath)
+  if(!successGetRequirements){ // TODO: Handle this better
+    console.log("Unsuccessful in getting requirements");
+  }
 
   return result; // Returns result, which is the promise with the shadow config
 }
