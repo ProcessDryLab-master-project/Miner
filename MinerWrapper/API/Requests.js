@@ -127,40 +127,11 @@ const GetAndSaveFile = async (url, filePath, folderPath = null) => {
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
-  var requestOptions = {
-    agent: httpAgent,
-    method: "GET",
-    redirect: "follow",
-  };
-
   let responseObj = {};
-  let result = fetch(url, requestOptions)
-  .then(response => {
-    if(!response.ok) {
-      return response.text();
-    }
-    return new Promise((resolve, reject) => {
-      const fileWriteStream = fs.createWriteStream(filePath);
-      response.body.pipe(fileWriteStream);
-      response.body.on("end", () => {
-        resolve("File saved");
-      });
-      fileWriteStream.on("error", () => {
-        reject("Exception when writing downloaded file to Tmp folder.");
-      });
-    });
-  })
-  .then(result => {
-    responseObj.response = result;
-    responseObj.status = (result == "File saved"); // True if promise resolved, false if not.
-    return responseObj;
-  })
-  .catch(error => {
-      responseObj.response = error;
-      responseObj.status = false;
-    return responseObj;
-  });
-  return result;
+  const result = await GetAndSaveFile(url, filePath);
+  responseObj.response = result;
+  responseObj.status = false;
+  return responseObj;
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
