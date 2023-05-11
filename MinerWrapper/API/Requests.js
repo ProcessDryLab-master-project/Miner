@@ -75,20 +75,19 @@ export const getForeignMiner = async (body, configList) => {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
   }
 
-  // ----------------------- Fetch and save shadow file -----------------------
+  // ----------------------- Fetch and save shadow file ----------------------------------------
   console.log("Requesting shadow from: " + shadowUrl);
   const successfullySavedConfig = await GetAndSaveFile(shadowUrl, shadowFilePath, shadowFolderPath);
   if(!successfullySavedConfig) { //TODO handle this?
     console.log("Couldn't save config");
   }
 
-  // ----------------------- Stop if the shadow miner is not python -----------------------
+  // ----------------------- Stop if the shadow miner is not python ----------------------------
   if(shadowExtension != "py"){
       return shadowConfig;
   }
 
   // ----------------------- Fetch and save requirements file for python -----------------------
-  
   console.log("requirementsUrl: " + requirementsUrl);
   const successfullySavedRequirements = await GetAndSaveFile(requirementsUrl, requirementsPath);
   if(!successfullySavedRequirements) { //TODO handle this?
