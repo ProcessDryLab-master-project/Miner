@@ -144,7 +144,6 @@ export function initAllVenv(configList) {
 export async function initSingleVenv(config, configList, write) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
-  console.log("Miner path: " + minerPath);
   const venvPath = path.join(minerPath, venvName);
   const pyPath = path.join(minerPath, pythonVenvPath());
   const pipPath = path.join(minerPath, pipVenvPath());
