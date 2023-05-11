@@ -102,8 +102,16 @@ export function isObjEmpty (obj) {
   return Object.keys(obj).length === 0;
 }
 
-export function appendUrl(baseUrl, urlPath) {
-  let concatPath = path.join(baseUrl.toString(), urlPath);
+// export function appendUrl(baseUrl, urlPath) {
+//   let concatPath = path.join(baseUrl.toString(), urlPath);
+//   return new URL(concatPath);
+// }
+
+export function appendUrl(urls = []){
+  let concatPath = "";
+  urls.forEach(url => {
+    concatPath = path.join(concatPath, url.toString());
+  });
   return new URL(concatPath);
 }
 
@@ -126,7 +134,9 @@ export function initAllVenv(configList) {
   console.log("__filename: " + __filename);
   console.log("__dirname: " + __dirname);
   const tmpConfigList = getConfig();
+  // console.log(tmpConfigList);
   tmpConfigList.forEach(config => {
+    // console.log(config);
     initSingleVenv(config, configList);
   });
 }
@@ -134,6 +144,7 @@ export function initAllVenv(configList) {
 export async function initSingleVenv(config, configList, write) {
   const venvName = "env";
   const minerPath = getMinerPath(config);
+  console.log("Miner path: " + minerPath);
   const venvPath = path.join(minerPath, venvName);
   const pyPath = path.join(minerPath, pythonVenvPath());
   const pipPath = path.join(minerPath, pipVenvPath());

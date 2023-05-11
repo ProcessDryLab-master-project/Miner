@@ -53,7 +53,7 @@ const httpAgent = new http.Agent({
 
 export const getFile = async (body) => {
     // const path = body.host + body.url;
-    const path = appendUrl(body.host, body.url).toString();
+    const path = appendUrl([body.host, body.url]).toString();
     const res = await axios.get(path);
     return res.data;
 }
@@ -61,9 +61,10 @@ export const getFile = async (body) => {
 export const getForeignMiner = async (body, configList) => {
   let shadowConfig = body.Config;
   let shadowExtension = getMinerFile(shadowConfig).split('.').pop();
-  const shadowUrl = appendUrl(body.Host, getMinerId(shadowConfig)).toString();
-  let requirementsUrl = appendUrl(body.Host, "requirements");
-  requirementsUrl = appendUrl(requirementsUrl, getMinerId(shadowConfig)).toString();
+  const shadowUrl = appendUrl([body.Host, getMinerId(shadowConfig)]).toString();
+  let requirementsUrl = appendUrl([body.Host, "requirements", getMinerId(shadowConfig)]).toString();
+
+  console.log(shadowUrl, requirementsUrl);
 
   if(configList.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
     shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
@@ -108,9 +109,7 @@ export const getForeignMiner = async (body, configList) => {
 
   // TODO: This will fetch and save requirements if needed. Consider a way to move this out. 
   if(shadowExtension != "py"){
-    return new Promise(resolve => {
-      resolve("No requirements needed");
-    })
+      resolve(result);
   }
 
   const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
@@ -177,7 +176,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
-  const repoUrl = appendUrl(getBodyOutputHostInit(body), resourceId).toString();
+  const repoUrl = appendUrl([getBodyOutputHostInit(body), resourceId]).toString();
   console.log(`Updating metadata on url: ${repoUrl} to set Dynamic to: ${isDynamic}`);
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
@@ -268,7 +267,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
     redirect: "follow",
   };
   
-  const outputUrl = appendUrl(getBodyOutputHost(body), resourceId).toString();
+  const outputUrl = appendUrl([getBodyOutputHost(body), resourceId]).toString();
   // console.log("outputUrl: " + outputUrl);
   // return await fetch(outputUrl, requestOptions)
   // .then(res => {

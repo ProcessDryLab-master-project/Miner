@@ -1,7 +1,4 @@
-import path from "path";
 import os from "os";
-import spawn from "child_process";
-import crypto from "crypto";
 
 export function python() {
   switch (os.type()) {
@@ -65,19 +62,3 @@ export function createVirtualEnvironmentString() {
     args: "-m venv env",
   };
 }
-
-
-
-// export function installDependenciesString() {
-//   return {
-//     command: "pip",
-//     args: "install -r requirements.txt"
-//   };
-// }
-
-// export function createDependenciesFileForVenv() {
-//   return {
-//     command: "pip",
-//     args: "freeze > requirements.txt"
-//   };
-// }

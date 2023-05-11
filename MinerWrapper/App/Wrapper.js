@@ -278,7 +278,7 @@ async function getFilesToMine(body, parents) {
       UsedAs: key,
     });
     if (!metadataIsStream(metadataObject)) { // If it's not a stream, retrieve file from repository
-      const fileURL = appendUrl(getMetadataHost(metadataObject), getMetadataResourceId(metadataObject)).toString();
+      const fileURL = appendUrl([getMetadataHost(metadataObject), getMetadataResourceId(metadataObject)]).toString();
       console.log("URL to get file: " + fileURL);
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
