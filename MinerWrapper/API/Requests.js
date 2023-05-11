@@ -130,7 +130,7 @@ export const getResourceFromRepo = async (url, filePath) => {
   let responseObj = {};
   const result = await GetAndSaveFile(url, filePath);
   responseObj.response = result;
-  responseObj.status = false;
+  responseObj.status = !!result;
   return responseObj;
 }
 
