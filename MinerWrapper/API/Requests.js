@@ -55,43 +55,44 @@ export const getFile = async (body) => {
     // const path = body.host + body.url;
     const path = appendUrl([body.host, body.url]).toString();
     const res = await axios.get(path);
-    return res.data;
+    return {data: res.data, status: res.status};
 }
 
 export const GetMetadata = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.get(url);
-  return res.data;
+  return {data: res.data, status: res.status};
 }
 
-export const UpdateMetadata = async (path, resourceId) => {
+export const UpdateMetadata = async (path, resourceId, data) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.put(url);
-  return res.data;
+  const res = await axios.put(url, data);
+  return {data: res.data, status: res.status};
 }
 
-export const PostMetadata = async (path, resourceId, data) => {
-  const url = appendUrl([path, resourceId]).toString();
+export const PostMetadata = async (path, data) => {
+  const url = path;
+  // const url = appendUrl([path, resourceId]).toString();
   const res = await axios.post(url, data);
-  return res.data;
+  return {data: res.data, status: res.status};
 }
 
 export const GetResource = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.get(url);
-  return res.data;
+  return {data: res.data, status: res.status};
 }
 
 export const UpdateResource = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.put(url);
-  return res.data;
+  return {data: res.data, status: res.status};
 }
 
 export const PostResource = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.post(url);
-  return res.data;
+  return {data: res.data, status: res.status};
 }
 
 export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => {
@@ -165,35 +166,15 @@ export const getResourceFromRepo = async (url, filePath) => {
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
-  // const repoUrl = appendUrl([getBodyOutputHostInit(body), resourceId]).toString();
   console.log(`Updating metadata on url: ${appendUrl([getBodyOutputHostInit(body), resourceId]).toString()} to set Dynamic to: ${isDynamic}`);
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
 
-  return await PostMetadata(getBodyOutputHostInit(body), resourceId, data);
-
-  // var requestOptions = {
-  //   agent: httpAgent,
-  //   method: "PUT",
-  //   body: data,
-  //   redirect: "follow",
-  // };
-  // let responseData = await fetch(repoUrl, requestOptions)
-  // .then((success) => {
-  //   // console.log(success);
-  //   return success;
-  // })
-  // .catch((error) => {
-  //   console.log(error);
-  //   return error;
-  // });
-  // return responseData;
-  // let response = await responseData.json();
-  // let responseObj = {
-  //   response: response,
-  //   status: responseData.ok,
-  // }
-  // return responseObj;
+  const res = await UpdateMetadata(getBodyOutputHostInit(body), resourceId, data);
+  return {
+    response: res.data,
+    status: res.status == 200,
+  };
 };
 
 export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
@@ -219,21 +200,12 @@ export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
   data.append("Description", description);
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
-  var requestOptions = {
-    agent: httpAgent,
-    method: "POST",
-    body: data,
-    redirect: "follow",
-  };
-  
-  let responseData = await fetch(getBodyOutputHostInit(body), requestOptions);
-  let response = await responseData.json();
-  console.log("Response: ", response);
-  let responseObj = {
-    response: response,
-    status: responseData.ok,
+
+  const res = await PostMetadata(getBodyOutputHostInit(body), getBodyOutputLabel(body), data);
+  return {
+    response: res.data,
+    status: res.status == 200,
   }
-  return responseObj;
 };
 
 export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
