@@ -53,8 +53,6 @@ export async function getStatusDeleteIfDone(processId) {
   let tmpProcessObj = getProcessStatusObj(processId);
   if(!tmpProcessObj) return null;
   let status = tmpProcessObj.ProcessStatus;
-  // let processStatusObjString = JSON.stringify(tmpProcessObj, null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict send:\n${processStatusObjString}`);
   if(status && status != statusEnum.Running) { // if it's defined and it's not statusEnum.Running
     console.log(`Removing inactive process with status ${status}`);
     deleteFromBothDicts(processId);
@@ -65,7 +63,6 @@ export async function getStatusDeleteIfDone(processId) {
 export async function stopProcess(processId) {
   console.log(`Attempting to kill process with ID: ${processId}`);
   if(getProcess(processId)) {
-    // getProcess(processId).kill(); // Only works for .py, need the code below to stop any process. Likely only works on Windows
     spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
       if(error) {
         console.error(error);
@@ -225,7 +222,6 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   
   if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
     console.log("Process completed successfully");
-    // updateProcessStatus(processId, statusEnum.Complete); // No longer needed, since we stop the process
   }
   else if (code == 1) // Means the miner process crashed
     updateProcessStatus(processId, statusEnum.Crash);
@@ -261,7 +257,6 @@ async function getFilesToMine(body, parents) {
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
       const result = await getResourceFromRepo(fileURL, inputFilePath);
-      console.log(result);
       if(!result.status == 200) return result; // If request failed, return the error msg.
     }
   }

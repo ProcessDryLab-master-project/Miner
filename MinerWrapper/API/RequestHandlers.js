@@ -39,13 +39,9 @@ export const getForeignMiner = async (body, configList) => {
     shadowConfig.MinerPath = shadowFolderPath;
     shadowConfig.MinerFile = shadowNameWithExt;
 
-    console.log(shadowUrl, requirementsUrl);
-
     if(configList.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
         shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
     }
-    
-    console.log("Requesting shadow from: " + shadowUrl);
 
     const successGetShadowMiner = await GetAndSaveWithStream(shadowUrl, shadowFilePath, shadowFolderPath)
     if(!successGetShadowMiner){ // TODO: Handle this better
@@ -61,8 +57,6 @@ export const getForeignMiner = async (body, configList) => {
     }
 
     const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
-    console.log("requirementsUrl: " + requirementsUrl);
-
     const successGetRequirements = await GetAndSaveWithStream(requirementsUrl, requirementsPath)
     if(!successGetRequirements){ // TODO: Handle this better
         console.error("Unsuccessful in getting requirements");

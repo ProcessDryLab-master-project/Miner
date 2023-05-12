@@ -1,8 +1,6 @@
-const port = 5000;
 import fs from 'fs';
 import path from "path";
 import {
-  writeConfig,
   getMinerPath,
   getMinerFile,
 } from "../App/ConfigUnpacker.js";
@@ -14,11 +12,12 @@ import {
 } from "../App/Wrapper.js";
 import {
   getForeignMiner,
-  // getFile,
 } from "./RequestHandlers.js";
 import {
   initSingleVenv,
 } from "../App/Utils.js";
+
+const port = 5000; // The host port express will listen on.
 
 export function initEndpoints(app, configList) {
   app.get("/", function (req, res) {
@@ -28,7 +27,6 @@ export function initEndpoints(app, configList) {
     res.send("pong");
   });
   app.get(`/configurations`, function (req, res) {
-    // console.log("Getting a request on /configurations");
     res.send(configList);
   });
   // TODO: Consider if we need this endpoint. Leave it for now.
@@ -86,12 +84,12 @@ export function initEndpoints(app, configList) {
     let body = await req.body;
     await getForeignMiner(body, configList)
     .then(shadowConfig => {
-        console.log("Promise success");
+        console.log("request on /shadow exited successfully");
         initSingleVenv(shadowConfig, configList, true);
         res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
-      console.error("CATCH: Promise error: " + error);
+      console.log("request on /shadow exited unsuccessfully with error:" + error);
       res.status(400).send("Invalid request: " + error);
     });
   });
