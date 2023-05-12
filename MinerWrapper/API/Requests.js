@@ -61,7 +61,7 @@ export const getFile = async (body) => {
       .catch(error => {
         console.log("CATCH: fetch error: ");
         console.log(error);
-        return error;
+        return {data: error, status: response.status};
       });
     return {data: res.data, status: res.status};
 }
@@ -75,7 +75,7 @@ export const GetMetadata = async (path, resourceId) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -89,7 +89,7 @@ export const UpdateMetadata = async (path, resourceId, data) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -103,7 +103,7 @@ export const PostMetadata = async (path, data) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });;
   return {data: res.data, status: res.status};
 }
@@ -117,7 +117,7 @@ export const GetResource = async (path, resourceId) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -131,7 +131,7 @@ export const UpdateResource = async (path, resourceId, data) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -145,7 +145,7 @@ export const PostResource = async (path, data) => {
     .catch(error => {
       console.log("CATCH: fetch error: ");
       console.log(error);
-      return error;
+      return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -319,19 +319,4 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
     response: res.data,
     status: res.status == 200,
   }
-  
-  // var requestOptions = {
-  //   agent: httpAgent,
-  //   method: "POST",
-  //   body: data,
-  //   redirect: "follow",
-  // };
-  
-  // let responseData = await fetch(getBodyOutputHost(body), requestOptions);
-  // let response = await responseData.json();
-  // let responseObj = {
-  //   response: response,
-  //   status: responseData.ok,
-  // }
-  // return responseObj;
 };
