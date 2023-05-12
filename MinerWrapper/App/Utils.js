@@ -59,7 +59,7 @@ import {
   getResourceFromRepo,
   updateMetadata,
   sendMetadata,
-} from "../API/Requests.js";
+} from "../API/RequestHandlers.js";
 import {
   python,
   pip,

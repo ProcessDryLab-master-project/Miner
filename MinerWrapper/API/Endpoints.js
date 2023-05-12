@@ -14,8 +14,8 @@ import {
 } from "../App/Wrapper.js";
 import {
   getForeignMiner,
-  getFile,
-} from "./Requests.js";
+  // getFile,
+} from "./RequestHandlers.js";
 import {
   initSingleVenv,
 } from "../App/Utils.js";
@@ -139,17 +139,17 @@ export function initEndpoints(app, configList) {
     console.log(`Example app listening on port ${port}`);
   });
 
-  app.get("/test", async function (req, res) {
-    const body = await req.body;
-    console.log(`Getting a request on /test ---- Making request for ${body.host}${body.url}`)
-    getFile(body)
-      .then((result) => {
-        console.log(result); 
-        res.send(result)
-      })
-      .catch((err) => {
-        console.log(err); 
-        res.send(err)
-      });
-  })
+  // app.get("/test", async function (req, res) {
+  //   const body = await req.body;
+  //   console.log(`Getting a request on /test ---- Making request for ${body.host}${body.url}`)
+  //   getFile(body)
+  //     .then((result) => {
+  //       console.log(result); 
+  //       res.send(result)
+  //     })
+  //     .catch((err) => {
+  //       console.log(err); 
+  //       res.send(err)
+  //     });
+  // })
 }

@@ -65,7 +65,7 @@ import {
   getResourceFromRepo,
   updateMetadata,
   sendMetadata,
-} from "../API/Requests.js";
+} from "../API/RequestHandlers.js";
 
 export function getProcessStatusList() {
   return getProcessList();
