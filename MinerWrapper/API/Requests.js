@@ -166,7 +166,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
   // const repoUrl = appendUrl([getBodyOutputHostInit(body), resourceId]).toString();
-  console.log(`Updating metadata on url: ${repoUrl} to set Dynamic to: ${isDynamic}`);
+  console.log(`Updating metadata on url: ${appendUrl([getBodyOutputHostInit(body), resourceId]).toString()} to set Dynamic to: ${isDynamic}`);
   const data = new FormData();
   data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
 
