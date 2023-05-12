@@ -2,20 +2,6 @@ import axios from "axios";
 import fs from "fs";
 import { appendUrl } from "../App/Utils.js";
 
-export const getFile = async (body) => {
-    const path = appendUrl([body.host, body.url]).toString();
-    const res = await axios.get(path)
-      .then((response) => {
-        return {data: response.data, status: response.status};
-        })
-      .catch(error => {
-        console.log("CATCH: fetch error: ");
-        console.log(error);
-        return {data: error, status: response.status};
-      });
-    return {data: res.data, status: res.status};
-}
-
 export const GetMetadata = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.get(url)
@@ -23,8 +9,8 @@ export const GetMetadata = async (path, resourceId) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
@@ -37,8 +23,8 @@ export const UpdateMetadata = async (path, resourceId, data) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
@@ -51,8 +37,8 @@ export const PostMetadata = async (path, data) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });;
   return {data: res.data, status: res.status};
@@ -65,8 +51,8 @@ export const GetResource = async (path, resourceId) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
@@ -79,8 +65,8 @@ export const UpdateResource = async (path, resourceId, data) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
@@ -93,8 +79,8 @@ export const PostResource = async (path, data) => {
       return {data: response.data, status: response.status};
       })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return {data: error, status: response.status};
     });
   return {data: res.data, status: res.status};
@@ -115,8 +101,8 @@ export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => 
       
     })
     .catch(error => {
-      console.log("CATCH: fetch error: ");
-      console.log(error);
+      console.error("CATCH: fetch error: ");
+      console.error(error);
       return error;
     });
 }

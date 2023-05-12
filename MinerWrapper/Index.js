@@ -1,22 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import spawn from "child_process";
-import fs from "fs";
-import path from "path";
-// import { readdir } from 'fs/promises'
 import {
   getConfig,
-  getMinerFile,
-  getMinerPath,
 } from "./App/ConfigUnpacker.js";
 import {
   cleanupFiles,
-  // createVirtualEnvironmentString,
-  // installDependenciesString,
   initAllVenv,
 } from "./App/Utils.js";
-// import config from "./config.json" assert { type: "json" };
+
 const configList = getConfig();
 
 const app = express()
@@ -50,19 +42,18 @@ startEndPoints();
 function verifyConfig(){
   configList.forEach(miner => {
     if(miner.MinerId == null) {
-      console.log("The key 'MinerId' must be provided in config");
+      console.error("The key 'MinerId' must be provided in config");
       return false;
     }
   });
   
-  const lookup = configList.reduce((a, e) => {
-    a[e.MinerId] = ++a[e.MinerId] || 0;
-    return a;
+  const lookup = configList.reduce((configList, configElement) => {
+    configList[configElement.MinerId] = ++configList[configElement.MinerId] || 0;
+    return configList;
   }, {});
-  let duplicateIdObj = configList.filter(e => lookup[e.MinerId]);
+  let duplicateIdObj = configList.filter(configElement => lookup[configElement.MinerId]);
   if(duplicateIdObj.length > 0){
-    console.log("You cannot have duplicate values for 'MinerId' in your config.json");
-    console.log(duplicateIdObj);
+    console.error(`Err: Duplicate 'MinerId' found in config.json ${dublicateIdObj}`);
     return false;
   }
 

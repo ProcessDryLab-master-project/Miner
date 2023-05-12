@@ -3,10 +3,8 @@ import FormData from "form-data";
 import path from "path";
 import crypto from "crypto";
 import {
-    GetMetadata,
     UpdateMetadata,
     PostMetadata,
-    GetResource,
     UpdateResource,
     PostResource,
     GetAndSaveWithStream
@@ -51,7 +49,7 @@ export const getForeignMiner = async (body, configList) => {
 
     const successGetShadowMiner = await GetAndSaveWithStream(shadowUrl, shadowFilePath, shadowFolderPath)
     if(!successGetShadowMiner){ // TODO: Handle this better
-        console.log("Unsuccessful in getting shadow miner");
+        console.error("Unsuccessful in getting shadow miner");
     }
     const result = shadowConfig;
 
@@ -67,7 +65,7 @@ export const getForeignMiner = async (body, configList) => {
 
     const successGetRequirements = await GetAndSaveWithStream(requirementsUrl, requirementsPath)
     if(!successGetRequirements){ // TODO: Handle this better
-        console.log("Unsuccessful in getting requirements");
+        console.error("Unsuccessful in getting requirements");
     }
 
     return result;

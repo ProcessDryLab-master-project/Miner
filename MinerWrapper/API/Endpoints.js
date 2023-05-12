@@ -91,7 +91,7 @@ export function initEndpoints(app, configList) {
         res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
-      console.log("CATCH: Promise error: " + error);
+      console.error("CATCH: Promise error: " + error);
       res.status(400).send("Invalid request: " + error);
     });
   });
@@ -123,7 +123,7 @@ export function initEndpoints(app, configList) {
     console.log("Received POST request on /miner");
     function sendProcessId(processId, error) {
       if(error) {
-        console.log("Error: " + error);
+        console.error("Error: " + error);
         res.status(400).send(error);
       }
       else {
@@ -139,18 +139,4 @@ export function initEndpoints(app, configList) {
   app.listen(port, '0.0.0.0', () => {
     console.log(`Example app listening on port ${port}`);
   });
-
-  // app.get("/test", async function (req, res) {
-  //   const body = await req.body;
-  //   console.log(`Getting a request on /test ---- Making request for ${body.host}${body.url}`)
-  //   getFile(body)
-  //     .then((result) => {
-  //       console.log(result); 
-  //       res.send(result)
-  //     })
-  //     .catch((err) => {
-  //       console.log(err); 
-  //       res.send(err)
-  //     });
-  // })
 }

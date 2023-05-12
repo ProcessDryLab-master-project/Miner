@@ -68,7 +68,7 @@ export async function stopProcess(processId) {
     // getProcess(processId).kill(); // Only works for .py, need the code below to stop any process. Likely only works on Windows
     spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
       if(error) {
-        console.log(error);
+        console.error(error);
         updateProcessStatus(processId, statusEnum.Crash, null, error);
       }
       if(stdout) {
@@ -76,7 +76,7 @@ export async function stopProcess(processId) {
         updateProcessStatus(processId, statusEnum.Complete);
       }
       if(stderr) {
-        console.log(stderr);
+        console.error(stderr);
         updateProcessStatus(processId, statusEnum.Crash, null, stderr);
       }
     });
@@ -110,7 +110,7 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
   updateProcessStatus(processId, statusEnum.Running);
   
   sendProcessId(processId); // Return process id to caller (frontend)
-  console.log(`\n\n\nProcess successfully started: ${processId}`);
+  console.info(`\n\n\nProcess successfully started: ${processId}`);
 
   childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId);
 }
@@ -161,8 +161,8 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
         resend = true;
       })
       .catch((error) => {
-        console.log(`Error with processId ${processId}: ${error}`);
-        console.log(error);
+        console.error(`Error with processId ${processId}: ${error}`);
+        console.error(error);
         updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
         if(getProcess(processId)) 
           getProcess(processId).kill();
@@ -198,7 +198,7 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
       console.log("running as jar");
       return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);
     default: 
-      console.log("Unsupported file extension: " + minerExtension);
+      console.error("Unsupported file extension: " + minerExtension);
       return null;
   }
 }
@@ -233,7 +233,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
     deleteFromBothDicts(processId);
   }
-  else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
+  else console.error("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
   if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
@@ -261,7 +261,8 @@ async function getFilesToMine(body, parents) {
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
       const result = await getResourceFromRepo(fileURL, inputFilePath);
-      if(!result.status) return result; // If request failed, return the error msg.
+      console.log(result);
+      if(!result.status == 200) return result; // If request failed, return the error msg.
     }
   }
 }

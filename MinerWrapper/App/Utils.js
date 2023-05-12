@@ -120,22 +120,30 @@ export async function initSingleVenv(config, configList, write) {
     // });
 
     // Cleaner version of the sequence of commands above, however, with less prints.
-    console.log(`Create venv for ${minerFile}`);
-    await cmd(python(), "-m", "venv", venvPath);
+    console.info(`Create venv for ${minerFile}`);
+    await cmd(python(), "-m", "venv", venvPath).then(res => {
+      if(processExitError(res.code, res.signal, res.pid, minerFile, "venv")) return;
+    });
 
-    console.log(`Upgrade pip in venv for ${minerFile}`);
-    await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip");
+    console.info(`Upgrade pip in venv for ${minerFile}`);
+    await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip").then(res => {
+      if(processExitError(res.code, res.signal, res.pid, minerFile, "pip")) return;
+    });
 
-    console.log(`Install wheel before requirements for ${minerFile}`);
-    await cmd(pipPath, "install", "wheel");
+    console.info(`Install wheel before requirements for ${minerFile}`);
+    await cmd(pipPath, "install", "wheel").then(res => {
+      if(processExitError(res.code, res.signal, res.pid, minerFile, "wheel")) return;
+    });
 
-    console.log(`Install requirements in venv for ${minerFile}`);
-    await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath);
+    console.info(`Install requirements in venv for ${minerFile}`);
+    await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath).then(res => {
+      if(processExitError(res.code, res.signal, res.pid, minerFile, "requirements")) return;
+    });
 
     configList.push(config);
     if(write) writeConfig(configList);
 
-    console.log(`Setup for ${minerFile} is complete.`);
+    console.info(`Setup for ${minerFile} is complete.`);
   }
 }
 
@@ -162,17 +170,17 @@ async function cmd(...command) {
 
 function processExitError(code, signal, pid, minerFile, processType) {
   if(code == 0) {
-    console.log(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
+    console.info(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
     return false;
   }
   if(code == 1) {
-    console.log(`${processType} process ${pid} crashed with code ${code}`);
+    console.error(`${processType} process ${pid} crashed with code ${code}`);
   }
   if(signal == "SIGTERM") {
-    console.log(`${processType} process ${pid} was stopped with signal ${signal}`);
+    console.error(`${processType} process ${pid} was stopped with signal ${signal}`);
   }
   if(code != 1 && code != 0 && signal != "SIGTERM"){
-    console.log(`${processType} process ${pid} exited with code: ${code} and signal ${signal}`);
+    console.error(`${processType} process ${pid} exited with code: ${code} and signal ${signal}`);
   }
   return true;
 }
