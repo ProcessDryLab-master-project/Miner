@@ -72,7 +72,6 @@ export const UpdateMetadata = async (path, resourceId, data) => {
 
 export const PostMetadata = async (path, data) => {
   const url = path;
-  // const url = appendUrl([path, resourceId]).toString();
   const res = await axios.post(url, data);
   return {data: res.data, status: res.status};
 }
@@ -83,9 +82,9 @@ export const GetResource = async (path, resourceId) => {
   return {data: res.data, status: res.status};
 }
 
-export const UpdateResource = async (path, resourceId) => {
+export const UpdateResource = async (path, resourceId, data) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.put(url);
+  const res = await axios.put(url, data);
   return {data: res.data, status: res.status};
 }
 
@@ -224,27 +223,12 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
 
   const data = new FormData();
   data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
-  var requestOptions = {
-    agent: httpAgent,
-    method: "PUT",
-    body: data,
-    redirect: "follow",
-  };
-  
-  const outputUrl = appendUrl([getBodyOutputHost(body), resourceId]).toString();
-  // console.log("outputUrl: " + outputUrl);
-  // return await fetch(outputUrl, requestOptions)
-  // .then(res => {
-  //   return res
-  // })
-  // .catch(error => console.log(error));
-  let responseData = await fetch(outputUrl, requestOptions);
-  let response = await responseData.json();
-  let responseObj = {
-    response: response,
-    status: responseData.ok,
+
+  const res = await UpdateResource(getBodyOutputHost(body), resourceId, data);
+  return {
+    response: res.data,
+    status: res.status == 200,
   }
-  return responseObj;
 };
 
 
