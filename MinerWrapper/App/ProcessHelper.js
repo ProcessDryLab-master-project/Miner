@@ -1,13 +1,5 @@
-var processDict = {
-  someId: null, // TODO: Just here for testing, delete when cleaning up
-};
-var processStatusDict = {
-  someId: { // TODO: Just here for testing, delete when cleaning up
-    ProcessStatus: "crash", // running, complete, crash,
-    ResourceId: null, // The id for a resource
-    Error: null, // If something went wrong, this is where we put the error msg.
-  },
-};
+var processDict = {}; // Dict of all processes
+var processStatusDict = {}; // Dict of all process status objects
 
 export var statusEnum = {
     Crash: "crash",
@@ -34,20 +26,17 @@ export function getProcessError(processId) {
 
 export function setProcessStatus(processId, status) {
     let tmpProcessObj = getProcessStatusObj(processId);
-    // let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
     if(tmpProcessObj.ProcessStatus == statusEnum.Complete || tmpProcessObj.ProcessStatus == statusEnum.Crash) return; // Shouldn't change status once they're finished
     tmpProcessObj.ProcessStatus = status;
     setProcessStatusObj(processId, tmpProcessObj);
 }
 export function setProcessResourceId(processId, resourceId) {
     let tmpProcessObj = getProcessStatusObj(processId);
-    // let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
     tmpProcessObj.ResourceId = resourceId;
     setProcessStatusObj(processId, tmpProcessObj);
 }
 export function setProcessError(processId, error) {
     let tmpProcessObj = getProcessStatusObj(processId);
-    // let tmpProcessObj = getProcessStatusObj(processId) ? getProcessStatusObj(processId) : {}; // Create new if doesn't exist.
     tmpProcessObj.Error = error;
     setProcessStatusObj(processId, tmpProcessObj);
 }
@@ -71,6 +60,13 @@ export function getProcessList() {
       processStatusList.push(tmpStatusObj)
     }
     return processStatusList;
+}
+
+export function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
+    if(!getProcessStatusObj(processId)) return; // If object doesn't exist, it means it's been deleted in another thread. Then we don't do anything.
+    if(processStatus) setProcessStatus(processId, processStatus);
+    if(resourceId) setProcessResourceId(processId, resourceId);
+    if(errorMsg) setProcessError(processId, errorMsg);
 }
 
 // Functions for processDict

@@ -1,10 +1,8 @@
 import spawn from "child_process";
 import crypto from "crypto";
-import fs from 'fs';
 import path from "path";
 import {
   removeFile,
-  isObjEmpty,
   appendUrl,
 } from "./Utils.js";
 import {
@@ -12,34 +10,19 @@ import {
   cmdExe,
 } from "./DockerHelpers.js";
 import {
-  getBodyInput,
-  getAllMetadata,
-  getSingleMetadata,
-  getBodyOutput,
-  getBodyOutputHost,
-  getBodyOutputHostInit,
-  getBodyOutputLabel,
+  getBodyAllMetadata,
+  getBodySingleMetadata,
   getBodyMinerId,
   hasStreamInput,
   metadataIsStream,
   getMetadataResourceId,
-  getMetadataResourceInfo,
-  getMetadataResourceType,
   getMetadataFileExtension,
   getMetadataHost,
   getBodyOutputTopic,
 } from "./BodyUnpacker.js";
 import {
-  getConfig,
-  getMinerResourceOutput,
-  getMinerId,
-  getMinerLabel,
-  getMinerResourceOutputType,
-  getMinerResourceOutputExtension,
   getMinerPath,
   getMinerFile,
-  getMinerResourceInput,
-  getMinerResourceInputKeys,
 } from "./ConfigUnpacker.js";
 import {
   statusEnum,
@@ -47,17 +30,12 @@ import {
   setProcessStatusObj,
   getProcessStatus,
   getProcessResourceId,
-  getProcessError,
-  setProcessStatus,
-  setProcessResourceId,
-  setProcessError,
   deleteFromBothDicts,
   deleteFromProcessDict,
-  deleteFromStatusDict,
   getProcessList,
   getProcess,
   setProcess,
-  killProcess,
+  updateProcessStatus
 } from "./ProcessHelper.js";
 import {
   sendResourceToRepo,
@@ -199,20 +177,22 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
 function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to a helper file
   const minerPath = getMinerPath(minerConfig);
   const minerFile = getMinerFile(minerConfig);
-  let minerFullPath = path.join(minerPath, minerFile);
-  console.log("minerFullPath: " + minerFullPath);
+  const minerFullPath = path.join(minerPath, minerFile);
   const minerExtension = minerFile.split('.').pop();
-  // console.log("miner external: " + minerExternal);
+  console.log({
+    minerPath: minerPath,
+    minerFile: minerFile,
+    minerFullPath: minerFullPath,
+    minerExtension: minerExtension,
+  });
 
   switch(minerExtension){
     case "py":
       const pythonPath = path.join(minerPath, pythonVenvPath()); // "./Miners/MinerAlphaPy/env/Scripts/python.exe"
       console.log("running as python from path: " + pythonPath);
       return spawn.spawn(pythonPath, [minerFullPath, wrapperArgs]);
-      // return spawn.spawn("python", [minerExternal, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      // return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
       return spawn.spawn(cmdExe(), ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
     case "jar":
       console.log("running as jar");
@@ -226,10 +206,10 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
 function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ // TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
-    if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
+    if(hasStreamInput(body)) {  // Stream miners continue running after sending the first file.
       updateProcessStatus(processId, statusEnum.Running, responseObj.response);
     }
-    else { // If it's a normal miner, a response means it is complete.
+    else { // Non-stream miners complete and send the file.
       updateProcessStatus(processId, statusEnum.Complete, responseObj.response);
     }
   }
@@ -263,14 +243,14 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
     removeFile(processOutput);            // Deletes miner result file
   }
-  for(let key in getAllMetadata(body)){ // Deletes all downloaded files from repo
+  for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
   }
 }
 
 async function getFilesToMine(body, parents) {
-  for(let key in getAllMetadata(body)) { // Loop through all input resources
-    const metadataObject = getSingleMetadata(body, key);
+  for(let key in getBodyAllMetadata(body)) { // Loop through all input resources
+    const metadataObject = getBodySingleMetadata(body, key);
     parents.push({
       ResourceId: getMetadataResourceId(metadataObject),
       UsedAs: key,
@@ -284,12 +264,4 @@ async function getFilesToMine(body, parents) {
       if(!result.status) return result; // If request failed, return the error msg.
     }
   }
-}
-
-// HELPER FUNCTIONS!
-function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
-  if(!getProcessStatusObj(processId)) return; // If object doesn't exist, it means it's been deleted in another thread. Then we don't do anything.
-  if(processStatus) setProcessStatus(processId, processStatus);
-  if(resourceId) setProcessResourceId(processId, resourceId);
-  if(errorMsg) setProcessError(processId, errorMsg);
 }

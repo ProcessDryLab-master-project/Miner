@@ -3,12 +3,12 @@ export function getBodyInput(body) {
   return body.Input;
 }
 
-export function getAllMetadata(body) {
+export function getBodyAllMetadata(body) {
   return getBodyInput(body).Resources;
 }
 
-export function getSingleMetadata(body, key) {
-  return getAllMetadata(body)[key];
+export function getBodySingleMetadata(body, key) {
+  return getBodyAllMetadata(body)[key];
 }
 
 export function getBodyOutput(body) {
@@ -40,8 +40,8 @@ export function getBodyMinerId(body) {
 }
 
 export function hasStreamInput(body) {
-  for (let key in getAllMetadata(body)) {
-    if (metadataIsStream(getSingleMetadata(body, key))) return true;
+  for (let key in getBodyAllMetadata(body)) {
+    if (metadataIsStream(getBodySingleMetadata(body, key))) return true;
   }
   return false;
 }
