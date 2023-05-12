@@ -54,43 +54,99 @@ const httpAgent = new http.Agent({
 export const getFile = async (body) => {
     // const path = body.host + body.url;
     const path = appendUrl([body.host, body.url]).toString();
-    const res = await axios.get(path);
+    const res = await axios.get(path)
+      .then((response) => {
+        return {data: response.data, status: response.status};
+        })
+      .catch(error => {
+        console.log("CATCH: fetch error: ");
+        console.log(error);
+        return error;
+      });
     return {data: res.data, status: res.status};
 }
 
 export const GetMetadata = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.get(url);
+  const res = await axios.get(url)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
   return {data: res.data, status: res.status};
 }
 
 export const UpdateMetadata = async (path, resourceId, data) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.put(url, data);
+  const res = await axios.put(url, data)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
   return {data: res.data, status: res.status};
 }
 
 export const PostMetadata = async (path, data) => {
   const url = path;
-  const res = await axios.post(url, data);
+  const res = await axios.post(url, data)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });;
   return {data: res.data, status: res.status};
 }
 
 export const GetResource = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.get(url);
+  const res = await axios.get(url)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
   return {data: res.data, status: res.status};
 }
 
 export const UpdateResource = async (path, resourceId, data) => {
   const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.put(url, data);
+  const res = await axios.put(url, data)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
   return {data: res.data, status: res.status};
 }
 
-export const PostResource = async (path, resourceId) => {
-  const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.post(url);
+export const PostResource = async (path, data) => {
+  const url = path;
+  const res = await axios.post(url, data)
+    .then((response) => {
+      return {data: response.data, status: response.status};
+      })
+    .catch(error => {
+      console.log("CATCH: fetch error: ");
+      console.log(error);
+      return error;
+    });
   return {data: res.data, status: res.status};
 }
 
@@ -257,18 +313,25 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
   data.append("GeneratedFrom", generatedFrom);
   data.append("Parents", parents);
   if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
-  var requestOptions = {
-    agent: httpAgent,
-    method: "POST",
-    body: data,
-    redirect: "follow",
-  };
   
-  let responseData = await fetch(getBodyOutputHost(body), requestOptions);
-  let response = await responseData.json();
-  let responseObj = {
-    response: response,
-    status: responseData.ok,
+  const res = await PostResource(getBodyOutputHost(body), data);
+  return {
+    response: res.data,
+    status: res.status == 200,
   }
-  return responseObj;
+  
+  // var requestOptions = {
+  //   agent: httpAgent,
+  //   method: "POST",
+  //   body: data,
+  //   redirect: "follow",
+  // };
+  
+  // let responseData = await fetch(getBodyOutputHost(body), requestOptions);
+  // let response = await responseData.json();
+  // let responseObj = {
+  //   response: response,
+  //   status: responseData.ok,
+  // }
+  // return responseObj;
 };
