@@ -131,8 +131,9 @@ export function initEndpoints(app, configList) {
         res.send(processId.toString());
       }
     } 
-    
-    processStart(sendProcessId, req, configList);
+    const body = await req.body;
+    const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    processStart(sendProcessId, body, ownUrl, configList);
   });
 
   app.listen(port, '0.0.0.0', () => {

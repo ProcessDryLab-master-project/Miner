@@ -107,17 +107,12 @@ export async function stopProcess(processId) {
   return false;  // Process does not exist, BadRequest 400.
 }
 
-export async function processStart(sendProcessId, req, config) {
-  const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-  const body = await req.body;
+export async function processStart(sendProcessId, body, ownUrl, config) {
   const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
   if(!minerToRun) {
     sendProcessId(null, "Invalid request. No miner with that ID. Config may be out of date, consider refreshing the frontend.");
     return;
   }
-  
-  let resourceId; // Streams will need this to overwrite their output on repository.
-  function setResouceId(id) { resourceId = id; } // used in the response handler
 
   body["ResultFileId"] = crypto.randomUUID(); // Unique name the miner should save its result as.
 
@@ -129,22 +124,26 @@ export async function processStart(sendProcessId, req, config) {
   }
   const wrapperArgs = JSON.stringify(body);
   const childProcess = startAndGetProcess(minerToRun, wrapperArgs);
-  
-  let processId = childProcess.pid;
+  childProcess.stdin.setEncoding = "utf-8";
+  const processId = childProcess.pid;
 
-  // Creating dictionaries to keep track of processes and their status
-  setProcess(processId, childProcess);
+  setProcess(processId, childProcess); // Creating dictionaries to keep track of processes and their status
   setProcessStatusObj(processId, {}); // Create a new empty status object before updating/setting the values.
   updateProcessStatus(processId, statusEnum.Running);
   
   sendProcessId(processId); // Return process id to caller (frontend)
   console.log(`\n\n\nProcess successfully started: ${processId}`);
-  
+
+  childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId);
+}
+
+function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId) {
+  let resourceId; // Streams will need this to overwrite their output on repository.
+  function setResouceId(id) { resourceId = id; } // used in the response handler
   let firstSend = true;
   let resend = false;
   let tmpInt = 0; // TODO: Delete! Only for print limiting.
 
-  childProcess.stdin.setEncoding = "utf-8";
   // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
   let processOutput = "";
   childProcess.on('exit', function (code, signal) {
@@ -176,8 +175,7 @@ export async function processStart(sendProcessId, req, config) {
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        // TODO: Delete this if-statement before hand-in
-        if(tmpInt == 0) {
+        if(tmpInt == 0) { // TODO: Delete this if-statement before hand-in
           tmpInt = 1;
           console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         }
