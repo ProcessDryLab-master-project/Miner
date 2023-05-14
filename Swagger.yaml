@@ -141,6 +141,19 @@ paths:
             application/json:
               type: object
               description: The configurations of the miner found in /config.json
+  /configurations/{minerId}:
+    get: 
+      summary: Get the configuration of a single miner
+      description: Returns the configuration of a single miner. The configurations are defined in the config.json file.
+      parameters:
+        - in: path
+          name: minerId
+          schema:
+            type: string
+            description: The id of the miner to get the configuration from. Id must match the /config.json
+            example: "2"
+          required: true
+          description: The id of the miner to get the configuration from
   /shadow/{minerId}:
     get:
       summary: Provide the shadow of a miner to a foreign host
