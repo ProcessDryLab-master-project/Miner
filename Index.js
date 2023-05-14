@@ -8,6 +8,10 @@ import {
   cleanupFiles,
   initAllVenv,
 } from "./App/Utils.js";
+// import { swaggerDocument } from './Swagger.js';
+import { serve, setup } from 'swagger-ui-express';
+import YAML from 'yamljs';
+const swaggerDocument = YAML.load('./swagger.yaml');
 
 const configList = getConfig();
 
@@ -26,6 +30,8 @@ app.use(bodyParser.text({ type: "text/html" }));
 app.use(bodyParser.text({ type: "text/plain" }));
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: true })); // other example said false
+
+app.use('/swagger', serve, setup(swaggerDocument));
 
 import {
   initEndpoints,

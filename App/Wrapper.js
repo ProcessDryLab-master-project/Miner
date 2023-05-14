@@ -257,7 +257,7 @@ async function getFilesToMine(body, parents) {
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
       const result = await getResourceFromRepo(fileURL, inputFilePath);
-      if(!result.status == 200) return result; // If request failed, return the error msg.
+      if(!result.status) return result; // If request failed, return the error msg.
     }
   }
 }

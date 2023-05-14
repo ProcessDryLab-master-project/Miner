@@ -1,0 +1,283 @@
+
+openapi: 3.0.0
+info:
+  title: PDL Miner API
+  description: Miner for the PDL system
+  version: 0.0.1
+servers:
+  - url: http://localhost:5000/
+    description: Localhost for development server
+  - url: http://miner:5000/
+    description: Docker hosted development server. When other docker containers wants to call this service, use "http://miner:5000/" as the hostname.
+paths:
+  /ping:
+    get:
+      summary: Pulse check
+      description: Returns "Pong" if the service is running.
+      responses:
+        '200':    # status code
+          description: The service is running
+          content:
+            application/json:
+              schema: 
+                type: string
+                items: 
+                  type: string
+  /miner:
+    post:
+      summary: Execute action in the miner
+      description: Runs an action in the miner and returns the result. The available actions are listed in /config.json.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                MinerId:
+                  type: string
+                  description: The action to be executed
+                  example: "2"
+                Input:
+                  type: object
+                  description: Resources and parameters for the action
+                  properties:
+                    Resources: 
+                      type: object
+                      description: Resources for the action
+                      properties:
+                        ResourceIndentifier:
+                          type: object
+                          description: The name of the input resource defined in the config.json file
+                          properties:
+                            ResourceId:
+                              type: string
+                              description: Indentifier to get the resource from repository
+                              example: "ee72a5ef-4156-4e7c-9ce7-e3a65291f6c8"
+                            CreationDate:
+                                type: string
+                                description: Time of creation of the resource
+                                example: "31-03-2023 10:51:02"
+                            ResourceInfo:
+                                type: object
+                                description: Descriptive information on the file to be mined
+                                properties:
+                                  ResourceLabel:
+                                    type: string
+                                    description: The name of the resource
+                                    example: New_Miner_Resource
+                                  ResourceType:
+                                    type: string
+                                    description: The type of the resource
+                                    example: EventLog
+                                  Host:
+                                    type: string
+                                    description: The host of the resource
+                                    example: http://localhost:4001/resources/
+                                  FileExtension:
+                                    type: string
+                                    description: The file extension of the resource
+                                    example: xes
+                                  StreamTopic:
+                                    type: string
+                                    description: The stream topic of the resource. Only present if the resource is a stream
+                                    example: null
+                                  Description:
+                                    type: string
+                                    description: The description of the resource
+                                    example: A filtered log of Old_miner_resource
+                                  Dynamic:
+                                    type: boolean
+                                    description: The dynamic of the resource. This determines if a file can be updated after creation. Only used for stream resources.
+                                    example: false
+                            GenerationTree: 
+                              type: object
+                              description: The generation tree of the resource. The contents are unimportant for this service
+                    MinerParameters:
+                      type: object
+                      description: Parameters for the action
+                      properties:
+                        DEPENDENCY_THRESH: 
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 0.5
+                        AND_MEASURE_THRESH:
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 0.65
+                        MIN_ACT_COUNT:
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 1
+                        MIN_DFG_OCCURRENCES:
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 1
+                        DFG_PRE_CLEANING_NOISE_THRESH:
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 0.05
+                        LOOP_LENGTH_TWO_THRESH:
+                          type: number
+                          description: This paramter varies depending on the config.json file
+                          example: 2
+      responses:
+        '200':    # status code
+          description: The process id of a running process in the miner. Used to ping for process status later.
+          content:
+            application/json:
+              schema: 
+                type: number
+                description: A reference to the running process in the miner
+                example: 32832
+  /configurations:
+    get: 
+      summary: Get the configurations of the miner
+      description: Returns the configurations of the miner. The configurations are defined in the config.json file.
+      responses:
+        '200':    # status code
+          description: The configuration was sent successfully
+          content:
+            application/json:
+              type: object
+              description: The configurations of the miner found in /config.json
+  /shadow/{minerId}:
+    get:
+      summary: Provide the shadow of a miner to a foreign host
+      description: Another miner is requesting an action from this host, which is returned from this request.
+      parameters:
+        - in: path
+          name: minerId
+          schema:
+            type: string
+            description: The id of the miner to be cloned
+            example: "2"
+          required: true
+          description: The id of the miner to be cloned
+  /shadow:
+    post:
+      summary: Clone a miner from a foreign host
+      description: Clones a miner from a foreign host and returns the id of the new miner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Host:
+                  type: string
+                  description: The miner to get the clone from
+                  example: "http://localhost:5000/shadow/"
+                Config:
+                  type: object
+                  description: The configuration of the miner to be cloned
+                  properties:
+                    MinerId:
+                      type: string
+                      description: The id of the miner to be cloned
+                      example: "2"
+                    MinerLabel:
+                      type: string
+                      description: The label of the miner to be cloned
+                      example: "Alpha Miner"
+                    Type:
+                      type: string
+                      description: The type of the miner to be cloned
+                      example: "Miner"
+                    MinerPath:
+                      type: string
+                      description: The path of the miner to be cloned
+                      example: "Miners/MinerAlphaPy"
+                    MinerFile:
+                      type: string
+                      description: The file of the miner to be cloned
+                      example: "MinerAlpha.py"
+                    Access:
+                      type: string
+                      description: The access of the miner to be cloned
+                      example: "Public"
+                    Shadow:
+                      type: boolean
+                      description: The shadow of the miner to be cloned
+                      example: true
+                    ResourceInput:
+                      type: array
+                      description: The input resources of the miner to be cloned
+                      items:
+                        type: object
+                        properties:
+                          Name:
+                            type: string
+                            description: The name of the input resource
+                            example: "LogToRun"
+                          FileExtension:
+                            type: string
+                            description: The file extension of the input resource
+                            example: "xes"
+                          ResourceType:
+                            type: string
+                            description: The type of the input resource
+                            example: "EventLog"
+                    ResourceOutput:
+                      type: object
+                      description: The output resource of the miner to be cloned
+                      properties:
+                        FileExtension:
+                          type: string
+                          description: The file extension of the output resource
+                          example: "pnml"
+                        ResourceType:
+                          type: string
+                          description: The type of the output resource
+                          example: "PetriNet"
+                    MinerParameters:
+                      type: array
+                      description: The parameters of the miner to be cloned
+                      items:
+                        type: object
+  /shadow/requirements/{minerId}:
+    get:
+      summary: Get the requirements of a miner
+      description: Returns the requirements of a miner. The requirements are defined in the requirements.json file.
+      parameters:
+        - in: path
+          name: minerId
+          schema:
+            type: string
+            description: The id of the miner to get the requirements from. Id must match the /config.json
+            example: "2"
+          required: true
+          description: The id of the miner to get the requirements from
+  /status:
+    get:
+      summary: Get the status of all running processes
+      description: Returns the status of all running processes
+  /status/{processId}:
+    get:
+      summary: Get the status of a single running process
+      description: Returns the status of running process miner. The processId is generated and returned when a process is started.
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+            description: The processId must match the returned processId when a process is started.
+            example: "23563"
+          required: true
+          description: The processId must match the returned processId when a process is started.
+  /stop/{processId}:
+    delete:
+      summary: Stop a running process
+      description: Stops a specific running process 
+      parameters:
+        - in: path
+          name: processId
+          schema:
+            type: string
+            description: The processId of the process that should be stopped
+            example: "23563"
+          required: true
+          description: The processId of the process that should be stopped
+              
+
