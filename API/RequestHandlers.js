@@ -106,7 +106,7 @@ export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {
     data.append("GeneratedFrom", generatedFrom);
     data.append("Parents", parents);
 
-    const res = await PostMetadata(getBodyOutputHostInit(body), getBodyOutputLabel(body), data);
+    const res = await PostMetadata(getBodyOutputHostInit(body), data);
     return {
         response: res.data,
         status: res.status == 200,

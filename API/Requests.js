@@ -7,7 +7,7 @@ export const GetMetadata = async (path, resourceId) => {
   const res = await axios.get(url)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -21,7 +21,7 @@ export const UpdateMetadata = async (path, resourceId, data) => {
   const res = await axios.put(url, data)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -35,7 +35,7 @@ export const PostMetadata = async (path, data) => {
   const res = await axios.post(url, data)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -49,7 +49,7 @@ export const GetResource = async (path, resourceId) => {
   const res = await axios.get(url)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -63,7 +63,7 @@ export const UpdateResource = async (path, resourceId, data) => {
   const res = await axios.put(url, data)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -77,7 +77,7 @@ export const PostResource = async (path, data) => {
   const res = await axios.post(url, data)
     .then((response) => {
       return {data: response.data, status: response.status};
-      })
+    })
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
@@ -98,7 +98,6 @@ export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => 
         });
       response.data.pipe(fs.createWriteStream(filePath));
       return true;
-      
     })
     .catch(error => {
       console.error("CATCH: fetch error: ");

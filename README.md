@@ -114,6 +114,7 @@ On Linux/Mac the command is:
 
 
 ## Working around the Wrapper.
+Start the minerwrapper and navigate to /swagger for the API documentation. Be sure to implement all endpoints, as this will allow your miner to enter the system.
 ### Required Endpoints
 
 ### Required Requests
