@@ -1,8 +1,7 @@
-const port = 5000;
 import fs from 'fs';
 import path from "path";
+
 import {
-  writeConfig,
   getMinerPath,
   getMinerFile,
 } from "../App/ConfigUnpacker.js";
@@ -14,11 +13,12 @@ import {
 } from "../App/Wrapper.js";
 import {
   getForeignMiner,
-  getFile,
-} from "./Requests.js";
+} from "./RequestHandlers.js";
 import {
   initSingleVenv,
 } from "../App/Utils.js";
+
+const port = 5000; // The host port express will listen on.
 
 export function initEndpoints(app, configList) {
   app.get("/", function (req, res) {
@@ -28,7 +28,6 @@ export function initEndpoints(app, configList) {
     res.send("pong");
   });
   app.get(`/configurations`, function (req, res) {
-    // console.log("Getting a request on /configurations");
     res.send(configList);
   });
   // TODO: Consider if we need this endpoint. Leave it for now.
@@ -86,12 +85,12 @@ export function initEndpoints(app, configList) {
     let body = await req.body;
     await getForeignMiner(body, configList)
     .then(shadowConfig => {
-        console.log("Promise success");
+        console.log("request on /shadow exited successfully");
         initSingleVenv(shadowConfig, configList, true);
         res.status(200).send("Success"); // Or send result?
     })
     .catch(error => {
-      console.log("CATCH: Promise error: " + error);
+      console.log("request on /shadow exited unsuccessfully with error:" + error);
       res.status(400).send("Invalid request: " + error);
     });
   });
@@ -123,7 +122,7 @@ export function initEndpoints(app, configList) {
     console.log("Received POST request on /miner");
     function sendProcessId(processId, error) {
       if(error) {
-        console.log("Error: " + error);
+        console.error("Error: " + error);
         res.status(400).send(error);
       }
       else {
@@ -131,25 +130,12 @@ export function initEndpoints(app, configList) {
         res.send(processId.toString());
       }
     } 
-    
-    processStart(sendProcessId, req, configList);
+    const body = await req.body;
+    const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    processStart(sendProcessId, body, ownUrl, configList);
   });
 
   app.listen(port, '0.0.0.0', () => {
     console.log(`Example app listening on port ${port}`);
   });
-
-  app.get("/test", async function (req, res) {
-    const body = await req.body;
-    console.log(`Getting a request on /test ---- Making request for ${body.host}${body.url}`)
-    getFile(body)
-      .then((result) => {
-        console.log(result); 
-        res.send(result)
-      })
-      .catch((err) => {
-        console.log(err); 
-        res.send(err)
-      });
-  })
 }

@@ -1,10 +1,8 @@
 import spawn from "child_process";
 import crypto from "crypto";
-import fs from 'fs';
 import path from "path";
 import {
   removeFile,
-  isObjEmpty,
   appendUrl,
 } from "./Utils.js";
 import {
@@ -12,34 +10,19 @@ import {
   cmdExe,
 } from "./DockerHelpers.js";
 import {
-  getBodyInput,
-  getAllMetadata,
-  getSingleMetadata,
-  getBodyOutput,
-  getBodyOutputHost,
-  getBodyOutputHostInit,
-  getBodyOutputLabel,
+  getBodyAllMetadata,
+  getBodySingleMetadata,
   getBodyMinerId,
   hasStreamInput,
   metadataIsStream,
   getMetadataResourceId,
-  getMetadataResourceInfo,
-  getMetadataResourceType,
   getMetadataFileExtension,
   getMetadataHost,
   getBodyOutputTopic,
 } from "./BodyUnpacker.js";
 import {
-  getConfig,
-  getMinerResourceOutput,
-  getMinerId,
-  getMinerLabel,
-  getMinerResourceOutputType,
-  getMinerResourceOutputExtension,
   getMinerPath,
   getMinerFile,
-  getMinerResourceInput,
-  getMinerResourceInputKeys,
 } from "./ConfigUnpacker.js";
 import {
   statusEnum,
@@ -47,17 +30,12 @@ import {
   setProcessStatusObj,
   getProcessStatus,
   getProcessResourceId,
-  getProcessError,
-  setProcessStatus,
-  setProcessResourceId,
-  setProcessError,
   deleteFromBothDicts,
   deleteFromProcessDict,
-  deleteFromStatusDict,
   getProcessList,
   getProcess,
   setProcess,
-  killProcess,
+  updateProcessStatus
 } from "./ProcessHelper.js";
 import {
   sendResourceToRepo,
@@ -65,7 +43,7 @@ import {
   getResourceFromRepo,
   updateMetadata,
   sendMetadata,
-} from "../API/Requests.js";
+} from "../API/RequestHandlers.js";
 
 export function getProcessStatusList() {
   return getProcessList();
@@ -75,8 +53,6 @@ export async function getStatusDeleteIfDone(processId) {
   let tmpProcessObj = getProcessStatusObj(processId);
   if(!tmpProcessObj) return null;
   let status = tmpProcessObj.ProcessStatus;
-  // let processStatusObjString = JSON.stringify(tmpProcessObj, null, 4); // TODO: Delete on cleanup
-  // console.log(`Status dict send:\n${processStatusObjString}`);
   if(status && status != statusEnum.Running) { // if it's defined and it's not statusEnum.Running
     console.log(`Removing inactive process with status ${status}`);
     deleteFromBothDicts(processId);
@@ -87,10 +63,9 @@ export async function getStatusDeleteIfDone(processId) {
 export async function stopProcess(processId) {
   console.log(`Attempting to kill process with ID: ${processId}`);
   if(getProcess(processId)) {
-    // getProcess(processId).kill(); // Only works for .py, need the code below to stop any process. Likely only works on Windows
     spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
       if(error) {
-        console.log(error);
+        console.error(error);
         updateProcessStatus(processId, statusEnum.Crash, null, error);
       }
       if(stdout) {
@@ -98,7 +73,7 @@ export async function stopProcess(processId) {
         updateProcessStatus(processId, statusEnum.Complete);
       }
       if(stderr) {
-        console.log(stderr);
+        console.error(stderr);
         updateProcessStatus(processId, statusEnum.Crash, null, stderr);
       }
     });
@@ -107,17 +82,12 @@ export async function stopProcess(processId) {
   return false;  // Process does not exist, BadRequest 400.
 }
 
-export async function processStart(sendProcessId, req, config) {
-  const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-  const body = await req.body;
+export async function processStart(sendProcessId, body, ownUrl, config) {
   const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
   if(!minerToRun) {
     sendProcessId(null, "Invalid request. No miner with that ID. Config may be out of date, consider refreshing the frontend.");
     return;
   }
-  
-  let resourceId; // Streams will need this to overwrite their output on repository.
-  function setResouceId(id) { resourceId = id; } // used in the response handler
 
   body["ResultFileId"] = crypto.randomUUID(); // Unique name the miner should save its result as.
 
@@ -129,22 +99,26 @@ export async function processStart(sendProcessId, req, config) {
   }
   const wrapperArgs = JSON.stringify(body);
   const childProcess = startAndGetProcess(minerToRun, wrapperArgs);
-  
-  let processId = childProcess.pid;
+  childProcess.stdin.setEncoding = "utf-8";
+  const processId = childProcess.pid;
 
-  // Creating dictionaries to keep track of processes and their status
-  setProcess(processId, childProcess);
+  setProcess(processId, childProcess); // Creating dictionaries to keep track of processes and their status
   setProcessStatusObj(processId, {}); // Create a new empty status object before updating/setting the values.
   updateProcessStatus(processId, statusEnum.Running);
   
   sendProcessId(processId); // Return process id to caller (frontend)
-  console.log(`\n\n\nProcess successfully started: ${processId}`);
-  
+  console.info(`\n\n\nProcess successfully started: ${processId}`);
+
+  childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId);
+}
+
+function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId) {
+  let resourceId; // Streams will need this to overwrite their output on repository.
+  function setResouceId(id) { resourceId = id; } // used in the response handler
   let firstSend = true;
   let resend = false;
   let tmpInt = 0; // TODO: Delete! Only for print limiting.
 
-  childProcess.stdin.setEncoding = "utf-8";
   // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
   let processOutput = "";
   childProcess.on('exit', function (code, signal) {
@@ -176,8 +150,7 @@ export async function processStart(sendProcessId, req, config) {
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        // TODO: Delete this if-statement before hand-in
-        if(tmpInt == 0) {
+        if(tmpInt == 0) { // TODO: Delete this if-statement before hand-in
           tmpInt = 1;
           console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         }
@@ -185,8 +158,8 @@ export async function processStart(sendProcessId, req, config) {
         resend = true;
       })
       .catch((error) => {
-        console.log(`Error with processId ${processId}: ${error}`);
-        console.log(error);
+        console.error(`Error with processId ${processId}: ${error}`);
+        console.error(error);
         updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
         if(getProcess(processId)) 
           getProcess(processId).kill();
@@ -201,26 +174,28 @@ export async function processStart(sendProcessId, req, config) {
 function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to a helper file
   const minerPath = getMinerPath(minerConfig);
   const minerFile = getMinerFile(minerConfig);
-  let minerFullPath = path.join(minerPath, minerFile);
-  console.log("minerFullPath: " + minerFullPath);
+  const minerFullPath = path.join(minerPath, minerFile);
   const minerExtension = minerFile.split('.').pop();
-  // console.log("miner external: " + minerExternal);
+  console.log({
+    minerPath: minerPath,
+    minerFile: minerFile,
+    minerFullPath: minerFullPath,
+    minerExtension: minerExtension,
+  });
 
   switch(minerExtension){
     case "py":
       const pythonPath = path.join(minerPath, pythonVenvPath()); // "./Miners/MinerAlphaPy/env/Scripts/python.exe"
       console.log("running as python from path: " + pythonPath);
       return spawn.spawn(pythonPath, [minerFullPath, wrapperArgs]);
-      // return spawn.spawn("python", [minerExternal, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      // return spawn.spawn("cmd.exe", ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
       return spawn.spawn(cmdExe(), ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
     case "jar":
       console.log("running as jar");
       return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);
     default: 
-      console.log("Unsupported file extension: " + minerExtension);
+      console.error("Unsupported file extension: " + minerExtension);
       return null;
   }
 }
@@ -228,10 +203,10 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
 function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ // TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
-    if(hasStreamInput(body)) {  // If it's a stream, status should be "running"
+    if(hasStreamInput(body)) {  // Stream miners continue running after sending the first file.
       updateProcessStatus(processId, statusEnum.Running, responseObj.response);
     }
-    else { // If it's a normal miner, a response means it is complete.
+    else { // Non-stream miners complete and send the file.
       updateProcessStatus(processId, statusEnum.Complete, responseObj.response);
     }
   }
@@ -247,7 +222,6 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   
   if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
     console.log("Process completed successfully");
-    // updateProcessStatus(processId, statusEnum.Complete); // No longer needed, since we stop the process
   }
   else if (code == 1) // Means the miner process crashed
     updateProcessStatus(processId, statusEnum.Crash);
@@ -255,7 +229,7 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
     deleteFromBothDicts(processId);
   }
-  else console.log("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
+  else console.error("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
   
   if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
@@ -265,14 +239,14 @@ function onProcessExit(body, code, signal, processId, processOutput) {
   if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
     removeFile(processOutput);            // Deletes miner result file
   }
-  for(let key in getAllMetadata(body)){ // Deletes all downloaded files from repo
+  for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
   }
 }
 
 async function getFilesToMine(body, parents) {
-  for(let key in getAllMetadata(body)) { // Loop through all input resources
-    const metadataObject = getSingleMetadata(body, key);
+  for(let key in getBodyAllMetadata(body)) { // Loop through all input resources
+    const metadataObject = getBodySingleMetadata(body, key);
     parents.push({
       ResourceId: getMetadataResourceId(metadataObject),
       UsedAs: key,
@@ -286,12 +260,4 @@ async function getFilesToMine(body, parents) {
       if(!result.status) return result; // If request failed, return the error msg.
     }
   }
-}
-
-// HELPER FUNCTIONS!
-function updateProcessStatus(processId, processStatus, resourceId, errorMsg){
-  if(!getProcessStatusObj(processId)) return; // If object doesn't exist, it means it's been deleted in another thread. Then we don't do anything.
-  if(processStatus) setProcessStatus(processId, processStatus);
-  if(resourceId) setProcessResourceId(processId, resourceId);
-  if(errorMsg) setProcessError(processId, errorMsg);
 }
