@@ -20,4 +20,4 @@ while True:
     stringToSend = choice(string.ascii_letters)
     client.publish(topic, stringToSend)
     print(f"Just published {stringToSend} to topic {topic}")
-    time.sleep(1)
+    time.sleep(0.2)

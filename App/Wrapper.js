@@ -89,8 +89,6 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
     return;
   }
 
-  body["ResultFileId"] = crypto.randomUUID(); // Unique name the miner should save its result as.
-
   const parents = [];
   const getFilesResponse = await getFilesToMine(body, parents);
   if(getFilesResponse && !getFilesResponse.status) {
@@ -117,8 +115,6 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
   function setResouceId(id) { resourceId = id; } // used in the response handler
   let firstSend = true;
   let resend = false;
-  let tmpInt = 0; // TODO: Delete! Only for print limiting.
-
   // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
   let processOutput = "";
   childProcess.on('exit', function (code, signal) {
@@ -141,7 +137,7 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
         responsePromise = sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput);
       }
     }
-    else if(resend) {
+    else if(resend) { // && X time has passed since last send.
       console.log("Resend");
       resend = false;
       responsePromise = updateResourceOnRepo(body, processOutput, resourceId);
@@ -150,10 +146,7 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        if(tmpInt == 0) { // TODO: Delete this if-statement before hand-in
-          tmpInt = 1;
-          console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
-        }
+        console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         resend = true;
       })

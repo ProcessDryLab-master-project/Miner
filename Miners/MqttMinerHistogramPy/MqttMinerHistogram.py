@@ -7,6 +7,7 @@ import json
 import sys
 import time
 import urllib3
+import uuid
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 result_folder = './Tmp'
@@ -21,6 +22,7 @@ resourceTypeOutput = "Visualization" # TODO: Only used when sending, which will 
 repositoryOutputPath = "https://localhost:4000/resources/"
 streamBroker = "mqtt.eclipseprojects.io"
 timeToRun = 30
+prevFile = ""
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -33,6 +35,7 @@ def saveToFile(filePath):
     sys.stdout.flush()
 
 def on_message(client, userdata, message):
+    global prevFile
     # received = str(message.payload.decode("utf-8")).capitalize()
     received = str(message.payload.decode("utf-8"))
     # eprint("Received: ", received)
@@ -44,7 +47,14 @@ def on_message(client, userdata, message):
         alphabetList[index] = [received, innerList[1]]
     else:
         alphabetList.append([received, 1])
-    saveToFile(filePath)
+    
+    # if prevFile exist in path, do nothing
+    if(not os.path.isfile(prevFile)): # Only make new file, if previous file has been deleted by wrapper, which means it's been sent.
+        resultFileId = str(uuid.uuid4())
+        fileName = f"{resultFileId}.{fileExtension}"
+        filePath = os.path.join(result_folder, fileName)
+        prevFile = filePath
+        saveToFile(filePath)
 global boolRun
 boolRun = True
 
@@ -54,9 +64,9 @@ def subscribeAndRun(client, streamTopic):
     # client.loop_forever()
     client.subscribe(streamTopic)
     client.on_message = on_message
-    eprint("boolRun: " , boolRun)
+    eprint("boolRun: ", boolRun)
     while boolRun: 
-        time.sleep(0.5)
+        time.sleep(0.1)
     # time.sleep(timeToRun)
     client.loop_stop()
 
@@ -66,7 +76,8 @@ if __name__ == "__main__":
         wrapperArgsString = sys.argv[1]
         body = json.loads(wrapperArgsString)
         
-        resultFileId = body["ResultFileId"]
+        # resultFileId = body["ResultFileId"]
+        resultFileId = str(uuid.uuid4())
         input = body["Input"]
         # minerParameters = input.get("MinerParameters")
         # print("minerParameters: ", minerParameters)
@@ -88,8 +99,11 @@ if __name__ == "__main__":
         # print("streamBroker: ", streamBroker)
         # print("streamTopic: ", streamTopic)
         # print("repositoryOutputPath: ", repositoryOutputPath)
-        fileName = f"{resultFileId}.{fileExtension}"
-        filePath = os.path.join(result_folder, fileName)
+
+
+        # resultFileId = str(uuid.uuid4())
+        # fileName = f"{resultFileId}.{fileExtension}"
+        # filePath = os.path.join(result_folder, fileName)
 
         clientName = resultFileId
         client = mqtt.Client(clientName)

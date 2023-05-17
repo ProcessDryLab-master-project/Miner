@@ -58,6 +58,20 @@ export function appendUrl(urls = []){
   return new URL(concatPath);
 }
 
+export function streamToString (stream) {
+  const chunks = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+  })
+}
+// Use like this:
+// streamToString(data._streams[1])
+// .then(res => {
+//     console.log(res);
+// });
+
 export function removeObjectWithId(arr, id) {
   const objWithIdIndex = arr.findIndex((obj) => obj.MinerId === id);
 

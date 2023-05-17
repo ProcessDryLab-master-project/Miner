@@ -24,7 +24,10 @@ import {
   getMinerResourceOutputExtension,
   getMinerFile,
 } from "../App/ConfigUnpacker.js";
-import { appendUrl } from "../App/Utils.js";
+import { 
+    appendUrl,
+    removeFile,
+} from "../App/Utils.js";
 
 export const getForeignMiner = async (body, configList) => {
     // BE AWARE that the order of variable assignments are IMPORTANT!
@@ -117,20 +120,12 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
     const stats = fs.statSync(minerResult);
     const fileSizeInBytes = stats.size;
     const fileStream = fs.createReadStream(minerResult);
-
-    if(fileSizeInBytes == 0) { // TODO: This may be an error, printing to identify it. Remove when problem is identified.
-        console.log("fileSizeInBytes: " + fileSizeInBytes); 
-        console.log("minerResult: " + minerResult);
-        console.log("file exists: " + fs.existsSync(minerResult));
-        fileStream.on('data', function (chunk) {
-            console.log("file content: " + chunk.toString());
-        });
-    } 
-
     const data = new FormData();
     data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
 
     const res = await UpdateResource(getBodyOutputHost(body), resourceId, data);
+    console.log("Removing: " + minerResult);
+    removeFile(minerResult);
     return {
         response: res.data,
         status: res.status == 200,
@@ -162,6 +157,8 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
     if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
     
     const res = await PostResource(getBodyOutputHost(body), data);
+    console.log("Removing: " + minerResult);
+    removeFile(minerResult);
     return {
         response: res.data,
         status: res.status == 200,
