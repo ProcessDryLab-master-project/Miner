@@ -89,6 +89,7 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
     return;
   }
 
+  body["ResultFileId"] = crypto.randomUUID(); // TODO: This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
   const parents = [];
   const getFilesResponse = await getFilesToMine(body, parents);
   if(getFilesResponse && !getFilesResponse.status) {
@@ -148,6 +149,8 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       .then((responseObj) => {
         console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
+        console.log("Removing: " + processOutput);
+        removeFile(processOutput);
         resend = true;
       })
       .catch((error) => {
@@ -229,9 +232,9 @@ function onProcessExit(body, code, signal, processId, processOutput) {
     updateMetadata(body, getProcessResourceId(processId), false);
   }
 
-  if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
-    removeFile(processOutput);            // Deletes miner result file
-  }
+  // if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
+  //   removeFile(processOutput);            // Deletes miner result file
+  // }
   for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
   }

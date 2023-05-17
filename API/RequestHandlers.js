@@ -124,8 +124,6 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
     data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
 
     const res = await UpdateResource(getBodyOutputHost(body), resourceId, data);
-    console.log("Removing: " + minerResult);
-    removeFile(minerResult);
     return {
         response: res.data,
         status: res.status == 200,
@@ -157,8 +155,6 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
     if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
     
     const res = await PostResource(getBodyOutputHost(body), data);
-    console.log("Removing: " + minerResult);
-    removeFile(minerResult);
     return {
         response: res.data,
         status: res.status == 200,
