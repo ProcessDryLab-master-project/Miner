@@ -149,7 +149,6 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       .then((responseObj) => {
         console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
-        console.log("Removing: " + processOutput);
         removeFile(processOutput);
         resend = true;
       })
