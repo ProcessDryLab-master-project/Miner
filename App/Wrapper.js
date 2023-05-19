@@ -70,7 +70,7 @@ export async function stopProcess(processId) {
       }
       if(stdout) {
         console.log(stdout);
-        updateProcessStatus(processId, statusEnum.Complete);
+        deleteFromBothDicts(processId); // If process was stopped, just remove it.
       }
       if(stderr) {
         console.error(stderr);
