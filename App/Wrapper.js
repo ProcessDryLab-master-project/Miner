@@ -92,8 +92,8 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
   body["ResultFileId"] = crypto.randomUUID(); // TODO: This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
   const parents = [];
   const getFilesResponse = await getFilesToMine(body, parents);
-  if(getFilesResponse && !getFilesResponse.status) {
-    sendProcessId(null, getFilesResponse.response);
+  if(getFilesResponse) { // The function only returns something if things went bad.
+    sendProcessId(null, getFilesResponse.data);
     return;
   }
   const wrapperArgs = JSON.stringify(body);
@@ -130,8 +130,8 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       console.log("FirstSend");
       firstSend = false;
       if(processOutput == "STREAM") { // TODO: Consider if this is the best way to see the type of output.
-        console.log("IS A STREAM");
-        body["StreamTopic"] = getBodyOutputTopic(body);
+        // console.log("IS A STREAM");
+        // body["StreamTopic"] = getBodyOutputTopic(body);
         responsePromise = sendMetadata(body, minerToRun, ownUrl, parents)
       }
       else {
@@ -252,7 +252,9 @@ async function getFilesToMine(body, parents) {
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
       const result = await getResourceFromRepo(fileURL, inputFilePath);
-      if(!result.status) return result; // If request failed, return the error msg.
+      console.log("fetch resources result: ");
+      console.log(result);
+      if(result.status !== 200) return result; // If status is undefined or error code, return the error msg.
     }
   }
 }

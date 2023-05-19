@@ -5,9 +5,9 @@ import crypto from "crypto";
 import {
     UpdateMetadata,
     PostMetadata,
-    UpdateResource,
-    PostResource,
-    GetAndSaveWithStream
+    UpdateFile,
+    PostFile,
+    GetFile
 } from "./Requests.js";
 import {
   getBodyOutputHost,
@@ -30,7 +30,6 @@ import {
 } from "../App/Utils.js";
 
 export const getForeignMiner = async (body, venvInitId) => {
-    // TODO: Shadowing 2 miners with the same ID (e.g. id = 1), will save them both as "Shadow-1". 
     const shadowConfig = body.Config;
     const extMinerId = getMinerId(shadowConfig);
     const newShadowId = venvInitId;
@@ -42,12 +41,12 @@ export const getForeignMiner = async (body, venvInitId) => {
     const requirementsUrl = appendUrl([body.Host, "requirements", extMinerId]).toString();
     const shadowFileName = `Shadow-${newShadowId}`;
     const shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
-    const shadowFolderPath = `./Miners/${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
+    const shadowFolderPath = `./Miners/${shadowFileName}`;
     const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
     shadowConfig.MinerPath = shadowFolderPath;
     shadowConfig.MinerFile = shadowNameWithExt;
 
-    const successGetShadowMiner = await GetAndSaveWithStream(shadowUrl, shadowFilePath, shadowFolderPath)
+    const successGetShadowMiner = await GetFile(shadowUrl, shadowFilePath, shadowFolderPath)
     if(!successGetShadowMiner){ // TODO: Handle this better
         console.error("Unsuccessful in getting shadow miner");
     }
@@ -61,7 +60,7 @@ export const getForeignMiner = async (body, venvInitId) => {
     }
 
     const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
-    const successGetRequirements = await GetAndSaveWithStream(requirementsUrl, requirementsPath)
+    const successGetRequirements = await GetFile(requirementsUrl, requirementsPath)
     if(!successGetRequirements){ // TODO: Handle this better
         console.error("Unsuccessful in getting requirements");
     }
@@ -70,11 +69,12 @@ export const getForeignMiner = async (body, venvInitId) => {
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
-    const result = await GetAndSaveWithStream(url, filePath);
-    return {
-        response: result ? "File saved" : "Exception when writing downloaded file to Tmp folder.",
-        status: !!result,
-    }
+    const result = await GetFile(url, filePath);
+    return result;
+    // return {
+    //     response: result ? "File saved" : "Exception when writing downloaded file to Tmp folder.",
+    //     status: !!result,
+    // }
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
@@ -124,7 +124,7 @@ export const updateResourceOnRepo = async (body, minerResult, resourceId) => {
     const data = new FormData();
     data.append("field-name", fileStream, { knownLength: fileSizeInBytes });
 
-    const res = await UpdateResource(getBodyOutputHost(body), resourceId, data);
+    const res = await UpdateFile(getBodyOutputHost(body), resourceId, data);
     return {
         response: res.data,
         status: res.status == 200,
@@ -155,7 +155,7 @@ export const sendResourceToRepo = async (body, minerToRun, ownUrl, parents, mine
     data.append("Parents", parents);
     if(isDynamic) data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
     
-    const res = await PostResource(getBodyOutputHost(body), data);
+    const res = await PostFile(getBodyOutputHost(body), data);
     return {
         response: res.data,
         status: res.status == 200,

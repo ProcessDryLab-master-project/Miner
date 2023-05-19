@@ -13,7 +13,7 @@ export const GetMetadata = async (path, resourceId) => {
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
-      return {data: error, status: response.status};
+      return {data: error.message, status: error.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -27,7 +27,7 @@ export const UpdateMetadata = async (path, resourceId, data) => {
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
-      return {data: error, status: response.status};
+      return {data: error.message, status: error.status};
     });
   return {data: res.data, status: res.status};
 }
@@ -41,25 +41,25 @@ export const PostMetadata = async (path, data) => {
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
-      return {data: error, status: response.status};
+      return {data: error.message, status: error.status};
     });;
   return {data: res.data, status: res.status};
 }
-
-export const GetResource = async (path, resourceId) => {
-  const url = appendUrl([path, resourceId]).toString();
-  const res = await axios.get(url)
-    .then((response) => {
-      return {data: response.data, status: response.status};
-    })
-    .catch(error => {
-      console.error("CATCH: fetch error: ");
-      console.error(error);
-      return {data: error, status: response.status};
-    });
-  return {data: res.data, status: res.status};
-}
-export const UpdateResource = async (path, resourceId, data) => {
+// TODO: Delete? Don't think it was used
+// export const GetResource = async (path, resourceId) => {
+//   const url = appendUrl([path, resourceId]).toString();
+//   const res = await axios.get(url)
+//     .then((response) => {
+//       return {data: response.data, status: response.status};
+//     })
+//     .catch(error => {
+//       console.error("CATCH: fetch error: ");
+//       console.error(error);
+//       return {data: error.message, status: error.status};
+//     });
+//   return {data: res.data, status: res.status};
+// }
+export const UpdateFile = async (path, resourceId, data) => {
   // TODO: Delete uses of "numUpdates" below before hand-in. Just to track how many updates it's got.
   if(numUpdates[resourceId] == null) numUpdates[resourceId] = 1;
   else numUpdates[resourceId] += 1;
@@ -73,12 +73,12 @@ export const UpdateResource = async (path, resourceId, data) => {
     .catch(error => {
       console.error("CATCH: axios error: ");
       console.error(error);
-      return {data: error, status: response.status};
+      return {data: error.message, status: error.status};
     });
   return {data: res.data, status: res.status};
 }
 
-export const PostResource = async (path, data) => {
+export const PostFile = async (path, data) => {
   const url = path;
   const res = await axios.post(url, data)
     .then((response) => {
@@ -87,12 +87,12 @@ export const PostResource = async (path, data) => {
     .catch(error => {
       console.error("CATCH: fetch error: ");
       console.error(error);
-      return {data: error, status: response.status};
+      return {data: error.message, status: error.status};
     });
   return {data: res.data, status: res.status};
 }
 
-export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => {
+export const GetFile = async (url, filePath, folderPath = null) => {
   return await axios({
     method: 'get',
     url: url,
@@ -103,11 +103,11 @@ export const GetAndSaveWithStream = async (url, filePath, folderPath = null) => 
           if (err) reject(err.text().then(text => {throw new Error(text)}));
         });
       response.data.pipe(fs.createWriteStream(filePath));
-      return true;
+      return {data: "File saved", status: response.status};
     })
     .catch(error => {
-      console.error("CATCH: fetch error: ");
+      console.error("CATCH: axios error: ");
       console.error(error);
-      return error;
+      return {data: error.message, status: error.response?.status};
     });
 }
