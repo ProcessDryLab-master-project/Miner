@@ -35,7 +35,6 @@ export const getForeignMiner = async (body, venvInitId) => {
     const extMinerId = getMinerId(shadowConfig);
     const newShadowId = venvInitId;
     shadowConfig.MinerId = newShadowId;
-    shadowConfig.MinerLabel = "Shadowed " + shadowConfig.MinerLabel;
 
     // BE AWARE that the order of variable assignments are IMPORTANT!
     const shadowExtension = getMinerFile(shadowConfig).split('.').pop();

@@ -32,16 +32,6 @@ export function initEndpoints(app, configList) {
   app.get(`/configurations`, function (req, res) {
     res.send(configList);
   });
-  // TODO: Consider if we need this endpoint. Leave it for now.
-  app.get(`/configurations/:minerId`, function (req, res) {
-    console.log(`Getting a request on /configurations/${req.params.minerId}`);
-    let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
-    if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, miner with label: \"${requestedConfig.MinerLabel}\" and id: \"${requestedConfig.MinerId}\" cannot be shadowed.`);
-    else {
-      requestedConfig.External = null;
-      res.send(requestedConfig);
-    }
-  });
   // Endpoint to return algorithm file that needs to be shadowed.
   app.get(`/shadow/:minerId`, function (req, res) {
     console.log(`Getting a request on /shadow/${req.params.minerId}`);
