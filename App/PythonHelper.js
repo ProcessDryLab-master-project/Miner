@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import spawn from "child_process";
-import crypto from "crypto";
 import {
     writeConfig,
     getConfig,
@@ -27,7 +26,7 @@ var venvStatusEnum = {
 
 
 function removeVenvStatus(venvInitId) {
-    delete venvStatusObj[venvInitId];
+    if(venvStatusObj[venvInitId]) delete venvStatusObj[venvInitId];
   }
   
   function getVenvStatus(venvInitId) {
@@ -35,7 +34,7 @@ function removeVenvStatus(venvInitId) {
   }
   
   function setVenvStatus(venvInitId, status) {
-    venvStatusObj[venvInitId] = status;
+    if(venvInitId) venvStatusObj[venvInitId] = status;
   }
   
   function removeObjectWithId(arr, id) {
@@ -141,7 +140,7 @@ export async function initSingleVenv(config, configList, venvInitId) {
     if (venvInitId) writeConfig(configList);
 
     setVenvStatus(venvInitId, venvStatusEnum.Complete);
-    console.info(`Setup with id ${venvInitId} for ${minerFile} is complete.`);
+    console.info(`Setup for ${minerFile} is complete.`);
   }
 }
 

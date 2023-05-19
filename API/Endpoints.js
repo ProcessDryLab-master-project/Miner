@@ -85,7 +85,7 @@ export function initEndpoints(app, configList) {
     console.log(`Getting a request on /shadow`);
     
     let body = await req.body;
-    await getForeignMiner(body, configList)
+    await getForeignMiner(body)
     .then(shadowConfig => {
         console.log("request on /shadow exited successfully");
         let venvInitId = crypto.randomUUID();

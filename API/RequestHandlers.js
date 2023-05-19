@@ -29,22 +29,24 @@ import {
     removeFile,
 } from "../App/Utils.js";
 
-export const getForeignMiner = async (body, configList) => {
-    // BE AWARE that the order of variable assignments are IMPORTANT!
+export const getForeignMiner = async (body) => {
+    // TODO: Shadowing 2 miners with the same ID (e.g. id = 1), will save them both as "Shadow-1". 
     const shadowConfig = body.Config;
+    const extMinerId = getMinerId(shadowConfig);
+    const newShadowId = crypto.randomUUID();
+    shadowConfig.MinerId = newShadowId;
+    shadowConfig.MinerLabel = "Shadowed " + shadowConfig.MinerLabel;
+
+    // BE AWARE that the order of variable assignments are IMPORTANT!
     const shadowExtension = getMinerFile(shadowConfig).split('.').pop();
-    const shadowUrl = appendUrl([body.Host, getMinerId(shadowConfig)]).toString();
-    const requirementsUrl = appendUrl([body.Host, "requirements", getMinerId(shadowConfig)]).toString();
-    const shadowFileName = `Shadow-${getMinerId(shadowConfig)}`;
+    const shadowUrl = appendUrl([body.Host, extMinerId]).toString();
+    const requirementsUrl = appendUrl([body.Host, "requirements", extMinerId]).toString();
+    const shadowFileName = `Shadow-${newShadowId}`;
     const shadowNameWithExt = `${shadowFileName}.${shadowExtension}`;
     const shadowFolderPath = `./Miners/${shadowFileName}`; // TODO: Should "Miners" just be hardcoded in here? 
     const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
     shadowConfig.MinerPath = shadowFolderPath;
     shadowConfig.MinerFile = shadowNameWithExt;
-
-    if(configList.find(miner => miner.MinerId == getMinerId(shadowConfig))) {
-        shadowConfig.MinerId = crypto.randomUUID(); // If a miner already exists with the original ID, we need to create a new one.
-    }
 
     const successGetShadowMiner = await GetAndSaveWithStream(shadowUrl, shadowFilePath, shadowFolderPath)
     if(!successGetShadowMiner){ // TODO: Handle this better
