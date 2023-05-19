@@ -124,12 +124,33 @@ The Miner Wrapper will take care of all the necessary communication, error handl
 The request body used when starting a mining algorithm is reused and passed as args to the algorithms main method. If the algorithm need any files as resource input, the Wrapper will retrieve these from a repository and save them in the Tmp folder. The path to these files are added to the body (the input args that the algorithm receives) under the key(s) defined in the ResourceInput list from the configuration object. Any additional inputs, such as streams or algorithm parameters are already defined by the request body and can be extracted as well.
 
 When writing a new algorithm you simply have to read the input args in main and unpack it to a json object.
+
+Algorithms should always save its result in a file in the "./Tmp" folder and print the path to this file. The Wrapper will read "stdout" of any process/algorithm that is being executed, which should always be the path to the file containing the result. If any additional prints/logs are needed, these should be printed as "stderr", so the Wrapper can differentiate between the output path and logging. 
+
+Once an output path has been printed, the Wrapper will send the file to the location defined by the incoming request.
 ### Examples
 - View MinerInductivePy for a python example that takes 1 XES EventLog and no parameters
 - View MinerHueristicPy for a python example that takes 1 XES EventLog and multiple parameters
 - View MinerConformanceTBRPy for a python example that takes 2 input resources: 1 XES EventLog and 1 PNML PetriNet
 - View MqttMinerHistogramPy for a python example that takes an EventStream as input and outputs a Histogram
 - View MqttFilterPy for a python example that takes an EventStream as input and outputs a filtered EventStream
+
+## Stream Miners
+Streaming algorithms can be implemented largely the same as regular miners, except they will need to connect to the stream themselves. The Stream Broker, that the miner should connect to, and the Stream Topic it should subscribe to, are provided in the request body.
+Streaming miners should print the output file path, every time an update has happened to the result, to avoid redundant requests. The Wrapper will ensure that each time the algorithm prints a new path, the new result is being sent to the Repository.
+
+Note: Both consumers and publishers must have a client name when connecting to a Stream Broker. Having 2 clients connected to the same network with the same name will cause errors. This applies to both consumers and publishers of the stream. The example streaming algorithms use a UUID as their client name to avoid issues when starting multiple instances of the same miner.
+
+### Streaming publishers
+Since streaming algorithms don't take resources from a Repository, it is up to the developer to ensure that the input stream that is being used, receives data on that Topic. The streaming algorithms used in this project, all consume data from a publically available Stream Broker, called "mqtt.eclipseprojects.io". The Stream Topic receives data from another python script, either "MqttPublisher1.py" or "MqttPublisher2.py". Running any of the example streaming miners without anything publishing to the Topic will do nothing. To run these publishers, you can run the command:
+```
+py .\Miners\MqttPublisher1.py
+# or
+py .\Miners\MqttPublisher2.py
+```
+Both of these publishers do the same, except they are created using different client names to avoid errors. You can either use these publishers directly or change the type of output to suit the needs of your streaming algorithm. Note that neither of these publishers actually publish events, but simply random letters of the alphabet to display a simple example.
+### Output streams
+If the streaming algorithm outputs a new stream, instead of a result file, the stdout print should be "STREAM" to let the Wrapper know that it shouldn't send a result file from the Tmp folder. The input args that each algorithm receives will contain an output Stream Broker and output Stream Topic, which the algorithm should publish its data to. The Wrapper will still send a metadata object to the Repository, containing information on the location and the type of data, which other streaming miners can consume from.
 ## Python Virtual Environments
 If you're writing your algorithm in python, you will need to create a python virtual environment for each miner. Each virtual environment, called "env", should be located in the folder you created for your algorithm, along with the .py file and the requirements.txt, like this:
 ```
