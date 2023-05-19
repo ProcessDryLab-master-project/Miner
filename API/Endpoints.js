@@ -18,7 +18,7 @@ import {
 import {
   initSingleVenv,
   getVenvStatusDeleteIfDone,
-} from "../App/PythonHelper.js";
+} from "../App/PyVenvHelper.js";
 
 const port = 5000; // The host port express will listen on.
 
