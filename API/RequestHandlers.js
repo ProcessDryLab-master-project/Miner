@@ -29,11 +29,11 @@ import {
     removeFile,
 } from "../App/Utils.js";
 
-export const getForeignMiner = async (body) => {
+export const getForeignMiner = async (body, venvInitId) => {
     // TODO: Shadowing 2 miners with the same ID (e.g. id = 1), will save them both as "Shadow-1". 
     const shadowConfig = body.Config;
     const extMinerId = getMinerId(shadowConfig);
-    const newShadowId = crypto.randomUUID();
+    const newShadowId = venvInitId;
     shadowConfig.MinerId = newShadowId;
     shadowConfig.MinerLabel = "Shadowed " + shadowConfig.MinerLabel;
 
