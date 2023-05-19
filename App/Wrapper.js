@@ -8,7 +8,7 @@ import {
 import {
   pythonVenvPath,
   cmdExe,
-} from "./DockerHelpers.js";
+} from "./OSHelper.js";
 import {
   getBodyAllMetadata,
   getBodySingleMetadata,

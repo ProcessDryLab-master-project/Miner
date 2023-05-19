@@ -82,6 +82,7 @@ node .\Index.js
 ```
 If you're running the Miner Wrapper with all the prebuilt python miners, the Miner Wrapper will create virtual environments for each python miner and install their dependencies from the provided requirements.txt files, which may take some time. Any Miner that is ready to use, can be called while the virtual environments are intiialized for the other Miners.
 # Adding Miners
+Miner nodes in PDL are not restricted to python, and it can be any language as long as the communication described in the Swagger.yaml file is supported, as well as the config.json remains the same. However, the Miner Wrapper currently only support .py, .exe and .jar files, and can be extended to support any algorithm that can be run through a terminal. The Miner Wrapper only has .py and .exe examples.
 ## Location
 When creating or adding new algorithms to the Miner Wrapper, a new sub-folder should be created in 
 ```
@@ -129,7 +130,57 @@ When writing a new algorithm you simply have to read the input args in main and 
 - View MinerConformanceTBRPy for a python example that takes 2 input resources: 1 XES EventLog and 1 PNML PetriNet
 - View MqttMinerHistogramPy for a python example that takes an EventStream as input and outputs a Histogram
 - View MqttFilterPy for a python example that takes an EventStream as input and outputs a filtered EventStream
+## Python Virtual Environments
+If you're writing your algorithm in python, you will need to create a python virtual environment for each miner. Each virtual environment, called "env", should be located in the folder you created for your algorithm, along with the .py file and the requirements.txt, like this:
+```
+Miner/Miners/<NewMiner>/env
+Miner/Miners/<NewMiner>/requirements.txt
+Miner/Miners/<NewMiner>/<NewMiner>.py
+```
+### Creating a python virtual environment
+To create a python virtual environment, consider reading the following: https://python.land/virtual-environments/virtualenv.
+Create and/or navigate to the folder where you python miner is/should be located. If we use MinerAlpha.py as an example, navigate to
+```
+cd ./MinerWrapper/Miners/MinerAlphaPy
+```
+Create the virtual environment with the following command. Note that "env" is the name of the virtual environment and will create a folder called "env"
+```
+python -m venv env
+```
+### Activate the virtual environment.
+On Windows with cmd.exe, the command is:
+```
+env\Scripts\activate.bat
+```
+On Windows with PowerShell (usually default in vscode terminal), the command is:
+```
+env\Scripts\Activate.ps1
+```
+On Linux/Mac the command is:
+```
+source myvenv/bin/activate
+```
+### Dependencies in requirements.txt
+Make sure you have activated the virtual environment you wish to export/import from/to before executing these steps. To export a list of all the dependencies in a virtual environment, run the following command:
 
+On Windows:
+```
+pip freeze > requirements.txt
+```
+On Linux
+```
+pip3 freeze > requirements.txt
+```
+To install the dependencies from a requirements.txt file, run the following command:
+
+On Windows:
+```
+pip install -r requirements.txt
+```
+On Linux:
+```
+pip3 install -r requirements.txt
+```
 ## Converting a python script to an executable
 The tool currently only support .py, .exe and .jar, however, any file/algorithm that can be run from a terminal can easily be added to the Wrapper.js. If you wish to convert a python script into an executable for any reason, such as to protect the source code, follow these steps:
 
@@ -161,28 +212,3 @@ Miner/Miners/yourAlgorithmExeFolder
 Delete the "build" and "dist" folders, and delete the ".spec" file that were created in the folder for your python algorithm, so the only new file is the new .exe file that you moved out.
 
 Add a reference to this new .exe in "config.json" along with your other miners. The config object should largely be able to be copied from the original, however, it should have a new ID and the "MinerPath" and "MinerFile" keys should reference the new folder and .exe file name.
-
-
-## Creating a python virtual environment
-Consider reading the following: https://python.land/virtual-environments/virtualenv
-Create and/or navigate to the folder where you python miner is/should be located. If we use MinerAlpha.py as an example, navigate to
-### `cd ./MinerWrapper/Miners/MinerAlphaPy`
-
-Create the virtual environment with the following command. Note that "env" is the name of the virtual environment and will create a folder called "env"
-### `python -m venv env`
-#### Activate the virtual environment.
-On Windows with cmd.exe, the command is:
-### `env\Scripts\activate.bat`
-
-On Windows with PowerShell (usually default in vscode terminal), the command is:
-### `env\Scripts\Activate.ps1`
-
-On Linux/Mac the command is:
-### `source myvenv/bin/activate`
-
-
-## Working around the Wrapper.
-Start the minerwrapper and navigate to /swagger for the API documentation. Be sure to implement all endpoints, as this will allow your miner to enter the system.
-### Required Endpoints
-
-### Required Requests

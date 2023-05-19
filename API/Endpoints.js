@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from "path";
+import crypto from "crypto";
 
 import {
   getMinerPath,
@@ -16,7 +17,8 @@ import {
 } from "./RequestHandlers.js";
 import {
   initSingleVenv,
-} from "../App/Utils.js";
+  getVenvStatusDeleteIfDone,
+} from "../App/PythonHelper.js";
 
 const port = 5000; // The host port express will listen on.
 
@@ -86,13 +88,22 @@ export function initEndpoints(app, configList) {
     await getForeignMiner(body, configList)
     .then(shadowConfig => {
         console.log("request on /shadow exited successfully");
-        initSingleVenv(shadowConfig, configList, true);
-        res.status(200).send("Success"); // Or send result?
+        let venvInitId = crypto.randomUUID();
+        initSingleVenv(shadowConfig, configList, venvInitId);
+        res.status(200).send(venvInitId);
     })
     .catch(error => {
       console.log("request on /shadow exited unsuccessfully with error:" + error);
       res.status(400).send("Invalid request: " + error);
     });
+  });
+
+  app.get(`/shadow/status/:venvInitId`, async function (req, res) {
+    let venvInitId = req.params.venvInitId;
+    console.log(`Getting a request on /shadow/status for id ${venvInitId}`);
+    let venvStatus = await getVenvStatusDeleteIfDone(venvInitId);
+    if(venvStatus) res.status(200).send(venvStatus);
+    else res.status(400).send(`No process exists with ID: ${venvInitId}`);
   });
 
 
