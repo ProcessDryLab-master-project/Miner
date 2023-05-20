@@ -77,10 +77,10 @@ export async function initSingleVenv(config, configList, venvInitId) {
   const minerFile = getMinerFile(config);
   const minerExtension = minerFile.split(".").pop();
 
+  setVenvStatus(venvInitId, venvStatusEnum.Running); // This will be called by exe and other types as well
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
     // console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
     removeObjectWithId(configList, config.MinerId);
-    setVenvStatus(venvInitId, venvStatusEnum.Running);
 
     console.info(`Create venv for ${minerFile}`);
     await cmd(python(), "-m", "venv", venvPath)
@@ -139,9 +139,9 @@ export async function initSingleVenv(config, configList, venvInitId) {
     configList.push(config);
     if (venvInitId) writeConfig(configList);
 
-    setVenvStatus(venvInitId, venvStatusEnum.Complete);
-    console.info(`Setup for ${minerFile} is complete.`);
   }
+  setVenvStatus(venvInitId, venvStatusEnum.Complete);
+  console.info(`Setup for ${minerFile} is complete.`);
 }
 
 async function cmd(...command) {
