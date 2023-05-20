@@ -73,6 +73,7 @@ export function isObjEmpty (obj) {
 export function appendUrl(urls = []){
   let concatPath = "";
   urls.forEach(url => {
+    // TODO: if url is undefined, break and handle it.
     concatPath = path.join(concatPath, url.toString());
   });
   return new URL(concatPath);
