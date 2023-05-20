@@ -35,14 +35,13 @@ export function cleanupFiles() {
 }
 
 export function removeFile(filePath) {
-  // if(filePath) { // Only delete paths that actually exist. This will prevent crashing when streams are stopped.
-  if(fs.existsSync(filePath)) { // TODO: Consider alternative to below if we want to make sure the file is there. However, this should never happen so maybe bugs like that should crash the program instead to quickly identify and fix the critical issue
-    console.log("Removing: " + filePath);  
+  if(fs.existsSync(filePath)) {
+    // console.log("Removing: " + filePath);  
     fs.unlink(filePath, (err) => {
       if (err) {
         throw err;
       }
-      console.log("Delete File successfully.");
+      // console.log("Delete File successfully.");
     });
   }
 }

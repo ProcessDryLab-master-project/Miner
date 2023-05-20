@@ -45,43 +45,6 @@ import {
   sendMetadata,
 } from "../API/RequestHandlers.js";
 
-export function getProcessStatusList() {
-  return getProcessList();
-}
-
-export async function getStatusDeleteIfDone(processId) {
-  let tmpProcessObj = getProcessStatusObj(processId);
-  if(!tmpProcessObj) return null;
-  let status = tmpProcessObj.ProcessStatus;
-  if(status && status != statusEnum.Running) { // if it's defined and it's not statusEnum.Running
-    console.log(`Removing inactive process with status ${status}`);
-    deleteFromBothDicts(processId);
-  }
-  return tmpProcessObj;
-}
-
-export async function stopProcess(processId) {
-  console.log(`Attempting to kill process with ID: ${processId}`);
-  if(getProcess(processId)) {
-    spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
-      if(error) {
-        console.error(error);
-        updateProcessStatus(processId, statusEnum.Crash, null, error);
-      }
-      if(stdout) {
-        console.log(stdout);
-        deleteFromBothDicts(processId); // If process was stopped, just remove it.
-      }
-      if(stderr) {
-        console.error(stderr);
-        updateProcessStatus(processId, statusEnum.Crash, null, stderr);
-      }
-    });
-    return true;   // Process exists and was stopped
-  }
-  return false;  // Process does not exist, BadRequest 400.
-}
-
 export async function processStart(sendProcessId, body, ownUrl, config) {
   const minerToRun = config.find(miner => miner.MinerId == getBodyMinerId(body));
   if(!minerToRun) {
@@ -111,6 +74,83 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
   childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId);
 }
 
+
+export function getProcessStatusList() {
+  return getProcessList();
+}
+
+export async function getStatusDeleteIfDone(processId) {
+  let tmpProcessObj = getProcessStatusObj(processId);
+  if(!tmpProcessObj) return null;
+  let status = tmpProcessObj.ProcessStatus;
+  if(status && status != statusEnum.Running) { // if it's defined and it's not statusEnum.Running
+    console.log(`Removing inactive process with status ${status}`);
+    deleteFromBothDicts(processId);
+  }
+  return tmpProcessObj;
+}
+
+export async function stopProcess(processId) {
+  console.log(`Attempting to kill process with ID: ${processId}`);
+  if(getProcess(processId)) {
+    updateProcessStatus(processId, statusEnum.Complete);
+    spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
+      if(stdout) {
+        console.log(stdout);
+        // deleteFromBothDicts(processId); // Removing it here makes sense, however it may cause issues as stream miners won't be able to get resourceId from the dict in onProcessExit.
+      }
+      // TODO: Consider deleting these? I've never seen them enter here.
+      // if(error) {
+      //   console.log(error);
+      //   updateProcessStatus(processId, statusEnum.Crash, null, error);
+      // }
+      // if(stderr) {
+      //   console.log(stderr);
+      //   updateProcessStatus(processId, statusEnum.Crash, null, stderr);
+      // }
+    });
+    return true;   // Process exists and was stopped
+  }
+  return false;  // Process does not exist, BadRequest 400.
+}
+
+function onProcessExit(body, code, signal, processId, processOutput) {
+  console.log(`Child process exited with code: ${code} and signal ${signal}`);
+  deleteFromProcessDict(processId);// Remove only from this dict, not from statusDict
+  if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
+  
+  if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
+    console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
+    updateMetadata(body, getProcessResourceId(processId), false);
+  }
+
+  if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
+    console.log("Process completed successfully");
+  }
+  else if (code == 1) { // Code 1 means it either crashed or was stopped manually. Stopping it manually will set status to Complete, meaning this won't be able to set it to Crash
+    if(getProcessStatus(processId) == statusEnum.Complete) { // Entering this means a process was manually stopped
+      deleteFromBothDicts(processId);
+    }
+    else {
+      updateProcessStatus(processId, statusEnum.Crash); 
+    }
+  }
+  else if (signal = "SIGTERM") { // If process is killed in a different way, it would enter here. However, we forcefully terminate processes, meaning it exits with code = 1 instead. Leaving it in case the signal is still useful.
+    console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
+    deleteFromBothDicts(processId);
+  }
+  else console.error("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
+
+
+  // TODO: Delete? We remove result files after they're sent now instead of here, and it only deletes files that exist.
+  // if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
+  //   removeFile(processOutput);            // Deletes miner result file
+  // }
+  for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
+      removeFile(body[key]); // body[key] should hold the path to downloaded resources.
+  }
+}
+
 function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId) {
   let resourceId; // Streams will need this to overwrite their output on repository.
   function setResouceId(id) { resourceId = id; } // used in the response handler
@@ -138,8 +178,8 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
         responsePromise = sendResourceToRepo(body, minerToRun, ownUrl, parents, processOutput);
       }
     }
-    else if(resend) { // && X time has passed since last send.
-      console.log("Resend");
+    else if(resend) {
+      // console.log("Resend");
       resend = false;
       responsePromise = updateResourceOnRepo(body, processOutput, resourceId);
     }
@@ -172,7 +212,7 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
   const minerFile = getMinerFile(minerConfig);
   const minerFullPath = path.join(minerPath, minerFile);
   const minerExtension = minerFile.split('.').pop();
-  console.log({
+  console.log("startAndGetProcess: " + {
     minerPath: minerPath,
     minerFile: minerFile,
     minerFullPath: minerFullPath,
@@ -211,35 +251,6 @@ function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body)
   }
 }
 
-function onProcessExit(body, code, signal, processId, processOutput) {
-  console.log(`Child process exited with code: ${code} and signal ${signal}`);
-  deleteFromProcessDict(processId);// Remove only from this dict
-  if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
-  
-  if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
-    console.log("Process completed successfully");
-  }
-  else if (code == 1) // Means the miner process crashed
-    updateProcessStatus(processId, statusEnum.Crash);
-  else if (signal = "SIGTERM") { // This signal will be output if the childprocess is killed with stop request.
-    console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
-    deleteFromBothDicts(processId);
-  }
-  else console.error("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
-  
-  if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
-    console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
-    updateMetadata(body, getProcessResourceId(processId), false);
-  }
-
-  // if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
-  //   removeFile(processOutput);            // Deletes miner result file
-  // }
-  for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
-      removeFile(body[key]); // body[key] should hold the path to downloaded resources.
-  }
-}
-
 async function getFilesToMine(body, parents) {
   for(let key in getBodyAllMetadata(body)) { // Loop through all input resources
     const metadataObject = getBodySingleMetadata(body, key);
@@ -253,7 +264,7 @@ async function getFilesToMine(body, parents) {
       const inputFilePath = `./Tmp/${crypto.randomUUID()}.${getMetadataFileExtension(metadataObject)}`;
       body[key] = inputFilePath;
       const result = await getResourceFromRepo(fileURL, inputFilePath);
-      console.log("fetch resources result: ");
+      console.log("get resources result: ");
       console.log(result);
       if(result.status !== 200) return result; // If status is undefined or error code, return the error msg.
     }

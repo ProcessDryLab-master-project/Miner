@@ -61,9 +61,9 @@ export const PostMetadata = async (path, data) => {
 // }
 export const UpdateFile = async (path, resourceId, data) => {
   // TODO: Delete uses of "numUpdates" below before hand-in. Just to track how many updates it's got.
-  if(numUpdates[resourceId] == null) numUpdates[resourceId] = 1;
-  else numUpdates[resourceId] += 1;
-  console.log(`Num updates for ${resourceId} = ${numUpdates[resourceId]}`);
+  // if(numUpdates[resourceId] == null) numUpdates[resourceId] = 1;
+  // else numUpdates[resourceId] += 1;
+  // console.log(`Num updates for ${resourceId} = ${numUpdates[resourceId]}`);
 
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.put(url, data)
