@@ -27,15 +27,15 @@ import {
 import { 
     appendUrl,
     removeFile,
+    removeFolder,
 } from "../App/Utils.js";
+import { AxiosError } from "axios";
 
 export const getForeignMiner = async (body, venvInitId) => {
     const shadowConfig = body.Config;
     const extMinerId = getMinerId(shadowConfig);
     const newShadowId = venvInitId;
     shadowConfig.MinerId = newShadowId;
-
-    // BE AWARE that the order of variable assignments are IMPORTANT!
     const shadowExtension = getMinerFile(shadowConfig).split('.').pop();
     const shadowUrl = appendUrl([body.Host, extMinerId]).toString();
     const requirementsUrl = appendUrl([body.Host, "requirements", extMinerId]).toString();
@@ -45,27 +45,24 @@ export const getForeignMiner = async (body, venvInitId) => {
     const shadowFilePath = path.join(shadowFolderPath, shadowNameWithExt);
     shadowConfig.MinerPath = shadowFolderPath;
     shadowConfig.MinerFile = shadowNameWithExt;
-
-    const successGetShadowMiner = await GetFile(shadowUrl, shadowFilePath, shadowFolderPath)
-    if(!successGetShadowMiner){ // TODO: Handle this better
-        console.error("Unsuccessful in getting shadow miner");
+    
+    const shadowMinerGetResult = await GetFile(shadowUrl, shadowFilePath, shadowFolderPath);
+    if(shadowMinerGetResult.status !== 200) {
+        console.log("error when getting external miner: " + shadowMinerGetResult.data);
+        throw "Error retrieving miner from external source: " + shadowMinerGetResult.data;
     }
-    const result = shadowConfig;
-
     if(shadowExtension != "py"){ // Don't need to install dependencies if it's not a python script
-        return {
-            response: result,
-            status: !!result,
-        }
+        console.log("not a python miner, returning");
+        return shadowConfig;
     }
-
+    console.log("is a python miner!");
     const requirementsPath = path.join(shadowFolderPath, "requirements.txt");
-    const successGetRequirements = await GetFile(requirementsUrl, requirementsPath)
-    if(!successGetRequirements){ // TODO: Handle this better
-        console.error("Unsuccessful in getting requirements");
+    const requirementsGetResult = await GetFile(requirementsUrl, requirementsPath)
+    if(requirementsGetResult.status !== 200){
+        // removeFolder(shadowFolderPath); // TODO: Should delete the folder if it reaches here and fails, but only deletes the contents. Probably some asynchronous stuff.
+        throw "Error retrieving requirements from external source: " + requirementsGetResult.data;
     }
-
-    return result;
+    return shadowConfig;
 }
 
 export const getResourceFromRepo = async (url, filePath) => {
@@ -83,10 +80,11 @@ export const updateMetadata = async (body, resourceId, isDynamic) => {
     data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
 
     const res = await UpdateMetadata(getBodyOutputHostInit(body), resourceId, data);
-    return {
-        response: res.data,
-        status: res.status == 200,
-    };
+    return res;
+    // return {
+    //     response: res.data,
+    //     status: res.status == 200,
+    // };
 };
 
 export const sendMetadata = async (body, minerToRun, ownUrl, parents) => {

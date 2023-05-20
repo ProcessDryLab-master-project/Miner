@@ -34,22 +34,32 @@ export function initEndpoints(app, configList) {
   });
   // Endpoint to return algorithm file that needs to be shadowed.
   app.get(`/shadow/:minerId`, function (req, res) {
-    console.log(`Getting a request on /shadow/${req.params.minerId}`);
-    let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
-    if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
-    else {
-      res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
-
-      // TODO: Consider if these are necessary? Leave them out for now, since we're testing with a .py script.
-      // res.setHeader('Content-type', 'application/x-msdownload');      //for exe file
-      // res.setHeader('Content-type', 'application/x-rar-compressed');  //for rar file
-      const pathToFile = path.join(getMinerPath(requestedConfig), getMinerFile(requestedConfig));
-      if(!fs.existsSync(pathToFile)) res.status(404).send(`Unable to find miner file for requested miner.`);
-      else {
-        var file = fs.createReadStream(pathToFile);
-        file.pipe(res); //send file
-      }
+    const minerId = req.params.minerId;
+    console.log(`Getting a request on /shadow/${minerId}`);
+    let requestedConfig = configList.find(miner => miner.MinerId == minerId);
+    // Error handling
+    if(!requestedConfig) {
+      res.status(404).send(`Invalid request, no Miner exists with id \"${minerId}\".`);
+      return;
     }
+    if(!requestedConfig.Shadow) {
+      res.status(400).send(`Invalid request, cannot shadow Miner with id \"${minerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
+      return;
+    }
+    const pathToFile = path.join(getMinerPath(requestedConfig), getMinerFile(requestedConfig));
+    if(!fs.existsSync(pathToFile)) {
+      res.status(404).send(`Unable to find miner file for requested miner.`);
+      return;
+    }
+    
+    // else, all is good, return file
+    res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
+
+    // TODO: Consider if these are necessary? Leave them out for now, since we're testing with a .py script.
+    // res.setHeader('Content-type', 'application/x-msdownload');      //for exe file
+    // res.setHeader('Content-type', 'application/x-rar-compressed');  //for rar file
+    var file = fs.createReadStream(pathToFile);
+    file.pipe(res); //send file
   });
   // Endpoint to return requirements file that needs to be shadowed.
   app.get(`/shadow/requirements/:minerId`, function (req, res) {
@@ -79,12 +89,12 @@ export function initEndpoints(app, configList) {
     await getForeignMiner(body, venvInitId)
     .then(shadowConfig => {
         console.log("request on /shadow exited successfully");
-        initSingleVenv(shadowConfig, configList, venvInitId);
+        initSingleVenv(shadowConfig, configList, venvInitId); // Will do nothing if no venv is required (e.g. for .exe)
         res.status(200).send(venvInitId);
     })
     .catch(error => {
       console.log("request on /shadow exited unsuccessfully with error:" + error);
-      res.status(400).send("Invalid request: " + error);
+      res.status(400).send(error);
     });
   });
 

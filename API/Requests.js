@@ -25,7 +25,7 @@ export const UpdateMetadata = async (path, resourceId, data) => {
       return {data: response.data, status: response.status};
     })
     .catch(error => {
-      console.error("CATCH: fetch error: ");
+      console.error("CATCH: axios error: ");
       console.error(error);
       return {data: error.message, status: error.status};
     });
@@ -39,8 +39,8 @@ export const PostMetadata = async (path, data) => {
       return {data: response.data, status: response.status};
     })
     .catch(error => {
-      console.error("CATCH: fetch error: ");
-      console.error(error);
+      console.error("CATCH: axios error: ");
+      console.error(error.message);
       return {data: error.message, status: error.status};
     });;
   return {data: res.data, status: res.status};
@@ -85,7 +85,7 @@ export const PostFile = async (path, data) => {
       return {data: response.data, status: response.status};
     })
     .catch(error => {
-      console.error("CATCH: fetch error: ");
+      console.error("CATCH: axios error: ");
       console.error(error);
       return {data: error.message, status: error.status};
     });
@@ -97,17 +97,36 @@ export const GetFile = async (url, filePath, folderPath = null) => {
     method: 'get',
     url: url,
     responseType: 'stream',
-  }).then((response) => {
+  })
+  .then((response) => {
       if(folderPath)
-        fs.mkdir(folderPath, { recursive: true }, (err) => {
+        fs.mkdirSync(folderPath, { recursive: true }, (err) => {
           if (err) reject(err.text().then(text => {throw new Error(text)}));
         });
       response.data.pipe(fs.createWriteStream(filePath));
       return {data: "File saved", status: response.status};
     })
-    .catch(error => {
+    .catch(async (error) => {
       console.error("CATCH: axios error: ");
-      console.error(error);
-      return {data: error.message, status: error.response?.status};
+      if(error.response) {
+        return await readResponseStream(error.response);
+      }
+      else {
+        return {data: error.message, status: error.response?.status};
+      }
     });
+}
+
+async function readResponseStream(response) {
+  let streamString = '';
+  let status = response?.status;
+  response.data.setEncoding('utf8');
+  return new Promise((resolveFunc) => {
+    response.data
+    .on('data', (utf8Chunk) => { streamString += utf8Chunk })
+    .on('end', () => {
+      console.error("streamString: " + streamString);
+      resolveFunc({data: streamString, status: status});
+    });
+  });
 }

@@ -93,7 +93,7 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
   const parents = [];
   const getFilesResponse = await getFilesToMine(body, parents);
   if(getFilesResponse) { // The function only returns something if things went bad.
-    sendProcessId(null, getFilesResponse.data);
+    sendProcessId(null, "Error when retrieving resource from Repository: " + getFilesResponse.data);
     return;
   }
   const wrapperArgs = JSON.stringify(body);
@@ -155,6 +155,7 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       .catch((error) => {
         console.error(`Error with processId ${processId}: ${error}`);
         console.error(error);
+        // TODO: Starting a stream miner and then stopping and starting a repository will mark it as crashed, but won't stop the stream miner. Find out why.
         updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
         if(getProcess(processId)) 
           getProcess(processId).kill();

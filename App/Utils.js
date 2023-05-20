@@ -20,31 +20,50 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export function cleanupFiles() {
-    let directory = "./Tmp";
-    if (!fs.existsSync(directory)){
-      fs.mkdirSync(directory);
-    }
-    fs.readdir(directory, (err, files) => {
-        if (err) throw err;
-        for (const file of files) {
-            fs.unlink(path.join(directory, file), (err) => {
-                if (err) throw err;
-            });
-        }
-    });
+  let directory = "./Tmp";
+  if (!fs.existsSync(directory)){
+    fs.mkdirSync(directory);
+  }
+  fs.readdir(directory, (err, files) => {
+      if (err) throw err;
+      for (const file of files) {
+          fs.unlink(path.join(directory, file), (err) => {
+              if (err) throw err;
+          });
+      }
+  });
 }
 
 export function removeFile(filePath) {
-  console.log("Removing: " + filePath);
-  if(fs.existsSync(filePath)) { // TODO: Consider alternative to below if we want to make sure the file is there. However, this should never happen so maybe bugs like that should crash the program instead to quickly identify and fix the critical issue
   // if(filePath) { // Only delete paths that actually exist. This will prevent crashing when streams are stopped.
+  if(fs.existsSync(filePath)) { // TODO: Consider alternative to below if we want to make sure the file is there. However, this should never happen so maybe bugs like that should crash the program instead to quickly identify and fix the critical issue
+    console.log("Removing: " + filePath);  
     fs.unlink(filePath, (err) => {
       if (err) {
         throw err;
       }
-
       console.log("Delete File successfully.");
     });
+  }
+}
+export function removeFolder(folderPath) {
+  if(fs.existsSync(folderPath)) {
+    console.log("Removing: " + folderPath);
+
+    fs.rmSync(folderPath, { recursive: true, force: true }, (err) => {
+      if (err) {
+        return console.log("error occurred in deleting directory contents", err);
+      }
+    });
+    // fs.rmdir(folderPath, { recursive: true, force: true });
+
+    // fs.rmSync(folderPath, { recursive: true, force: true }, (err) => {
+    //   if (err) {
+    //     return console.log("error occurred in deleting directory", err);
+    //   }
+    //   console.log("Directory deleted successfully");
+    // });
+
   }
 }
 
