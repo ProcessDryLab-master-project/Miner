@@ -97,7 +97,7 @@ export function initEndpoints(app, configList) {
       res.status(400).send(error);
     });
   });
-
+  // Endpoint to get status of cloning action
   app.get(`/shadow/status/:venvInitId`, async function (req, res) {
     let venvInitId = req.params.venvInitId;
     console.log(`Getting a request on /shadow/status for id ${venvInitId}`);
@@ -105,30 +105,7 @@ export function initEndpoints(app, configList) {
     if(venvStatus) res.status(200).send(venvStatus);
     else res.status(400).send(`No process exists with ID: ${venvInitId}`);
   });
-
-
-
-  app.get(`/status`, async function (req, res) {
-    console.log(`Getting a request on /status for status list`);
-    res.status(200).send(getProcessStatusList());
-  });
-
-  app.get(`/status/:processId`, async function (req, res) {
-    let processId = req.params.processId;
-    // console.log(`Getting a request on /status for id ${processId}`);
-    let statusDict = await getStatusDeleteIfDone(processId);
-    if(statusDict) res.status(200).send(statusDict);
-    else res.status(400).send(`No process exists with ID: ${processId}`);
-  });
-  
-  app.delete(`/stop/:processId`, async function (req, res) {
-    let processId = req.params.processId
-    console.log(`Getting a request on /stop for id ${processId}`);
-    let result = await stopProcess(processId);
-    if(result) res.status(200).send(`Killed process with ID: ${processId}`);
-    else res.status(400).send(`No active process with ID: ${processId}`);
-  });
-
+  // Endpoint to run a miner algorithm
   app.post(`/miner`, async function (req, res) {
     console.log("Received POST request on /miner");
     function sendProcessId(processId, error) {
@@ -144,6 +121,27 @@ export function initEndpoints(app, configList) {
     const body = await req.body;
     const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
     processStart(sendProcessId, body, ownUrl, configList);
+  });
+  // Endpoint to get a list statuses for all active miner algorithms
+  app.get(`/status`, async function (req, res) {
+    console.log(`Getting a request on /status for status list`);
+    res.status(200).send(getProcessStatusList());
+  });
+  // Endpoint to get status for specific miner algorithm
+  app.get(`/status/:processId`, async function (req, res) {
+    let processId = req.params.processId;
+    // console.log(`Getting a request on /status for id ${processId}`);
+    let statusDict = await getStatusDeleteIfDone(processId);
+    if(statusDict) res.status(200).send(statusDict);
+    else res.status(400).send(`No process exists with ID: ${processId}`);
+  });
+  // Endpoint to stop an active miner algorithm
+  app.delete(`/stop/:processId`, async function (req, res) {
+    let processId = req.params.processId
+    console.log(`Getting a request on /stop for id ${processId}`);
+    let result = await stopProcess(processId);
+    if(result) res.status(200).send(`Killed process with ID: ${processId}`);
+    else res.status(400).send(`No active process with ID: ${processId}`);
   });
 
   app.listen(port, '0.0.0.0', () => {
