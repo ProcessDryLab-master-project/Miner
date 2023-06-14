@@ -187,7 +187,7 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        console.log(`Sent result to repository with status ${responseObj.status} and response ${responseObj.response}`);
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         removeFile(processOutput);
         resend = true;
@@ -239,7 +239,7 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
 function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ // TODO: could be moved to a helper file
   if(responseObj.status) {
     setResouceId(responseObj.response);
-    if(hasStreamInput(body)) {  // Stream miners continue running after sending the first file.
+    if(hasStreamInput(body) || getBodyOutputTopic(body)) {  // Stream miners and publishers continue running after sending the first result.
       updateProcessStatus(processId, statusEnum.Running, responseObj.response);
     }
     else { // Non-stream miners complete and send the file.
