@@ -269,7 +269,7 @@
     "MinerPath": "Miners/MqttPublisher",
     "MinerFile": "MqttPublisher.py",
     "Access": "Public",
-    "Shadow": false,
+    "Shadow": true,
     "ResourceInput": [],
     "ResourceOutput": {
       "ResourceType": "EventStream"
