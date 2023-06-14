@@ -21,7 +21,7 @@ const validStructure = {
     },
     "Access": {
         "type": "string",
-        "required": true
+        "required": false
     },
     "Shadow": {
         "type": "boolean",
@@ -29,7 +29,7 @@ const validStructure = {
     },
     "ResourceInput": {
         "type": "array",
-        "required": true,
+        "required": false,
         "itemStructure": {
             "Name": {
                 "type": "string",
@@ -73,19 +73,19 @@ const validStructure = {
             },
             "Min": {
                 "type": "number",
-                "required": true
+                "required": false
             },
             "Max": {
                 "type": "number",
-                "required": true
+                "required": false
             },
             "Default": {
                 "type": "number",
-                "required": true
+                "required": false
             },
             "Description": {
                 "type": "string",
-                "required": true
+                "required": false
             }
         },
     }
