@@ -32,13 +32,14 @@ if __name__ == "__main__":
         clientPublisher = mqtt.Client(clientPublisherName)
         clientPublisher.connect(streamOutputHost)
         
-        stringToSend = choice(string.ascii_letters)
-        clientPublisher.publish(streamOutputTopic, stringToSend)
-        if(firstPrint): # We only print once for publishers, since we just need to send metainfo to Repository once.
-            print("STREAM")
-            firstPrint = False
-            sys.stdout.flush()
-        
-        # eprint(f"Just published {stringToSend} to topic {streamOutputTopic}")
+        while True:
+            stringToSend = choice(string.ascii_letters)
+            clientPublisher.publish(streamOutputTopic, stringToSend)
+            if(firstPrint): # We only print once for publishers, since we just need to send metainfo to Repository once.
+                print("STREAM")
+                firstPrint = False
+                sys.stdout.flush()
+            
+            eprint(f"Just published {stringToSend} to topic {streamOutputTopic}")
 
-        time.sleep(1)
+            time.sleep(1)
