@@ -34,7 +34,7 @@ export function cleanupFiles() {
   });
 }
 
-export function removeFile(filePath, counter) {
+export function removeFile2(filePath, counter) {
   if(fs.existsSync(filePath)) {
     if(!counter) counter = 1
     // console.log("Removing: " + filePath);  
@@ -51,6 +51,31 @@ export function removeFile(filePath, counter) {
     });
   }
 }
+
+var delInterval = setInterval(removeFile, 1000);
+export function removeFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    fs.open(filePath, "r+", function (err, fd) {
+      if (err && err.code === "EBUSY") {
+        //do nothing till next loop
+      } else if (err && err.code === "ENOENT") {
+        console.log(filePath, "deleted");
+        clearInterval(delInterval);
+      } else {
+        fs.close(fd, function () {
+          fs.unlink(filePath, function (err) {
+            if (err) {
+            } else {
+              console.log(filePath, "deleted");
+              clearInterval(delInterval);
+            }
+          });
+        });
+      }
+    });
+  }
+}
+
 export function removeFolder(folderPath) {
   if(fs.existsSync(folderPath)) {
     console.log("Removing: " + folderPath);
