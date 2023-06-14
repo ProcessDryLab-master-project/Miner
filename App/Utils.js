@@ -34,12 +34,18 @@ export function cleanupFiles() {
   });
 }
 
-export function removeFile(filePath) {
+export function removeFile(filePath, counter) {
   if(fs.existsSync(filePath)) {
+    if(!counter) counter = 1
     // console.log("Removing: " + filePath);  
     fs.unlink(filePath, (err) => {
       if (err) {
-        throw err;
+        if(counter > 10) {
+          print(`Tried deleting file ${counter} times, throwing err.`);
+          throw err;
+        }
+        wait(1000);
+        removeFile(filePath, counter++); // Keep trying 
       }
       // console.log("Delete File successfully.");
     });
