@@ -1,23 +1,7 @@
 import fs from "fs";
 import path from "path";
-import spawn from "child_process";
-import crypto from "crypto";
-import { fileURLToPath } from 'url';
-import {
-  writeConfig,
-  getConfig,
-  getMinerPath,
-  getMinerFile,
-} from "./ConfigUnpacker.js";
-import {
-  python,
-  pip,
-  pythonVenvPath,
-  pipVenvPath,
-} from "./OSHelper.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+var delInterval = setInterval(removeFile, 1000);
 
 export function cleanupFiles() {
   let directory = "./Tmp";
@@ -34,25 +18,6 @@ export function cleanupFiles() {
   });
 }
 
-// export function removeFile(filePath, counter) {
-//   if(fs.existsSync(filePath)) {
-//     if(!counter) counter = 1
-//     // console.log("Removing: " + filePath);  
-//     fs.unlink(filePath, (err) => {
-//       if (err) {
-//         if(counter > 10) {
-//           print(`Tried deleting file ${counter} times, throwing err.`);
-//           throw err;
-//         }
-//         wait(1000);
-//         removeFile(filePath, counter++); // Keep trying 
-//       }
-//       // console.log("Delete File successfully.");
-//     });
-//   }
-// }
-
-var delInterval = setInterval(removeFile, 1000);
 export function removeFile(filePath) {
   if (fs.existsSync(filePath)) {
     fs.open(filePath, "r+", function (err, fd) {
@@ -85,15 +50,6 @@ export function removeFolder(folderPath) {
         return console.log("error occurred in deleting directory contents", err);
       }
     });
-    // fs.rmdir(folderPath, { recursive: true, force: true });
-
-    // fs.rmSync(folderPath, { recursive: true, force: true }, (err) => {
-    //   if (err) {
-    //     return console.log("error occurred in deleting directory", err);
-    //   }
-    //   console.log("Directory deleted successfully");
-    // });
-
   }
 }
 
@@ -118,8 +74,3 @@ export function streamToString (stream) {
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
   })
 }
-// Use like this:
-// streamToString(data._streams[1])
-// .then(res => {
-//     console.log(res);
-// });

@@ -144,7 +144,7 @@ export function verifyConfig(configList){
         return false;
     }
 
-    const allConfigValid = !configList.map(config => { // Check for valid structure
+    const allConfigValid = !configList.map(config => { // Check for valid config structure
         return validateConfig(config)
     }).includes(false);
     return allConfigValid;

@@ -1,39 +1,33 @@
 import fs from 'fs';
 import path from "path";
 import crypto from "crypto";
-
-import {
-  getMinerPath,
-  getMinerFile,
-} from "../App/ConfigUnpacker.js";
+import { getForeignMiner } from "./RequestHandlers.js";
+import { initSingleVenv, getVenvStatusDeleteIfDone } from "../App/PyVenvHelper.js";
+import { getMinerPath, getMinerFile } from "../App/ConfigUnpacker.js";
 import {
   stopProcess,
   getStatusDeleteIfDone,
   getProcessStatusList,
   processStart,
 } from "../App/Wrapper.js";
-import {
-  getForeignMiner,
-} from "./RequestHandlers.js";
-import {
-  initSingleVenv,
-  getVenvStatusDeleteIfDone,
-} from "../App/PyVenvHelper.js";
 
 const port = 5000; // The host port express will listen on.
 
 export function initEndpoints(app, configList) {
-  app.get("/", function (req, res) {
+
+  app.get("/", function (req, res) { 
     res.send("Default page");
   });
-  app.get(`/ping`, function (req, res) {
+
+  app.get(`/ping`, function (req, res) { // return pong
     res.send("pong");
   });
-  app.get(`/configurations`, function (req, res) {
+
+  app.get(`/configurations`, function (req, res) { // return all configurations
     res.send(configList);
   });
-  // Endpoint to return algorithm file that needs to be shadowed.
-  app.get(`/shadow/:minerId`, function (req, res) {
+  
+  app.get(`/shadow/:minerId`, function (req, res) { // return algorthm file of a miner 
     const minerId = req.params.minerId;
     console.log(`Getting a request on /shadow/${minerId}`);
     let requestedConfig = configList.find(miner => miner.MinerId == minerId);
@@ -52,36 +46,28 @@ export function initEndpoints(app, configList) {
       return;
     }
     
-    // else, all is good, return file
-    res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
-
-    // TODO: Consider if these are necessary? Leave them out for now, since we're testing with a .py script.
-    // res.setHeader('Content-type', 'application/x-msdownload');      //for exe file
-    // res.setHeader('Content-type', 'application/x-rar-compressed');  //for rar file
+    // else, no issues, return file
+    res.setHeader('Content-disposition', 'attachment; filename=shadow-miner'); 
     var file = fs.createReadStream(pathToFile);
-    file.pipe(res); //send file
+    file.pipe(res);
   });
-  // Endpoint to return requirements file that needs to be shadowed.
-  app.get(`/shadow/requirements/:minerId`, function (req, res) {
+
+  app.get(`/shadow/requirements/:minerId`, function (req, res) { // Return requirements file of a miner
     console.log(`Getting a request on /shadow/requirements/${req.params.minerId}`);
     let requestedConfig = configList.find(miner => miner.MinerId == req.params.minerId);
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
     else {
       res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
-
-      // TODO: Consider if these are necessary? Leave them out for now, since we're testing with a .py script.
-      // res.setHeader('Content-type', 'application/x-msdownload');      //for exe file
-      // res.setHeader('Content-type', 'application/x-rar-compressed');  //for rar file
       const pathToFile = path.join(getMinerPath(requestedConfig), "requirements.txt"); // TODO: Name of the file shouldn't just be hardcoded in here.
       if(!fs.existsSync(pathToFile)) res.status(404).send(`Unable to find requirements file for requested miner.`);
       else {
         var file = fs.createReadStream(pathToFile);
-        file.pipe(res); //send file
+        file.pipe(res);
       }
     }
   });
-  // Initiate shadow process - request foreign miner on "shadow/:minerId" to get the foreign miner .exe/script
-  app.post(`/shadow`, async function (req, res) {
+
+  app.post(`/shadow`, async function (req, res) { // Initiate cloning process: request foreign miner on "shadow/:minerId" to get the foreign miner .exe/script
     console.log(`Getting a request on /shadow`);
     
     const venvInitId = crypto.randomUUID();
@@ -97,16 +83,17 @@ export function initEndpoints(app, configList) {
       res.status(400).send(error);
     });
   });
-  // Endpoint to get status of cloning action
-  app.get(`/shadow/status/:venvInitId`, async function (req, res) {
+
+  
+  app.get(`/shadow/status/:venvInitId`, async function (req, res) { // Return status of cloning action
     let venvInitId = req.params.venvInitId;
     console.log(`Getting a request on /shadow/status for id ${venvInitId}`);
     let venvStatus = await getVenvStatusDeleteIfDone(venvInitId);
     if(venvStatus) res.status(200).send(venvStatus);
     else res.status(400).send(`No process exists with ID: ${venvInitId}`);
   });
-  // Endpoint to run a miner algorithm
-  app.post(`/miner`, async function (req, res) {
+
+  app.post(`/miner`, async function (req, res) { // Start miner - return process id.
     console.log("Received POST request on /miner");
     function sendProcessId(processId, error) {
       if(error) {
@@ -114,7 +101,6 @@ export function initEndpoints(app, configList) {
         res.status(400).send(error);
       }
       else {
-        // console.log(`Sending processId ${processId}`);
         res.send(processId.toString());
       }
     } 
@@ -122,21 +108,21 @@ export function initEndpoints(app, configList) {
     const ownUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
     processStart(sendProcessId, body, ownUrl, configList);
   });
-  // Endpoint to get a list statuses for all active miner algorithms
-  app.get(`/status`, async function (req, res) {
+
+  app.get(`/status`, async function (req, res) { // Return status of all active miners
     console.log(`Getting a request on /status for status list`);
     res.status(200).send(getProcessStatusList());
   });
-  // Endpoint to get status for specific miner algorithm
-  app.get(`/status/:processId`, async function (req, res) {
+
+  app.get(`/status/:processId`, async function (req, res) { // Return status of specific miner
     let processId = req.params.processId;
     // console.log(`Getting a request on /status for id ${processId}`);
     let statusDict = await getStatusDeleteIfDone(processId);
     if(statusDict) res.status(200).send(statusDict);
     else res.status(400).send(`No process exists with ID: ${processId}`);
   });
-  // Endpoint to stop an active miner algorithm
-  app.delete(`/stop/:processId`, async function (req, res) {
+  
+  app.delete(`/stop/:processId`, async function (req, res) { // Stop miner - return confirmation.
     let processId = req.params.processId
     console.log(`Getting a request on /stop for id ${processId}`);
     let result = await stopProcess(processId);
@@ -144,7 +130,8 @@ export function initEndpoints(app, configList) {
     else res.status(400).send(`No active process with ID: ${processId}`);
   });
 
-  app.listen(port, '0.0.0.0', () => {
+
+  app.listen(port, '0.0.0.0', () => {  // Start listening on port {port}
     console.log(`Example app listening on port ${port}`);
   });
 }
