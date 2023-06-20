@@ -5,6 +5,10 @@ import {
   getMetadataFileExtension,
   getMetadataResourceType,
 } from "./BodyUnpacker.js";
+import {
+  getMinerResourceInput,
+  
+} from "./ConfigUnpacker.js";
 
 var delInterval = setInterval(removeFile, 1000);
 
