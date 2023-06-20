@@ -1,5 +1,10 @@
 import fs from "fs";
 import path from "path";
+import {
+  getBodyAllMetadata,
+  getMetadataFileExtension,
+  getMetadataResourceType,
+} from "./BodyUnpacker.js";
 
 var delInterval = setInterval(removeFile, 1000);
 
@@ -16,6 +21,38 @@ export function cleanupFiles() {
           });
       }
   });
+}
+
+export function validateInput(body, minerConfig){
+  const expInputs = getMinerResourceInput(minerConfig);
+  const actInputs = getBodyAllMetadata(body);
+
+  for(var key in expInputs){
+    let expInput = expInputs[key];
+    let actInput = actInputs[expInput.Name];
+    console.log("expInput:");
+    console.log(expInput);
+    console.log("actInput:");
+    console.log(actInput);
+    const incorrectType = getMetadataResourceType(actInput) != expInput.ResourceType;
+    const incorrectExtension = getMetadataFileExtension(actInput) != expInput.FileExtension;
+    console.log(`Expected resource type: ${expInput.ResourceType}, actual resource type: ${getMetadataResourceType(actInput)}. They don't match ${incorrectType}`);
+    console.log(`Expected resource extension: ${expInput.FileExtension}, actual resource extension: ${getMetadataFileExtension(actInput)}. They don't match ${incorrectExtension}`);
+    if(!actInput) {
+      console.log(`Unable to find input resource for key: ${expInput.Name}`);
+      return `Unable to find input resource for key: ${expInput.Name}`;
+    }
+    if(incorrectType) {
+      let errMsg = `Input resource type for key ${expInput.Name} does not match the expected resource type: ${getMetadataResourceType(actInput)}`;
+      console.log(errMsg)
+      return errMsg;
+    }
+    if(incorrectExtension) {
+      let errMsg = `Input resource extension for key ${expInput.Name} does not match the expected file extension: ${getMetadataFileExtension(actInput)}`;
+      console.log(errMsg)
+      return errMsg;
+    }
+  }
 }
 
 export function removeFile(filePath) {

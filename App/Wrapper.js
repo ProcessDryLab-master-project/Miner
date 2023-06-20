@@ -1,7 +1,7 @@
 import spawn from "child_process";
 import crypto from "crypto";
 import path from "path";
-import { removeFile, appendUrl } from "./Utils.js";
+import { removeFile, appendUrl, validateInput } from "./Utils.js";
 import { pythonVenvPath, cmdExe } from "./OSHelper.js";
 import { getMinerPath, getMinerFile } from "./ConfigUnpacker.js";
 import {
@@ -45,6 +45,14 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
 
   body["ResultFileId"] = crypto.randomUUID(); // TODO: This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
   const parents = [];
+
+  const inputValidation = validateInput(body, minerToRun);
+  console.log("inputValidation: " + inputValidation);
+  if(inputValidation){
+    sendProcessId(null, "Resources defined by body does not match config for the miner: " + inputValidation);
+    return;
+  }
+
   const getFilesResponse = await getFilesToMine(body, parents);
   if(getFilesResponse) { // The function only returns something if things went wrong.
     sendProcessId(null, "Error when retrieving resource from Repository: " + getFilesResponse.data);
