@@ -40,6 +40,6 @@ if __name__ == "__main__":
                 firstPrint = False
                 sys.stdout.flush()
             
-            eprint(f"Just published {stringToSend} to topic {streamOutputTopic}")
+            # eprint(f"Just published {stringToSend} to topic {streamOutputTopic}")
 
             time.sleep(1)

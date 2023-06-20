@@ -7,7 +7,7 @@ import {
 } from "./BodyUnpacker.js";
 import {
   getMinerResourceInput,
-  
+
 } from "./ConfigUnpacker.js";
 
 var delInterval = setInterval(removeFile, 1000);
@@ -72,7 +72,7 @@ export function removeFile(filePath) {
           fs.unlink(filePath, function (err) {
             if (err) {
             } else {
-              console.log(filePath, "deleted");
+              // console.log(filePath, "deleted");
               clearInterval(delInterval);
             }
           });

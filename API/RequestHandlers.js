@@ -64,6 +64,7 @@ export const getResourceFromRepo = async (url, filePath) => {
 }
 
 export const updateMetadata = async (body, resourceId, isDynamic) => {
+    if(!resourceId) return "Never received any messages, resulting in the miner to never send a resource, which means it has no resourceId"
     console.log(`Updating metadata on url: ${appendUrl([getBodyOutputHostInit(body), resourceId]).toString()} to set Dynamic to: ${isDynamic}`);
     const data = new FormData();
     data.append("Dynamic", isDynamic.toString());  // If it's a stream miner, it should be marked as dynamic
