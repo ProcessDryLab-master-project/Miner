@@ -68,7 +68,7 @@ export function initEndpoints(app, configList) {
   });
 
   app.post(`/shadow`, async function (req, res) { // Initiate cloning process: request foreign miner on "shadow/:minerId" to get the foreign miner .exe/script
-    console.log(`Getting a request on /shadow`);
+    console.log(`\nGetting a request on /shadow`);
     
     const venvInitId = crypto.randomUUID();
     let body = await req.body;
