@@ -1,3 +1,4 @@
+import spawn from "child_process";
 var processDict = {}; // Dict of all processes
 var processStatusDict = {}; // Dict of all process status objects
 
@@ -77,9 +78,20 @@ export function setProcess(processId, process) {
     processDict[processId] = process;
     console.log(`Process added to dict. All current process IDs: ${Object.keys(processDict)}`);
 }
+// export function killProcess(processId) {
+//     if(getProcess(processId)) {
+//         getProcess(processId).kill();
+//         deleteFromProcessDict(processId);
+//     }
+// }
 export function killProcess(processId) {
+
     if(getProcess(processId)) {
-        getProcess(processId).kill();
+        spawn.exec(`taskkill /PID ${processId} /F /T`, (stdout) => {
+            if(stdout) {
+              console.log(stdout);
+            }
+          });
         deleteFromProcessDict(processId);
     }
 }

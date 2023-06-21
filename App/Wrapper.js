@@ -26,7 +26,8 @@ import {
   getProcessList,
   getProcess,
   setProcess,
-  updateProcessStatus
+  updateProcessStatus,
+  killProcess,
 } from "./ProcessHelper.js";
 import {
   sendResourceToRepo,
@@ -167,6 +168,10 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       responsePromise
       .then((responseObj) => {
         console.log(`Sent result to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        if(!responseObj.status) {
+          console.log(`Repository error, killing process ${processId}`)
+          killProcess(processId);
+        }
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         removeFile(processOutput);
         resend = true;
@@ -174,10 +179,9 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       .catch((error) => {
         console.error(`Error with processId ${processId}: ${error}`);
         console.error(error);
-        // TODO: Starting a stream miner and then stopping and starting a repository will mark it as crashed, but won't stop the stream miner. Find out why.
+        killProcess(processId);
         updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
-        if(getProcess(processId)) 
-          getProcess(processId).kill();
+        // getProcess(processId).kill();
       });
     }
   });

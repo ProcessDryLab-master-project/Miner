@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
         aligned_traces = alignments.apply(log, refModel, initial_marking=initialMarking, final_marking=finalMarking)
         
-        eprint(aligned_traces)
+        # eprint(aligned_traces)
         jsonOutput = json.dumps(aligned_traces, indent=4)
 
         nameWithExtension = f"{resultFileId}.{fileExtension}"
