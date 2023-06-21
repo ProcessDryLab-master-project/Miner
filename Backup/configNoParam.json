@@ -1,9 +1,0 @@
-{
-  "Label": "Alfa Miner",
-  "Type": "Miner",
-  "Access": "Public",
-  "FileInputExtension": ["xes"],
-  "FileOutputExtension": ["pnml"],
-  "ResourceInputType": "EventLog",
-  "ResourceOutputType": "Visualization"
-}

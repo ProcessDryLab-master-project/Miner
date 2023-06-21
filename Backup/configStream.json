@@ -1,8 +1,0 @@
-{
-  "Label": "Alphabet Stream Miner",
-  "Type": "Miner",
-  "Access": "Public",
-  "FileOutputExtension": ["json"],
-  "ResourceInputType": "EventStream",
-  "ResourceOutputType": "Visualization"
-}

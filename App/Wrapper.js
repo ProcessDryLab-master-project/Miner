@@ -44,7 +44,7 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
     return;
   }
 
-  body["ResultFileId"] = crypto.randomUUID(); // TODO: This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
+  body["ResultFileId"] = crypto.randomUUID(); // This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
   const parents = [];
 
   const inputValidation = validateInput(body, minerToRun);
@@ -108,7 +108,7 @@ function onProcessExit(body, code, signal, processId) {
   deleteFromProcessDict(processId);
   if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
   
-  if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
+  if (hasStreamInput(body)) { 
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
     updateMetadata(body, getProcessResourceId(processId), false);
   }
