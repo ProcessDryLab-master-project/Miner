@@ -58,7 +58,7 @@ export function initEndpoints(app, configList) {
     if(!requestedConfig.Shadow) res.status(400).send(`Invalid request, cannot shadow Miner with id \"${requestedConfig.MinerId}\" and label: \"${requestedConfig.MinerLabel}\".`);
     else {
       res.setHeader('Content-disposition', 'attachment; filename=shadow-miner');
-      const pathToFile = path.join(getMinerPath(requestedConfig), "requirements.txt"); // TODO: Name of the file shouldn't just be hardcoded in here.
+      const pathToFile = path.join(getMinerPath(requestedConfig), "requirements.txt");
       if(!fs.existsSync(pathToFile)) res.status(404).send(`Unable to find requirements file for requested miner.`);
       else {
         var file = fs.createReadStream(pathToFile);
