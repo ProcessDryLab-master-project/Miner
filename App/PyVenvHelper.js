@@ -34,6 +34,7 @@ function removeVenvStatus(venvInitId) {
   }
   
   function setVenvStatus(venvInitId, status) {
+    console.log("Setting venv status to: " + status);
     if(venvInitId) venvStatusObj[venvInitId] = status;
   }
   
@@ -82,42 +83,35 @@ export async function initSingleVenv(config, configList, venvInitId) {
   
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
 
+    let error = false;
     console.info(`Create venv for ${minerFile}`);
     await cmd(python(), "-m", "venv", venvPath)
     .then((res) => {
-        if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv")){
-          setVenvStatus(venvInitId, venvStatusEnum.Crash);
-          return;
-        }
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv");
       }
     );
+    if(error) return;
 
     console.info(`Upgrade pip in venv for ${minerFile}`);
     await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip")){
-        setVenvStatus(venvInitId, venvStatusEnum.Crash);
-        return;
-      }
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip");
     });
+    if(error) return;
 
     console.info(`Install wheel before requirements for ${minerFile}`);
     await cmd(pipPath, "install", "wheel")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel")){
-        setVenvStatus(venvInitId, venvStatusEnum.Crash);
-        return;
-      }
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel");
     });
+    if(error) return;
 
     console.info(`Install requirements in venv for ${minerFile}`);
     await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements")){
-        setVenvStatus(venvInitId, venvStatusEnum.Crash);
-        return;
-      }
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements");
     });
+    if(error) return;
 
 
   }
