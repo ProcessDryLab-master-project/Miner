@@ -85,30 +85,38 @@ export async function initSingleVenv(config, configList, venvInitId) {
     console.info(`Create venv for ${minerFile}`);
     await cmd(python(), "-m", "venv", venvPath)
     .then((res) => {
-        if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv"))
+        if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv")){
+          setVenvStatus(venvInitId, venvStatusEnum.Crash);
           return;
+        }
       }
     );
 
     console.info(`Upgrade pip in venv for ${minerFile}`);
     await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip"))
+      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip")){
+        setVenvStatus(venvInitId, venvStatusEnum.Crash);
         return;
+      }
     });
 
     console.info(`Install wheel before requirements for ${minerFile}`);
     await cmd(pipPath, "install", "wheel")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel"))
+      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel")){
+        setVenvStatus(venvInitId, venvStatusEnum.Crash);
         return;
+      }
     });
 
     console.info(`Install requirements in venv for ${minerFile}`);
     await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements"))
+      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements")){
+        setVenvStatus(venvInitId, venvStatusEnum.Crash);
         return;
+      }
     });
 
 
