@@ -173,6 +173,9 @@ Delete the "build" and "dist" folders, and delete the ".spec" file that were cre
 Add a reference to this new .exe in "config.json" along with your other miners. The config object should largely be able to be copied from the original, however, it should have a new ID and the "MinerPath" and "MinerFile" keys should reference the new folder and .exe file name.
 
 ## Docker
+
+This does not fulfill it's intended functionality when all services are running through docker on the same windows machine.
+
 This project supports docker runtime environment, for which you will need to download docker from here: https://www.docker.com/products/docker-desktop/.
 
 For this project, be aware that express listens on a specfic port (can be found in /API/Endpoints), which must be the same port that is used in the docker file. 
