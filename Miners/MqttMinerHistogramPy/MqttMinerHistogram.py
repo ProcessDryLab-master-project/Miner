@@ -11,17 +11,7 @@ import uuid
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 result_folder = './Tmp'
-# Global variables that probably shouldn't be!
-
-global alphabetList, resourceTypeOutput, repositoryOutputPath, streamBroker, client, timeToRun, overwriteId, fileExtension, clientName
-clientName = "Event Miner (Subscriber 1)"
 alphabetList = []
-# Default values.
-fileExtension = "json"
-resourceTypeOutput = "Visualization" # TODO: Only used when sending, which will likely be moved out to wrapper
-repositoryOutputPath = "https://localhost:4000/resources/"
-streamBroker = "mqtt.eclipseprojects.io"
-timeToRun = 30
 prevFile = ""
 
 def eprint(*args, **kwargs):

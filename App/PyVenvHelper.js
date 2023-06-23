@@ -34,6 +34,7 @@ function removeVenvStatus(venvInitId) {
   }
   
   function setVenvStatus(venvInitId, status) {
+    console.log("Setting venv status to: " + status);
     if(venvInitId) venvStatusObj[venvInitId] = status;
   }
   
@@ -77,81 +78,53 @@ export async function initSingleVenv(config, configList, venvInitId) {
   const minerFile = getMinerFile(config);
   const minerExtension = minerFile.split(".").pop();
 
+  setVenvStatus(venvInitId, venvStatusEnum.Running); // This will be called by exe and other types as well
+  removeObjectWithId(configList, config.MinerId);
+  
   if (minerExtension == "py" && !getDirectories(minerPath).includes(venvName)) {
-    // console.log(`Create venv for ${minerFile}, removing ${config.MinerId} from configList until done`);
-    removeObjectWithId(configList, config.MinerId);
-    setVenvStatus(venvInitId, venvStatusEnum.Running);
 
+    let error = false;
     console.info(`Create venv for ${minerFile}`);
     await cmd(python(), "-m", "venv", venvPath)
     .then((res) => {
-        if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv"))
-          return;
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "venv");
       }
     );
+    if(error) return;
 
     console.info(`Upgrade pip in venv for ${minerFile}`);
     await cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip"))
-        return;
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "pip");
     });
+    if(error) return;
 
     console.info(`Install wheel before requirements for ${minerFile}`);
     await cmd(pipPath, "install", "wheel")
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel"))
-        return;
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "wheel");
     });
+    if(error) return;
 
     console.info(`Install requirements in venv for ${minerFile}`);
     await cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
     .then((res) => {
-      if (processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements"))
-        return;
+      error = processExitError(venvInitId, res.code, res.signal, res.pid, minerFile, "requirements");
     });
+    if(error) return;
 
-    
-    // Less clean version of the code above, but more prints and easier to change.
-    // cmd(python(), "-m", "venv", venvPath)
-    // .then(venvRes => {
-    //   if(processExitError(venvRes.code, venvRes.signal, venvRes.pid, minerFile, "venv")) return;
-    //   console.log(`Upgrade pip in venv for ${minerFile}`);
-    //   cmd(pyPath, "-m", "pip", "install", "--upgrade", "pip") // May not need this subprocess. It's just to ensure newest version of pip.
-    //   .then(pipRes => {
-    //     if(processExitError(pipRes.code, pipRes.signal, pipRes.pid, minerFile, "pip")) return;
-    //     console.log(`Install wheel before requirements for ${minerFile}`);
-    //     cmd(pipPath, "install", "wheel")
-    //     .then(wheelRes => {
-    //       if(processExitError(wheelRes.code, wheelRes.signal, wheelRes.pid, minerFile, "wheel")) return;
-    //       console.log(`Install requirements in venv for ${minerFile}`);
-    //       cmd(pipPath, "install", "--no-cache-dir", "-r", requirementsPath)
-    //       .then(reqRes => {
-    //         if(processExitError(reqRes.code, reqRes.signal, reqRes.pid, minerFile, "requirements")) return;
-    //         configList.push(config);
-    //         if(venvInitId) writeConfig(configList); // Only write to config if shadow.
-    //         console.log(`Setup for ${minerFile} is complete.`);
-    //       });
-    //     });
-    //   });
-    // });
 
-    configList.push(config);
-    if (venvInitId) writeConfig(configList);
-
-    setVenvStatus(venvInitId, venvStatusEnum.Complete);
-    console.info(`Setup for ${minerFile} is complete.`);
   }
+
+  configList.push(config);
+  if (venvInitId) writeConfig(configList);
+  setVenvStatus(venvInitId, venvStatusEnum.Complete);
+  console.info(`Setup for ${minerFile} is complete.`);
 }
 
 async function cmd(...command) {
   let p = spawn.spawn(command[0], command.slice(1));
-
   return new Promise((resolveFunc) => {
-    // This will print a lot. May be useful but has been commented to avoid spam.
-    // p.stdout.on("data", (x) => {
-    //   process.stdout.write("stdout: " + x.toString());
-    // });
     p.stderr.on("data", (x) => {
       process.stderr.write("stderr: " + x.toString());
     });
@@ -171,7 +144,6 @@ function processExitError(venvInitId, code, signal, pid, minerFile, processType)
     console.info(`Successfully finished \"${processType}\" process with id \"${pid}\" for \"${minerFile}\".`);
     return false;
   }
-  // If any of the processes are not successful (code 0), then it's a crash.
   setVenvStatus(venvInitId, venvStatusEnum.Crash);
   if (code == 1) {
     console.error(`${processType} process ${pid} crashed with code ${code}`);

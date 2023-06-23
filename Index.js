@@ -1,19 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import {
-  getConfig,
-} from "./App/ConfigUnpacker.js";
-import {
-  cleanupFiles,
-} from "./App/Utils.js";
-import {
-  initAllVenv,
-} from "./App/PyVenvHelper.js";
-// import { swaggerDocument } from './Swagger.js';
+import { getConfig } from "./App/ConfigUnpacker.js";
+import { cleanupFiles } from "./App/Utils.js";
+import { initAllVenv } from "./App/PyVenvHelper.js";
 import { serve, setup } from 'swagger-ui-express';
 import YAML from 'yamljs';
-const swaggerDocument = YAML.load('./swagger.yaml');
+import {verifyConfig} from './App/Validation.js'
+const swaggerDocument = YAML.load('./Swagger.yaml');
 
 const configList = getConfig();
 
@@ -41,30 +35,8 @@ import {
 function startEndPoints() {
   cleanupFiles();
   initAllVenv(configList);
-  if(verifyConfig())
+  if(verifyConfig(configList))
     initEndpoints(app, configList);
 }
 startEndPoints();
-
-// We should not change the config file while running. Only verify that it's ok and stop run if it's not.
-function verifyConfig(){
-  configList.forEach(miner => {
-    if(miner.MinerId == null) {
-      console.error("The key 'MinerId' must be provided in config");
-      return false;
-    }
-  });
-  
-  const lookup = configList.reduce((configList, configElement) => {
-    configList[configElement.MinerId] = ++configList[configElement.MinerId] || 0;
-    return configList;
-  }, {});
-  let duplicateIdObj = configList.filter(configElement => lookup[configElement.MinerId]);
-  if(duplicateIdObj.length > 0){
-    console.error(`Err: Duplicate 'MinerId' found in config.json ${dublicateIdObj}`);
-    return false;
-  }
-
-  return true;
-}
 

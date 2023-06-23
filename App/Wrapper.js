@@ -1,14 +1,9 @@
 import spawn from "child_process";
 import crypto from "crypto";
 import path from "path";
-import {
-  removeFile,
-  appendUrl,
-} from "./Utils.js";
-import {
-  pythonVenvPath,
-  cmdExe,
-} from "./OSHelper.js";
+import { removeFile, appendUrl, validateInput } from "./Utils.js";
+import { pythonVenvPath, cmdExe } from "./OSHelper.js";
+import { getMinerPath, getMinerFile } from "./ConfigUnpacker.js";
 import {
   getBodyAllMetadata,
   getBodySingleMetadata,
@@ -21,10 +16,6 @@ import {
   getBodyOutputTopic,
 } from "./BodyUnpacker.js";
 import {
-  getMinerPath,
-  getMinerFile,
-} from "./ConfigUnpacker.js";
-import {
   statusEnum,
   getProcessStatusObj,
   setProcessStatusObj,
@@ -35,7 +26,8 @@ import {
   getProcessList,
   getProcess,
   setProcess,
-  updateProcessStatus
+  updateProcessStatus,
+  killProcess,
 } from "./ProcessHelper.js";
 import {
   sendResourceToRepo,
@@ -52,10 +44,18 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
     return;
   }
 
-  body["ResultFileId"] = crypto.randomUUID(); // TODO: This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
+  body["ResultFileId"] = crypto.randomUUID(); // This is a unique name the miner could save its result as. It can also be just be created by the miner, it doesn't matter.
   const parents = [];
+
+  const inputValidation = validateInput(body, minerToRun);
+  console.log("inputValidation: " + inputValidation);
+  if(inputValidation){
+    sendProcessId(null, "Resources defined by body does not match config for the miner: " + inputValidation);
+    return;
+  }
+
   const getFilesResponse = await getFilesToMine(body, parents);
-  if(getFilesResponse) { // The function only returns something if things went bad.
+  if(getFilesResponse) { // The function only returns something if things went wrong.
     sendProcessId(null, "Error when retrieving resource from Repository: " + getFilesResponse.data);
     return;
   }
@@ -73,7 +73,6 @@ export async function processStart(sendProcessId, body, ownUrl, config) {
 
   childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId);
 }
-
 
 export function getProcessStatusList() {
   return getProcessList();
@@ -94,37 +93,27 @@ export async function stopProcess(processId) {
   console.log(`Attempting to kill process with ID: ${processId}`);
   if(getProcess(processId)) {
     updateProcessStatus(processId, statusEnum.Complete);
-    spawn.exec(`taskkill /PID ${processId} /F /T`, (error, stdout, stderr) => {
+    spawn.exec(`taskkill /PID ${processId} /F /T`, (stdout) => {
       if(stdout) {
         console.log(stdout);
-        // deleteFromBothDicts(processId); // Removing it here makes sense, however it may cause issues as stream miners won't be able to get resourceId from the dict in onProcessExit.
       }
-      // TODO: Consider deleting these? I've never seen them enter here.
-      // if(error) {
-      //   console.log(error);
-      //   updateProcessStatus(processId, statusEnum.Crash, null, error);
-      // }
-      // if(stderr) {
-      //   console.log(stderr);
-      //   updateProcessStatus(processId, statusEnum.Crash, null, stderr);
-      // }
     });
     return true;   // Process exists and was stopped
   }
   return false;  // Process does not exist, BadRequest 400.
 }
 
-function onProcessExit(body, code, signal, processId, processOutput) {
+function onProcessExit(body, code, signal, processId) {
   console.log(`Child process exited with code: ${code} and signal ${signal}`);
-  deleteFromProcessDict(processId);// Remove only from this dict, not from statusDict
+  deleteFromProcessDict(processId);
   if(getProcessStatus(processId) == statusEnum.Crash) return; // Likely means repository crashed.
   
-  if (hasStreamInput(body)) { // TODO: Verify that only stream miners attempt to set dynamic to false.
+  if (hasStreamInput(body)) { 
     console.log("Only stream miners should have a ResourceId at this stage. Changing resource to no longer be dynamic");
     updateMetadata(body, getProcessResourceId(processId), false);
   }
 
-  if (code == 0) { // Only normal miners should enter here, since stream miners never stop by themselves.
+  if (code == 0) { // Refers to completion exit code only for file miners.
     console.log("Process completed successfully");
   }
   else if (code == 1) { // Code 1 means it either crashed or was stopped manually. Stopping it manually will set status to Complete, meaning this won't be able to set it to Crash
@@ -135,43 +124,35 @@ function onProcessExit(body, code, signal, processId, processOutput) {
       updateProcessStatus(processId, statusEnum.Crash); 
     }
   }
-  else if (signal = "SIGTERM") { // If process is killed in a different way, it would enter here. However, we forcefully terminate processes, meaning it exits with code = 1 instead. Leaving it in case the signal is still useful.
+  else if (signal = "SIGTERM") { // Enters here if a process is killed if a different way (externally from this code, e.g. shutting down the process through the os). Leaving it in case the signal is still useful.
     console.log(`MANUALLY STOPPED PROCESS ${processId} WITH KILL REQUEST`);
     deleteFromBothDicts(processId);
   }
   else console.error("PROCESS CODE INVALID! SHOULD NEVER ENTER HERE. CODE: " + code);
 
-
-  // TODO: Delete? We remove result files after they're sent now instead of here, and it only deletes files that exist.
-  // if(processOutput != "STREAM") { // Shouldn't try to delete output when it's published to a stream
-  //   removeFile(processOutput);            // Deletes miner result file
-  // }
   for(let key in getBodyAllMetadata(body)){ // Deletes all downloaded files from repo
       removeFile(body[key]); // body[key] should hold the path to downloaded resources.
   }
 }
 
 function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, parents, processId) {
-  let resourceId; // Streams will need this to overwrite their output on repository.
+  let resourceId; // Streams needs this to overwrite their output on repository.
   function setResouceId(id) { resourceId = id; } // used in the response handler
+
   let firstSend = true;
   let resend = false;
-  // childProcess.stdout.setEncoding = "utf-8"; // TODO: See if this is needed?
   let processOutput = "";
   childProcess.on('exit', function (code, signal) {
-    onProcessExit(body, code, signal, processId, processOutput);
+    onProcessExit(body, code, signal, processId);
   });
   childProcess.stdout.on("data", (data) => {
     processOutput = data.toString().split('\n')[0].trim(); // Only read first line, and ignore white space characters like \r and \n, since that messes up the path.
     data = null;
-
     let responsePromise;
     if(firstSend) {
       console.log("FirstSend");
       firstSend = false;
-      if(processOutput == "STREAM") { // TODO: Consider if this is the best way to see the type of output.
-        // console.log("IS A STREAM");
-        // body["StreamTopic"] = getBodyOutputTopic(body);
+      if(processOutput == "STREAM") {
         responsePromise = sendMetadata(body, minerToRun, ownUrl, parents)
       }
       else {
@@ -179,7 +160,6 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       }
     }
     else if(resend) {
-      // console.log("Resend");
       resend = false;
       responsePromise = updateResourceOnRepo(body, processOutput, resourceId);
     }
@@ -187,7 +167,11 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
     if(responsePromise) {
       responsePromise
       .then((responseObj) => {
-        console.log(`Sent file to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        console.log(`Sent result to repository with status ${responseObj.status} and response ${responseObj.response}`);
+        if(!responseObj.status) {
+          console.log(`Repository error, killing process ${processId}`)
+          killProcess(processId);
+        }
         sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body);
         removeFile(processOutput);
         resend = true;
@@ -195,10 +179,9 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
       .catch((error) => {
         console.error(`Error with processId ${processId}: ${error}`);
         console.error(error);
-        // TODO: Starting a stream miner and then stopping and starting a repository will mark it as crashed, but won't stop the stream miner. Find out why.
+        killProcess(processId);
         updateProcessStatus(processId, statusEnum.Crash, null, "Error: " + error);
-        if(getProcess(processId)) 
-          getProcess(processId).kill();
+        // getProcess(processId).kill();
       });
     }
   });
@@ -207,7 +190,7 @@ function childProcessRunningHandler(childProcess, ownUrl, body, minerToRun, pare
   });
 }
 
-function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to a helper file
+function startAndGetProcess(minerConfig, wrapperArgs){
   const minerPath = getMinerPath(minerConfig);
   const minerFile = getMinerFile(minerConfig);
   const minerFullPath = path.join(minerPath, minerFile);
@@ -226,7 +209,7 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
       return spawn.spawn(pythonPath, [minerFullPath, wrapperArgs]);
     case "exe":
       console.log("running as exe");
-      return spawn.spawn(cmdExe(), ['/c', minerFullPath, wrapperArgs]); // paths may have to be "\\" instead of "/" for cmd??
+      return spawn.spawn(cmdExe(), ['/c', minerFullPath, wrapperArgs]);
     case "jar":
       console.log("running as jar");
       return spawn.spawn('java', ['-jar', minerFullPath, wrapperArgs]);
@@ -236,10 +219,10 @@ function startAndGetProcess(minerConfig, wrapperArgs){ //TODO: could be moved to
   }
 }
 
-function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){ // TODO: could be moved to a helper file
+function sendOrUpdateResponseHandler(responseObj, processId, setResouceId, body){
   if(responseObj.status) {
     setResouceId(responseObj.response);
-    if(hasStreamInput(body)) {  // Stream miners continue running after sending the first file.
+    if(hasStreamInput(body) || getBodyOutputTopic(body)) {  // Stream miners and publishers continue running after sending the first result.
       updateProcessStatus(processId, statusEnum.Running, responseObj.response);
     }
     else { // Non-stream miners complete and send the file.

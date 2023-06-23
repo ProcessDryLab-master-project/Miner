@@ -18,7 +18,7 @@
       "FileExtension": "pnml",
       "ResourceType": "PetriNet"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "1exe",
@@ -39,7 +39,7 @@
       "FileExtension": "pnml",
       "ResourceType": "PetriNet"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "2",
@@ -130,7 +130,7 @@
       "FileExtension": "bpmn",
       "ResourceType": "ProcessModel"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "3exe",
@@ -151,7 +151,7 @@
       "FileExtension": "bpmn",
       "ResourceType": "ProcessModel"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "4",
@@ -176,7 +176,7 @@
       "FileExtension": "json",
       "ResourceType": "TBR"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "5",
@@ -201,7 +201,7 @@
       "FileExtension": "json",
       "ResourceType": "Alignment"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "6",
@@ -221,7 +221,7 @@
       "FileExtension": "json",
       "ResourceType": "Histogram"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "6exe",
@@ -241,7 +241,7 @@
       "FileExtension": "json",
       "ResourceType": "Histogram"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
   },
   {
     "MinerId": "7",
@@ -260,6 +260,20 @@
     "ResourceOutput": {
       "ResourceType": "EventStream"
     },
-    "MinerParameters":[]
+    "MinerParameters": []
+  },
+  {
+    "MinerId": "8",
+    "MinerLabel": "Alphabet Stream Publisher",
+    "Type": "Miner",
+    "MinerPath": "Miners/MqttPublisher",
+    "MinerFile": "MqttPublisher.py",
+    "Access": "Public",
+    "Shadow": true,
+    "ResourceInput": [],
+    "ResourceOutput": {
+      "ResourceType": "EventStream"
+    },
+    "MinerParameters": []
   }
 ]

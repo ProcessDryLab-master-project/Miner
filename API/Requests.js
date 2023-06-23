@@ -1,8 +1,6 @@
 import axios from "axios";
 import fs from "fs";
 import { appendUrl } from "../App/Utils.js";
-// TODO: Delete this dict and its uses before hand-in
-var numUpdates = {};
 
 export const GetMetadata = async (path, resourceId) => {
   const url = appendUrl([path, resourceId]).toString();
@@ -45,26 +43,8 @@ export const PostMetadata = async (path, data) => {
     });;
   return {data: res.data, status: res.status};
 }
-// TODO: Delete? Don't think it was used
-// export const GetResource = async (path, resourceId) => {
-//   const url = appendUrl([path, resourceId]).toString();
-//   const res = await axios.get(url)
-//     .then((response) => {
-//       return {data: response.data, status: response.status};
-//     })
-//     .catch(error => {
-//       console.error("CATCH: fetch error: ");
-//       console.error(error);
-//       return {data: error.message, status: error.status};
-//     });
-//   return {data: res.data, status: res.status};
-// }
-export const UpdateFile = async (path, resourceId, data) => {
-  // TODO: Delete uses of "numUpdates" below before hand-in. Just to track how many updates it's got.
-  // if(numUpdates[resourceId] == null) numUpdates[resourceId] = 1;
-  // else numUpdates[resourceId] += 1;
-  // console.log(`Num updates for ${resourceId} = ${numUpdates[resourceId]}`);
 
+export const UpdateFile = async (path, resourceId, data) => {
   const url = appendUrl([path, resourceId]).toString();
   const res = await axios.put(url, data)
     .then((response) => {
